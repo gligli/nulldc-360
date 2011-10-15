@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <code-assistance-data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <code-model-enabled>true</code-model-enabled>
+    </code-assistance-data>
+    <data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <activeConfTypeElem>0</activeConfTypeElem>
+        <activeConfIndexElem>0</activeConfIndexElem>
+    </data>
+    <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">
+        <module name="org-netbeans-modules-cnd-discovery">
+            <property name="libraries" value=""/>
+            <property name="find_main" value=""/>
+            <property name="executable" value="C:\X360 Hack\x360dev\ppc\nulldc-360\nulldc-360.elf"/>
+            <property name="rootFolder" value="C:\X360 Hack\x360dev\ppc\nulldc-360*C:\X360 Hack\x360dev\ppc\nulldc-360\files"/>
+        </module>
+    </preferences>
+</project-private>

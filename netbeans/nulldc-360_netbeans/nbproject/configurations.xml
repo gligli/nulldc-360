@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df name="files" root="../../files">
+      <in>compile.bat</in>
+      <in>ps.bin</in>
+      <in>ps.hlsl</in>
+      <in>rshadercompiler.exe</in>
+      <in>vs.bin</in>
+      <in>vs.hlsl</in>
+    </df>
+    <df name="nullDC" root="../../nullDC">
+      <df name="cl">
+        <in>cl.cpp</in>
+        <in>cl.h</in>
+      </df>
+      <df name="config">
+        <in>config.cpp</in>
+        <in>config.h</in>
+      </df>
+      <df name="dc">
+        <df name="aica">
+          <in>aica_if.cpp</in>
+          <in>aica_if.h</in>
+        </df>
+        <df name="asic">
+          <in>asic.cpp</in>
+          <in>asic.h</in>
+        </df>
+        <df name="gdrom">
+          <in>gdrom_if.h</in>
+          <in>gdrom_response.cpp</in>
+          <in>gdromv3.cpp</in>
+          <in>gdromv3.h</in>
+        </df>
+        <df name="maple">
+          <in>maple_if.cpp</in>
+          <in>maple_if.h</in>
+        </df>
+        <df name="mem">
+          <in>Elf.cpp</in>
+          <in>Elf.h</in>
+          <in>_vmem.cpp</in>
+          <in>_vmem.h</in>
+          <in>memutil.cpp</in>
+          <in>memutil.h</in>
+          <in>mmu.cpp</in>
+          <in>mmu.h</in>
+          <in>sb.cpp</in>
+          <in>sb.h</in>
+          <in>sh4_area0.cpp</in>
+          <in>sh4_area0.h</in>
+          <in>sh4_internal_reg.cpp</in>
+          <in>sh4_internal_reg.h</in>
+          <in>sh4_mem.cpp</in>
+          <in>sh4_mem.h</in>
+        </df>
+        <df name="pvr">
+          <in>pvrLock.cpp</in>
+          <in>pvrLock.h</in>
+          <in>pvr_if.cpp</in>
+          <in>pvr_if.h</in>
+          <in>pvr_sb_regs.cpp</in>
+          <in>pvr_sb_regs.h</in>
+        </df>
+        <df name="sh4">
+          <df name="rec_v1">
+            <in>analyser.cpp</in>
+            <in>analyser.h</in>
+            <in>basicblock.cpp</in>
+            <in>basicblock.h</in>
+            <in>blockmanager.cpp</in>
+            <in>blockmanager.h</in>
+            <in>codespan.cpp</in>
+            <in>codespan.h</in>
+            <in>compiledblock.cpp</in>
+            <in>compiledblock.h</in>
+            <in>driver.cpp</in>
+            <in>driver.h</in>
+            <in>ops.h</in>
+            <in>recompiler.h</in>
+            <in>sh4_cpu_shil.cpp</in>
+            <in>sh4_cpu_shil.h</in>
+            <in>sh4_fpu_shil.cpp</in>
+            <in>sh4_fpu_shil.h</in>
+          </df>
+          <df name="shil">
+            <df name="compiler">
+              <in>shil_compiler_base.cpp</in>
+              <in>shil_compiler_base.h</in>
+            </df>
+            <in>shil.cpp</in>
+            <in>shil.h</in>
+            <in>shil_ce.cpp</in>
+            <in>shil_ce.h</in>
+          </df>
+          <in>bsc.cpp</in>
+          <in>bsc.h</in>
+          <in>ccn.cpp</in>
+          <in>ccn.h</in>
+          <in>cpg.cpp</in>
+          <in>cpg.h</in>
+          <in>dmac.cpp</in>
+          <in>dmac.h</in>
+          <in>intc.cpp</in>
+          <in>intc.h</in>
+          <in>intc_types.h</in>
+          <in>rtc.cpp</in>
+          <in>rtc.h</in>
+          <in>sci.cpp</in>
+          <in>sci.h</in>
+          <in>scif.cpp</in>
+          <in>scif.h</in>
+          <in>sh4_cpu.cpp</in>
+          <in>sh4_cpu.h</in>
+          <in>sh4_cpu_arith.h</in>
+          <in>sh4_cpu_branch.h</in>
+          <in>sh4_cpu_branch_rec.h</in>
+          <in>sh4_cpu_loadstore.h</in>
+          <in>sh4_cpu_logic.h</in>
+          <in>sh4_cpu_movs.h</in>
+          <in>sh4_fpu.cpp</in>
+          <in>sh4_fpu.h</in>
+          <in>sh4_if.cpp</in>
+          <in>sh4_if.h</in>
+          <in>sh4_interpreter.cpp</in>
+          <in>sh4_interpreter.h</in>
+          <in>sh4_opcode_list.cpp</in>
+          <in>sh4_opcode_list.h</in>
+          <in>sh4_registers.cpp</in>
+          <in>sh4_registers.h</in>
+          <in>tmu.cpp</in>
+          <in>tmu.h</in>
+          <in>ubc.cpp</in>
+          <in>ubc.h</in>
+        </df>
+        <in>dc.cpp</in>
+        <in>dc.h</in>
+      </df>
+      <df name="gui">
+        <in>base.cpp</in>
+        <in>base.h</in>
+        <in>resource.h</in>
+      </df>
+      <df name="log">
+        <in>logging.cpp</in>
+        <in>logging.h</in>
+        <in>logging_interface.h</in>
+      </df>
+      <df name="naomi">
+        <in>naomi.cpp</in>
+        <in>naomi.h</in>
+        <in>naomi_regs.h</in>
+      </df>
+      <df name="plugins">
+        <in>gui_plugin_header.h</in>
+        <in>plugin_header.h</in>
+        <in>plugin_manager.cpp</in>
+        <in>plugin_manager.h</in>
+        <in>plugin_types.cpp</in>
+        <in>plugin_types.h</in>
+      </df>
+      <df name="profiler">
+        <in>profiler.cpp</in>
+        <in>profiler.h</in>
+      </df>
+      <df name="serial_ipc">
+        <in>serial_ipc_client.cpp</in>
+        <in>serial_ipc_client.h</in>
+      </df>
+      <in>basic_types.h</in>
+      <in>bininc.S</in>
+      <in>debug_mem.cpp</in>
+      <in>fake_pluginsystem.cpp</in>
+      <in>fake_pluginsystem.h</in>
+      <in>nullDC.cpp</in>
+      <in>sh4_reg_playground.h</in>
+      <in>stdclass.cpp</in>
+      <in>stdclass.h</in>
+      <in>types.h</in>
+    </df>
+    <df name="plugins" root="../../plugins">
+      <df name="drkPvr">
+        <in>Renderer_if.cpp</in>
+        <in>Renderer_if.h</in>
+        <in>SPG.cpp</in>
+        <in>TexCache.cpp</in>
+        <in>TexCache.h</in>
+        <in>config.h</in>
+        <in>drkPvr.cpp</in>
+        <in>drkPvr.h</in>
+        <in>helper_classes.cpp</in>
+        <in>helper_classes.h</in>
+        <in>regs.cpp</in>
+        <in>regs.h</in>
+        <in>screencapture.c</in>
+        <in>screencapture.h</in>
+        <in>spg.h</in>
+        <in>ta.cpp</in>
+        <in>ta.h</in>
+        <in>ta_const_df.h</in>
+        <in>ta_structs.h</in>
+        <in>xenosRend.cpp</in>
+        <in>xenosRend.h</in>
+      </df>
+      <df name="EmptyAICA">
+        <in>EmptyAICA.cpp</in>
+        <in>EmptyAICA.h</in>
+        <in>aica_hax.cpp</in>
+        <in>aica_hax.h</in>
+        <in>aica_hle.cpp</in>
+        <in>aica_hle.h</in>
+      </df>
+      <df name="ImgReader">
+        <df name="deps">
+          <in>chd.h</in>
+          <in>chdr.cpp</in>
+          <in>coretypes.h</in>
+          <in>md5.cpp</in>
+          <in>md5.h</in>
+          <in>sha1.cpp</in>
+          <in>sha1.h</in>
+        </df>
+        <in>ImgReader.cpp</in>
+        <in>ImgReader.h</in>
+        <in>SCSIDEFS.H</in>
+        <in>cdi.cpp</in>
+        <in>cdi.h</in>
+        <in>chd.cpp</in>
+        <in>chd.h</in>
+        <in>common.cpp</in>
+        <in>common.h</in>
+        <in>gd_driver.h</in>
+        <in>gdi.cpp</in>
+        <in>gdi.h</in>
+        <in>ioctl.cpp</in>
+        <in>ioctl.h</in>
+        <in>mds.cpp</in>
+        <in>mds.h</in>
+        <in>mds_reader.cpp</in>
+        <in>mds_reader.h</in>
+        <in>resource.h</in>
+      </df>
+      <df name="nullExtDev">
+        <in>bba.cpp</in>
+        <in>bba.h</in>
+        <in>lan.cpp</in>
+        <in>lan.h</in>
+        <in>modem.cpp</in>
+        <in>modem.h</in>
+        <in>nullExtDev.cpp</in>
+        <in>nullExtDev.h</in>
+        <in>rtl8139c.cpp</in>
+        <in>rtl8139c.h</in>
+      </df>
+      <df name="vbaARM">
+        <in>aica.cpp</in>
+        <in>aica.h</in>
+        <in>arm-new.h</in>
+        <in>arm7.cpp</in>
+        <in>arm7.h</in>
+        <in>mem.cpp</in>
+        <in>mem.h</in>
+        <in>resource.h</in>
+        <in>vbaARM.cpp</in>
+        <in>vbaARM.h</in>
+      </df>
+      <df name="xenon_gui">
+        <in>xenon_gui.cpp</in>
+      </df>
+      <df name="XMaple">
+        <in>ArcadeStick.cpp</in>
+        <in>ArcadeStick.h</in>
+        <in>DInputBackend.cpp</in>
+        <in>DInputBackend.h</in>
+        <in>Device.cpp</in>
+        <in>Device.hpp</in>
+        <in>DreameyeMic.cpp</in>
+        <in>DreameyeMic.h</in>
+        <in>FT0.cpp</in>
+        <in>FT0.h</in>
+        <in>FT4.cpp</in>
+        <in>FT4.h</in>
+        <in>FT8.cpp</in>
+        <in>FT8.h</in>
+        <in>MapleInterface.h</in>
+        <in>Maxi.cpp</in>
+        <in>Maxi.h</in>
+        <in>Mic.cpp</in>
+        <in>Mic.h</in>
+        <in>StandardController.cpp</in>
+        <in>StandardController.h</in>
+        <in>Twinstick.cpp</in>
+        <in>Twinstick.h</in>
+        <in>XInputBackend.cpp</in>
+        <in>XInputBackend.h</in>
+        <in>XMaple.cpp</in>
+        <in>XMaple.h</in>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>C:\X360 Hack\x360dev\ppc\nulldc-360\Makefile</itemPath>
+      <itemPath>C:/X360 Hack/x360dev/ppc/nulldc-360/nulldc-360.elf</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>../../files</Elem>
+    <Elem>../../nullDC</Elem>
+    <Elem>../../plugins</Elem>
+  </sourceRootList>
+  <projectmakefile></projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>default</compilerSet>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>C:\X360 Hack\x360dev\ppc\nulldc-360</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath>../../nulldc-360.elf</executablePath>
+          <cTool>
+            <incDir>
+              <pElem>../../build</pElem>
+              <pElem>../../../../../../usr/local/xenon/usr/include</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include</pElem>
+              <pElem>../../../../../../usr/local/xenon/lib/gcc/xenon/4.6.1/include</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include/sys</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/drkPvr</pElem>
+            </incDir>
+          </cTool>
+          <ccTool>
+            <incDir>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/gdrom</pElem>
+              <pElem>../../build</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/xenon_gui</pElem>
+              <pElem>../../../../../../usr/local/xenon/usr/include</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/EmptyAICA</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/mem</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/maple</pElem>
+              <pElem>../../../../../../usr/local/xenon/usr/include/nocfe</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/nullExtDev</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/aica</pElem>
+              <pElem>../../../../../../usr/local/xenon/usr/include/xenos</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1/xenon/32/bits</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/XMaple</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/sh4</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1/bits</pElem>
+              <pElem>../../../../../../usr/local/xenon/usr/include/input</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/vbaARM</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/plugins</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1/ext</pElem>
+              <pElem>../../../../../../usr/local/xenon/lib/gcc/xenon/4.6.1/include</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/ImgReader</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/config</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include/sys</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/drkPvr</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1/debug</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC</pElem>
+              <pElem>../../../../../../usr/local/xenon/usr/include/ppc</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/cl</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/asic</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/pvr</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/gui</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/ImgReader/deps</pElem>
+            </incDir>
+          </ccTool>
+        </makeTool>
+      </makefileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
