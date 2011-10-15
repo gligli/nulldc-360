@@ -41,7 +41,7 @@
 
 #include "md5.h"
 #include "sha1.h"
-#include "zlib/zlib.h"
+#include <zlib.h>
 
 #include <time.h>
 #include <stddef.h>
