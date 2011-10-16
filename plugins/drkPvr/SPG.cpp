@@ -1,5 +1,5 @@
 #include "spg.h"
-#include "renderer_if.h"
+#include "Renderer_if.h"
 #include "regs.h"
 
 //SPG emulation; Scanline/Raster beam registers & interrupts

@@ -91,7 +91,7 @@ void cpu_iWarn(u32 op, char* info)
 #include "sh4_cpu_branch.h"
 #include "sh4_cpu_arith.h"
 #include "sh4_cpu_logic.h"
-#include "dc\mem\mmu.h"
+#include "dc/mem/mmu.h"
 
 //************************ TLB/Cache ************************
 //ldtlb                         

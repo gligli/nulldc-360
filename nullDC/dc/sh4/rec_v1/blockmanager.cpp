@@ -1,9 +1,10 @@
-#include "dc\sh4\sh4_registers.h"
-#include "dc\mem\sh4_mem.h"
+#include "dc/sh4/sh4_registers.h"
+#include "dc/mem/sh4_mem.h"
 #include "blockmanager.h"
 
-#include "windows.h"
 #include "emitter/emitter.h"
+
+#include <ppc/timebase.h>
 
 //block manager : new implementation 
 //ideas :
@@ -86,9 +87,9 @@ public :
 		verify(ItemCount<=size());
 
 		for (size_t i=0;i<ItemCount;i++)
-					verify(_Myfirst[i]!=BLOCK_NONE && _Myfirst[i]->Discarded==false);
+					verify(_M_impl._M_start[i]!=BLOCK_NONE && _M_impl._M_start[i]->Discarded==false);
 		for (size_t i=ItemCount;i<size();i++)
-					verify(_Myfirst[i]==BLOCK_NONE);
+					verify(_M_impl._M_start[i]==BLOCK_NONE);
 	#endif
 	}
 #else
@@ -107,9 +108,9 @@ public :
 		else
 		{
 			#ifdef DEBUG_BLOCKLIST
-			verify(_Myfirst[ItemCount]==BLOCK_NONE);
+			verify(_M_impl._M_start[ItemCount]==BLOCK_NONE);
 			#endif
-			_Myfirst[ItemCount]=block;
+			_M_impl._M_start[ItemCount]=block;
 			ItemCount++;
 			Test();
 			return ItemCount-1;
@@ -123,26 +124,26 @@ public :
 		
 		for (u32 i=0;i<ItemCount;i++)
 		{
-			if (_Myfirst[i]==block)
+			if (_M_impl._M_start[i]==block)
 			{
 				ItemCount--;
 				if (ItemCount==0)
 				{
 					#ifdef DEBUG_BLOCKLIST
-					verify(_Myfirst[0]==block && i==0);
+					verify(_M_impl._M_start[0]==block && i==0);
 					#endif
-					_Myfirst[i]=BLOCK_NONE;
+					_M_impl._M_start[i]=BLOCK_NONE;
 					CheckEmpty();
 				}
 				else if (ItemCount!=i)
 				{
 					#ifdef DEBUG_BLOCKLIST
-					verify(_Myfirst[ItemCount]!=BLOCK_NONE);
+					verify(_M_impl._M_start[ItemCount]!=BLOCK_NONE);
 					verify(ItemCount<size());
 					verify(i<ItemCount);
 					#endif
-					_Myfirst[i]=_Myfirst[ItemCount];
-					_Myfirst[ItemCount]=BLOCK_NONE;
+					_M_impl._M_start[i]=_M_impl._M_start[ItemCount];
+					_M_impl._M_start[ItemCount]=BLOCK_NONE;
 				}
 				else
 				{
@@ -150,7 +151,7 @@ public :
 					verify(ItemCount<size());
 					verify(i==ItemCount);
 					#endif
-					_Myfirst[i]=BLOCK_NONE;
+					_M_impl._M_start[i]=BLOCK_NONE;
 				}
 
 				Test();
@@ -165,11 +166,11 @@ public :
 		Test();
 		for (u32 i=0;i<ItemCount;i++)
 		{
-			if ((_Myfirst[i]->start == address) &&
-				(_Myfirst[i]->cpu_mode_tag == cpu_mode)
+			if ((_M_impl._M_start[i]->start == address) &&
+				(_M_impl._M_start[i]->cpu_mode_tag == cpu_mode)
 				)
 			{
-				return _Myfirst[i];
+				return _M_impl._M_start[i];
 			}
 		}
 		return 0;
@@ -186,7 +187,7 @@ public :
 		for (u32 i=0;i<sz;i++)
 		{
 
-			if (_Myfirst[i]!=BLOCK_NONE)
+			if (_M_impl._M_start[i]!=BLOCK_NONE)
 			{
 				log("BlockList::CheckEmptyList fatal error , ItemCount!=RealItemCount\n");
 				__debugbreak(); 
@@ -207,13 +208,13 @@ public :
 		if (size())
 		{
 			//using a specialised routine is gona be faster .. bah
-			qsort(_Myfirst, ItemCount, sizeof(CompiledBlockInfo*), compare_BlockLookups);
+			qsort(_M_impl._M_start, ItemCount, sizeof(CompiledBlockInfo*), compare_BlockLookups);
 			//sort(begin(), end());
-			/*u32 max=_Myfirst[0]->lookups/100;
+			/*u32 max=_M_impl._M_start[0]->lookups/100;
 			//if (max==0)
 			max++;
 			for (u32 i=0;i<size();i++)
-				_Myfirst[i]->lookups/=max;*/
+				_M_impl._M_start[i]->lookups/=max;*/
 		}
 	}
 
@@ -312,7 +313,7 @@ void RelocateBlocks()
 		{
 			memcpy(dst_start,src,all_block_list[i]->size);
 			all_block_list[i]->Code=(BasicBlockEP*)dst_start;
-			((x86_block_externs*)all_block_list[i]->x86_code_fixups)->Apply(dst_start);
+			((ppc_block_externs*)all_block_list[i]->ppc_code_fixups)->Apply(dst_start);
 		}
 		dst_start+=all_block_list[i]->size;
 	}
@@ -322,9 +323,9 @@ void RelocateBlocks()
 	{
 		all_block_list[i]->Rewrite.Last=0xFF;
 		if (all_block_list[i]->TF_block)
-			all_block_list[i]->pTF_next_addr=all_block_list[i]->TF_block->Code;
+			all_block_list[i]->pTF_next_addr=(void*)all_block_list[i]->TF_block->Code;
 		if (all_block_list[i]->TT_block)
-			all_block_list[i]->pTT_next_addr=all_block_list[i]->TT_block->Code;
+			all_block_list[i]->pTT_next_addr=(void*)all_block_list[i]->TT_block->Code;
 		RewriteBasicBlock(all_block_list[i]);
 	}
 	u32 oldsz=DynarecCacheUsed;
@@ -375,7 +376,7 @@ void ResetBlocks(bool free_too=true)
 	
 	bm_locked_block_count=0;
 	bm_manual_block_count=0;
-	total_compile.QuadPart=0;
+	total_compile=0;
 	CompiledSRCsz=0;
 }
 u32 manbs,lockbs;
@@ -387,8 +388,8 @@ void bm_GetStats(bm_stats* stats)
 	stats->cache_size=DynarecCacheUsed;
 	stats->block_size=CompiledSRCsz;
 	LARGE_INTEGER Freq;
-	QueryPerformanceFrequency(&Freq);
-	stats->CompileTimeMilisecs=total_compile.QuadPart*1000/(Freq.QuadPart/1000);
+	Freq=PPC_TIMEBASE_FREQ;
+	stats->CompileTimeMilisecs=total_compile*1000/(Freq/1000);
 
 	stats->manual_blocks=bm_manual_block_count;
 	stats->manual_block_calls_delta=manbs;manbs=0;
@@ -874,7 +875,7 @@ void init_memalloc(u32 size)
 	DynarecCacheSize=size;
 	DynarecCacheUsed=0;
 
-	DynarecCache = (u8*)VirtualAlloc(0,DynarecCacheSize,MEM_COMMIT | MEM_RESERVE,PAGE_EXECUTE_READWRITE);
+	DynarecCache = (u8*)malloc(DynarecCacheSize);
 	verify(DynarecCache!=0);
 
 	
@@ -882,7 +883,7 @@ void init_memalloc(u32 size)
 void reset_memalloc()
 {
 	DynarecCacheUsed=0;
-	memset(DynarecCache,0x90909090,DynarecCacheSize);
+	memset(DynarecCache,0x60000000,DynarecCacheSize);
 }
 u8 dyna_tempbuffer[1024*1024];
 void* dyna_malloc(u32 size)

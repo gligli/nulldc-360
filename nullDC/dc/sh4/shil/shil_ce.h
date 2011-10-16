@@ -1,8 +1,8 @@
 #pragma once
 #include "types.h"
-#include "dc\sh4\sh4_if.h"
-#include "dc\sh4\sh4_if.h"
-#include "dc\sh4\rec_v1\BasicBlock.h"
+#include "dc/sh4/sh4_if.h"
+#include "dc/sh4/sh4_if.h"
+#include "dc/sh4/rec_v1/basicBlock.h"
 
 struct shil_ce_info_entry
 {

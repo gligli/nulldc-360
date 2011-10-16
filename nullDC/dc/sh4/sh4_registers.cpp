@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "Types.h"
+#include "types.h"
 #include "sh4_registers.h"
 #include "intc.h"
 

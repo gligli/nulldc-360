@@ -418,33 +418,33 @@ void shil_stream::neg(Sh4RegType to)
 	emit32(shilop_neg,to);
 
 }
-void shil_stream::not(Sh4RegType to)
+void shil_stream::__not(Sh4RegType to)
 {
 	emit32(shilop_not,to);
 }
 
 //bitwise ops
-void shil_stream::and(Sh4RegType to,Sh4RegType from)
+void shil_stream::__and(Sh4RegType to,Sh4RegType from)
 {
 	emit32(shilop_and,to,from);
 }
-void shil_stream::and(Sh4RegType to,u32 from)
+void shil_stream::__and(Sh4RegType to,u32 from)
 {
 	emit32(shilop_and,to,from);
 }
-void shil_stream::or(Sh4RegType to,Sh4RegType from)
+void shil_stream::__or(Sh4RegType to,Sh4RegType from)
 {
 	emit32(shilop_or,to,from);
 }
-void shil_stream::or(Sh4RegType to,u32 from)
+void shil_stream::__or(Sh4RegType to,u32 from)
 {
 	emit32(shilop_or,to,from);
 }
-void shil_stream::xor(Sh4RegType to,Sh4RegType from)
+void shil_stream::__xor(Sh4RegType to,Sh4RegType from)
 {
 	emit32(shilop_xor,to,from);
 }
-void shil_stream::xor(Sh4RegType to,u32 from)
+void shil_stream::__xor(Sh4RegType to,u32 from)
 {
 	emit32(shilop_xor,to,from);
 }

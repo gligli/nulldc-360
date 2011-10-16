@@ -1,4 +1,4 @@
-#include "drkpvr.h"
+#include "drkPvr.h"
 #include "helper_classes.h"
 
 u8* buffer_pool[(64*1024*1024)/ChunkSize];

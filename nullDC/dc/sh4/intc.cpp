@@ -3,7 +3,7 @@
 #include "intc.h"
 #include "tmu.h"
 #include "ccn.h"
-#include "sh4_Registers.h"
+#include "sh4_registers.h"
 #include "log/logging_interface.h"
 #include <assert.h>
 

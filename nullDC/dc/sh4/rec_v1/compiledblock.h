@@ -34,7 +34,7 @@ public :
 	//can be avoided
 	bool Discarded;
 
-	void* x86_code_fixups;
+	void* ppc_code_fixups;
 	u32 tbp_ticks;
 
 	//Called to Free :p yeshrly

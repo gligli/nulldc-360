@@ -343,7 +343,7 @@ void _vmem_term()
 {
 	//empty :(
 }
-#include "dc\pvr\pvr_if.h"
+#include "dc/pvr/pvr_if.h"
 #include "sh4_mem.h"
 
 //i'm not sure not defining this works anymore

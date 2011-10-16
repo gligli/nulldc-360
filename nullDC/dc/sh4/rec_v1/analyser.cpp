@@ -2,8 +2,8 @@
 #include "sh4_cpu_shil.h"
 #include "blockmanager.h"
 
-#include "dc\mem\sh4_mem.h"
-#include "dc\sh4\sh4_registers.h"
+#include "dc/mem/sh4_mem.h"
+#include "dc/sh4/sh4_registers.h"
 
 #define CPU_RATIO 1
 #define CPU_BASIC_BLOCK_SIZE (BLOCKLIST_MAX_CYCLES/2)

@@ -2,12 +2,6 @@
 <configurationDescriptor version="79">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df name="files" root="../../files">
-      <in>compile.bat</in>
-      <in>ps.bin</in>
-      <in>ps.hlsl</in>
-      <in>rshadercompiler.exe</in>
-      <in>vs.bin</in>
-      <in>vs.hlsl</in>
     </df>
     <df name="nullDC" root="../../nullDC">
       <df name="cl">
@@ -81,8 +75,6 @@
             <in>recompiler.h</in>
             <in>sh4_cpu_shil.cpp</in>
             <in>sh4_cpu_shil.h</in>
-            <in>sh4_fpu_shil.cpp</in>
-            <in>sh4_fpu_shil.h</in>
           </df>
           <df name="shil">
             <df name="compiler">
@@ -136,6 +128,20 @@
         </df>
         <in>dc.cpp</in>
         <in>dc.h</in>
+      </df>
+      <df name="emitter">
+        <df name="regalloc">
+          <in>ppc_fpregalloc.cpp</in>
+          <in>ppc_fpregalloc.h</in>
+          <in>ppc_intregalloc.cpp</in>
+          <in>ppc_intregalloc.h</in>
+          <in>regalloc.h</in>
+          <in>regalloc_base.h</in>
+        </df>
+        <in>BaseTypes.h</in>
+        <in>PowerPC.h</in>
+        <in>emitter.cpp</in>
+        <in>emitter.h</in>
       </df>
       <df name="gui">
         <in>base.cpp</in>
@@ -302,8 +308,7 @@
                    displayName="Important Files"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
-      <itemPath>C:\X360 Hack\x360dev\ppc\nulldc-360\Makefile</itemPath>
-      <itemPath>C:/X360 Hack/x360dev/ppc/nulldc-360/nulldc-360.elf</itemPath>
+      <itemPath>C:/X360 Hack/x360dev/ppc/nulldc-360/Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>

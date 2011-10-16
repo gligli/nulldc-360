@@ -18,6 +18,7 @@ include $(DEVKITXENON)/rules
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	nullDC nullDC/dc nullDC/dc/aica nullDC/dc/asic nullDC/dc/gdrom nullDC/dc/maple nullDC/dc/mem nullDC/dc/pvr nullDC/dc/sh4 nullDC/plugins nullDC/config nullDC/cl nullDC/gui \
+			nullDC/dc/sh4/rec_v1 nullDC/dc/sh4/shil nullDC/dc/sh4/shil/compiler nulldc/emitter nulldc/emitter/regalloc \
 			plugins/xenon_gui \
 			plugins/drkPvr \
 			plugins/ImgReader plugins/ImgReader/deps \
@@ -26,7 +27,7 @@ SOURCES		:=	nullDC nullDC/dc nullDC/dc/aica nullDC/dc/asic nullDC/dc/gdrom nullD
 			plugins/nullExtDev \
 			plugins/XMaple
 DATA		:=	  
-INCLUDES	:=	files nullDC .
+INCLUDES	:=	files nullDC . nullDC/dc/sh4
 
 #---------------------------------------------------------------------------------
 # options for code generation

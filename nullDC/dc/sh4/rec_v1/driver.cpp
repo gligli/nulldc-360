@@ -1,5 +1,4 @@
 #include "types.h"
-#include <windows.h>
 
 #include "dc/sh4/sh4_interpreter.h"
 #include "dc/sh4/sh4_opcode_list.h"
@@ -21,6 +20,8 @@
 
 #include <time.h>
 #include <float.h>
+
+#include <ppc/timebase.h>
 
 #define CPU_TIMESLICE	(BLOCKLIST_MAX_CYCLES)
 
@@ -54,7 +55,7 @@ CompiledBlockInfo*  __fastcall CompileCode(u32 pc)
 	CompiledBlockInfo* cblock=0;
 	//bool reset_blocks;
 
-	QueryPerformanceCounter(&comp_time_start);
+	comp_time_start=mftb();
 	{
 		nb_count++;
 		//cblock=AnalyseCodeSuperBlock(pc);
@@ -62,8 +63,8 @@ CompiledBlockInfo*  __fastcall CompileCode(u32 pc)
 			cblock=CompileBasicBlock(pc);
 		RegisterBlock(cblock);
 	}
-	QueryPerformanceCounter(&comp_time_end);
-	total_compile.QuadPart+=comp_time_end.QuadPart-comp_time_start.QuadPart;
+	comp_time_end=mftb();
+	total_compile+=comp_time_end-comp_time_start;
 	//compile code
 	//return pointer
 	if (!cblock)
@@ -96,11 +97,12 @@ CompiledBlockInfo* FindOrRecompileBlock(u32 pc)
 
 void naked CompileAndRunCode()
 {
-	__asm 
+	CompileCodePtr()();
+/*	__asm 
 	{
 		call CompileCodePtr;
 		jmp eax;
-	}
+	}*/
 }
 
 void __fastcall rec_sh4_int_RaiseExeption(u32 ExeptionCode,u32 VectorAddress)
@@ -119,6 +121,7 @@ u32 Dynarec_Mainloop_no_update_fast;
 
 void naked DynaMainLoop()
 {
+#if 0 //gli86
 	__asm
 	{
 		//save corrupted regs
@@ -238,6 +241,7 @@ do_update:
 end_of_mainloop:
 		ret;
 	}
+#endif
 }
 
 //interface

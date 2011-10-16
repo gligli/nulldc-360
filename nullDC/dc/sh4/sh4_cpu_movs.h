@@ -218,6 +218,6 @@ sh4op(i1100_0111_iiii_iiii)
 //clrmac                        
 sh4op(i0000_0000_0010_1000)
 {
-	mac.l=0;
-	mac.h=0;
+	mac.l=(u32)0;
+	mac.h=(u32)0;
 }

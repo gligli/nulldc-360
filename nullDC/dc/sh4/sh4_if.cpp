@@ -5,7 +5,7 @@
 #include <assert.h>
 #include "sh4_if.h"
 #include "sh4_interpreter.h"
-#include "rec_v1\driver.h"
+#include "rec_v1/driver.h"
 
 //sh4 exeption saved stack pointer :)
 u32* sh4_exept_ssp;

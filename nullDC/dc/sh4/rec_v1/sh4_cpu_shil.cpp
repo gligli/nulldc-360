@@ -9,7 +9,7 @@
 
 #undef sh4op
 
-//#define SH4_REC
+#define SH4_REC
 
 shil_stream* ilst;
 
@@ -514,7 +514,7 @@ sh4op(i0110_nnnn_mmmm_0111)
 	u32 m = GetM(op);
 
 	ilst->mov(r[n],r[m]);
-	ilst->not(r[n]);
+	ilst->__not(r[n]);
 } 
 
 //************************ shifts/rotates ************************
@@ -1797,29 +1797,29 @@ struct shil_RecRegType
 	//AND
 	void operator&=(const u32 constv)
 	{
-		ilst->and(regid,constv);
+		ilst->__and(regid,constv);
 	};
 	void operator&=(const shil_RecRegType& reg)
 	{
-		ilst->and(regid,reg.regid);
+		ilst->__and(regid,reg.regid);
 	};
 	//OR
 	void operator|=(const u32 constv)
 	{
-		ilst->or(regid,constv);
+		ilst->__or(regid,constv);
 	};
 	void operator|=(const shil_RecRegType& reg)
 	{
-		ilst->or(regid,reg.regid);
+		ilst->__or(regid,reg.regid);
 	};
 	//XOR
 	void operator^=(const u32 constv)
 	{
-		ilst->xor(regid,constv);
+		ilst->__xor(regid,constv);
 	};
 	void operator^=(const shil_RecRegType& reg)
 	{
-		ilst->xor(regid,reg.regid);
+		ilst->__xor(regid,reg.regid);
 	};
 	//SHIFT RIGHT
 	void operator>>=(const u32 constv)
@@ -1932,7 +1932,7 @@ shil_RecRegType shil_rec_r_bank[8];
 shil_RecRegType shil_rec_gbr,shil_rec_ssr,shil_rec_spc,shil_rec_sgr,shil_rec_dbr,shil_rec_vbr;
 shil_RecRegType shil_rec_pr,shil_rec_fpul;
 
-struct 
+struct shil_rec_mac_s
 {
 	shil_RecRegType l;
 	shil_RecRegType h;

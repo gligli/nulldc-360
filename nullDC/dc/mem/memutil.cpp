@@ -6,7 +6,7 @@
 #include "types.h"
 #include "memutil.h"
 #include "sh4_mem.h"
-#include "elf.h"
+#include "Elf.h"
 
 u32 LoadFileToSh4Mem(u32 offset,wchar*file)
 {

@@ -54,7 +54,7 @@ PDTRB_type BSC_PDTRB;
 
 //16 bits
 GPIOIC_type BSC_GPIOIC;
-#include "naomi\naomi.h"
+#include "naomi/naomi.h"
 
 void write_BSC_PCTRA(u32 data)
 {

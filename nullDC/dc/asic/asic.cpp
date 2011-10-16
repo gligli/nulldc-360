@@ -1,9 +1,9 @@
 #include "types.h"
 #include "asic.h"
 
-#include "dc\sh4\intc.h"
-#include "dc\mem\sb.h"
-#include "dc\maple\maple_if.h"
+#include "dc/sh4/intc.h"
+#include "dc/mem/sb.h"
+#include "dc/maple/maple_if.h"
 
 /*
 	asic Interrupt controler

@@ -7,6 +7,7 @@
 
 typedef u32 unat;
 typedef char wchar;
+typedef u64 LARGE_INTEGER;
 
 #define EXPORT
 

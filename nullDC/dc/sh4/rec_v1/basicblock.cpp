@@ -1,10 +1,10 @@
 #include "basicblock.h"
-#include "dc/sh4/shil/Compiler/shil_compiler_base.h"
+#include "dc/sh4/shil/compiler/shil_compiler_base.h"
 #include "dc/mem/sh4_mem.h"
 #include "dc/sh4/sh4_registers.h"
 #include "emitter/emitter.h"
-#include "emitter/regalloc/x86_sseregalloc.h"
-#include <memory.h>
+#include "emitter/regalloc/ppc_fpregalloc.h"
+#include <memory>
 #include "recompiler.h"
 #include "dc/sh4/sh4_interpreter.h"
 #include "dc/sh4/rec_v1/blockmanager.h"
@@ -14,35 +14,35 @@
 
 void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB);
 
-const x86_opcode_class JumpCC[] =
-{
-	op_jo ,//r/m8 = 0F 90 /0
-	op_jno ,//r/m8 = 0F 91 /0
+int JumpCC[][2] = {
+	{PPC_CC_T, PPC_CC_OVR},
+	{PPC_CC_F, PPC_CC_OVR},
 
-	op_jb ,//r/m8 = 0F 92 /0
-	op_jnb ,//r/m8 = 0F 93 /0
+	{PPC_CC_T, PPC_CC_NEG},
+	{PPC_CC_F, PPC_CC_NEG},
 
-	op_je ,//r/m8 = 0F 94 /0
-	op_jne ,//r/m8 = 0F 95 /0
+	{PPC_CC_T, PPC_CC_ZER},
+	{PPC_CC_F, PPC_CC_ZER},
 
-	op_jbe ,//r/m8 = 0F 96 /0
-	op_jnbe ,//r/m8 = 0F 97 /0
+	{PPC_CC_F, PPC_CC_POS},
+	{PPC_CC_T, PPC_CC_POS},
 
-	op_js ,//r/m8 = 0F 98 /0
-	op_jns ,//r/m8 = 0F 99 /0
+	{PPC_CC_A, PPC_CC_NEG}, // fake
+	{PPC_CC_A, PPC_CC_NEG}, // fake
 
-	op_jp ,//r/m8 = 0F 9A /0
-	op_jnp ,//r/m8 = 0F 9B /0
+	{PPC_CC_A, PPC_CC_NEG}, // fake
+	{PPC_CC_A, PPC_CC_NEG}, // fake
 
-	op_jl ,//r/m8 = 0F 9C /0
-	op_jnl ,//r/m8 = 0F 9D /0
+	{PPC_CC_T, PPC_CC_NEG},
+	{PPC_CC_F, PPC_CC_NEG},
 
-	op_jle ,//r/m8 = 0F 9E /0
-	op_jnle ,//r/m8 = 0F 9F /0
+	{PPC_CC_F, PPC_CC_POS},
+	{PPC_CC_T, PPC_CC_POS},
 };
+
 //needed declarations
-void bb_link_compile_inject_TF_stub(CompiledBlockInfo* ptr);
-void bb_link_compile_inject_TT_stub(CompiledBlockInfo* ptr);
+void* bb_link_compile_inject_TF(CompiledBlockInfo* ptr);
+void* bb_link_compile_inject_TT(CompiledBlockInfo* ptr);
 void RewriteBasicBlockCond(CompiledBlockInfo* cBB);
 
 
@@ -96,27 +96,27 @@ void RewriteBasicBlockFixed(CompiledBlockInfo* cBB)
 	if (cBB->Rewrite.Last==flags)
 		return;
 
-	x86_block* x86e = new x86_block();
+	ppc_block* ppce = new ppc_block();
 
-	x86e->Init(dyna_realloc,dyna_finalize);
-	x86e->do_realloc=false;
-	x86e->x86_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	x86e->x86_size=32;
+	ppce->Init(dyna_realloc,dyna_finalize);
+	ppce->do_realloc=false;
+	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
+	ppce->ppc_size=32;
 
 	cBB->Rewrite.Last=flags;
 
 	if  (cBB->TF_block)
 	{
-		x86e->Emit(op_jmp,x86_ptr_imm(cBB->TF_block->Code));
+		ppce->emitLongBranch((void*)cBB->TF_block->Code,0);
 	}
 	else
 	{
-		x86e->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
-		x86e->Emit(op_jmp,x86_ptr_imm(bb_link_compile_inject_TF_stub));
+		ppce->emitLoad32(R3,cBB);
+		ppce->emitLongBranch((void*)bb_link_compile_inject_TF,0);
 	}
-	x86e->Generate();
+	ppce->Generate();
 
-	delete x86e;
+	delete ppce;
 }
 void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 {
@@ -136,44 +136,59 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	if (cBB->Rewrite.Last==flags)
 		return;
 
-	x86_block* x86e = new x86_block();
+	ppc_block* ppce = new ppc_block();
 	
-	x86e->Init(dyna_realloc,dyna_finalize);
-	x86e->do_realloc=false;
-	x86e->x86_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	x86e->x86_size=32;
+	ppce->Init(dyna_realloc,dyna_finalize);
+	ppce->do_realloc=false;
+	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
+	ppce->ppc_size=32;
 
 	cBB->Rewrite.Last=flags;
-	x86_opcode_class jump_op=JumpCC[cBB->Rewrite.RCFlags];
-	x86_opcode_class jump_op_n=JumpCC[cBB->Rewrite.RCFlags^1];
+	int bo=JumpCC[cBB->Rewrite.RCFlags][0];
+	int bi=JumpCC[cBB->Rewrite.RCFlags][1];
+
+	int bo_n=JumpCC[cBB->Rewrite.RCFlags^1][0];
+	int bi_n=JumpCC[cBB->Rewrite.RCFlags^1][1];
 
 	if (flags==1)
 	{
-		x86e->Emit(jump_op,x86_ptr_imm(cBB->TT_block->Code));//jne
-		x86e->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
-		x86e->Emit(op_jmp,x86_ptr_imm(bb_link_compile_inject_TF_stub));
+		
+		EMIT_LIS(ppce,R3,HA((u32)cBB->TT_block->Code));
+		EMIT_ADDI(ppce,R3,R3,(u32)cBB->TT_block->Code);
+		EMIT_MTCTR(ppce,R3);
+		EMIT_BCCTR(ppce,bo,bi,0);
+		ppce->emitLoad32(R3,cBB);
+		ppce->emitLongBranch((void*)bb_link_compile_inject_TF,0);
 	}
 	else if  (flags==2)
 	{
-		x86e->Emit(jump_op_n,x86_ptr_imm(cBB->TF_block->Code));//je
-		x86e->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
-		x86e->Emit(op_jmp,x86_ptr_imm(bb_link_compile_inject_TT_stub));
+		EMIT_LIS(ppce,R3,HA((u32)cBB->TF_block->Code));
+		EMIT_ADDI(ppce,R3,R3,(u32)cBB->TF_block->Code);
+		EMIT_MTCTR(ppce,R3);
+		EMIT_BCCTR(ppce,bo_n,bi_n,0);
+		ppce->emitLoad32(R3,cBB);
+		ppce->emitLongBranch((void*)bb_link_compile_inject_TT,0);
 	}
 	else  if  (flags==3)
 	{
-		x86e->Emit(jump_op_n,x86_ptr_imm(cBB->TF_block->Code));//je
-		x86e->Emit(op_jmp,x86_ptr_imm(cBB->TT_block->Code));
+		EMIT_LIS(ppce,R3,HA((u32)cBB->TF_block->Code));
+		EMIT_ADDI(ppce,R3,R3,(u32)cBB->TF_block->Code);
+		EMIT_MTCTR(ppce,R3);
+		EMIT_BCCTR(ppce,bo_n,bi_n,0);
+		ppce->emitLongBranch((void*)cBB->TT_block->Code,0);
 	}
 	else
 	{
-		//x86e->Emit(op_int3);
-		x86e->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
-		x86e->Emit(jump_op_n,x86_ptr_imm(bb_link_compile_inject_TF_stub));//je
-		x86e->Emit(op_jmp,x86_ptr_imm(bb_link_compile_inject_TT_stub));
+		EMIT_LIS(ppce,R3,HA((u32)bb_link_compile_inject_TF));
+		EMIT_ADDI(ppce,R3,R3,(u32)bb_link_compile_inject_TF);
+		EMIT_MTCTR(ppce,R3);
+		ppce->emitLoad32(R3,cBB);
+		EMIT_BCCTR(ppce,bo_n,bi_n,0);
+		ppce->emitLongBranch((void*)bb_link_compile_inject_TT,0);
 	}
-	x86e->Generate();
+	ppce->Generate();
 
-	delete x86e;
+	delete ppce;
 }
 
 //Compile block and return pointer to it's code
@@ -187,11 +202,11 @@ void* __fastcall bb_link_compile_inject_TF(CompiledBlockInfo* ptr)
 		//Add reference so we can undo the chain later
 		target->AddRef(ptr);
 		ptr->TF_block=target;
-		ptr->pTF_next_addr=target->Code;
+		ptr->pTF_next_addr=(void*)target->Code;
 		if (ptr->Rewrite.Type)
 			RewriteBasicBlock(ptr);
 	}
-	return target->Code;
+	return (void*)target->Code;
 }
 
 void* __fastcall bb_link_compile_inject_TT(CompiledBlockInfo* ptr)
@@ -204,30 +219,22 @@ void* __fastcall bb_link_compile_inject_TT(CompiledBlockInfo* ptr)
 		//Add reference so we can undo the chain later
 		target->AddRef(ptr);
 		ptr->TT_block=target;
-		ptr->pTT_next_addr=target->Code;
+		ptr->pTT_next_addr=(void*)target->Code;
 		if (ptr->Rewrite.Type)
 			RewriteBasicBlock(ptr);
 	}
-	return target->Code;
+	return (void*)target->Code;
 } 
 
 //call link_compile_inject_TF , and jump to code
 void naked bb_link_compile_inject_TF_stub(CompiledBlockInfo* ptr)
 {
-	__asm
-	{
-		call bb_link_compile_inject_TF;
-		jmp eax;
-	}
+	((void(*)())bb_link_compile_inject_TF(ptr))();
 }
 
 void naked bb_link_compile_inject_TT_stub(CompiledBlockInfo* ptr)
 {
-	__asm
-	{
-		call bb_link_compile_inject_TT;
-		jmp eax;
-	}
+	((void(*)())bb_link_compile_inject_TT(ptr))();
 }
 
 u32 ret_cache_hits=0;
@@ -312,35 +319,28 @@ void FASTCALL RewriteBasicBlockGuess_FLUT(CompiledBlockInfo* cBB)
 {
 	verify(cBB->Rewrite.Type==3);
 	//indirect call , rewrite & link , second time(does fast look up)
-	x86_block* x86e = new x86_block();
+	ppc_block* ppce = new ppc_block();
 
 	cBB->Rewrite.RCFlags=2;
-	x86e->Init(dyna_realloc,dyna_finalize);
-	x86e->do_realloc=false;
-	x86e->x86_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	x86e->x86_size=64;
+	ppce->Init(dyna_realloc,dyna_finalize);
+	ppce->do_realloc=false;
+	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
+	ppce->ppc_size=64;
 
+
+	ppce->emitLongBranch(Dynarec_Mainloop_no_update,0);
 	
-	x86e->Emit(op_jmp,x86_ptr_imm(Dynarec_Mainloop_no_update));
-	
-	x86e->Generate();
-	delete x86e;
+	ppce->Generate();
+	delete ppce;
 }
 //can corrupt anything apart esp
 void naked RewriteBasicBlockGuess_FLUT_stub(CompiledBlockInfo* ptr)
 {
-	__asm
-	{
-		/*mov esi,ecx;//store block ptr
-		mov edi,eax;//store pc
-		call RewriteBasicBlockGuess_FLUT;
-		mov eax,edi;//store pc
-
-		jmp Resolve_FLUT;
-		*/
-		call RewriteBasicBlockGuess_FLUT;
-		jmp [Dynarec_Mainloop_no_update];
-	}
+	RewriteBasicBlockGuess_FLUT(ptr);
+	
+	u32 fx = *(u32*)Dynarec_Mainloop_do_update;
+	
+	((void(*)())fx)();
 }
 void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 {
@@ -350,55 +350,56 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 
 	if (cBB->Discarded)
 	{
-		return new_block->Code;
+		return (void*)new_block->Code;
 	}
 	cBB->Rewrite.RCFlags=1;
 	//Add reference so we can undo the chain later
 	new_block->AddRef(cBB);
 	cBB->TF_block=new_block;
 
-	x86_block* x86e = new x86_block();
+	ppc_block* ppce = new ppc_block();
 
-	x86e->Init(dyna_realloc,dyna_finalize);
-	x86e->do_realloc=false;
-	x86e->x86_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	x86e->x86_size=64;
+	ppce->Init(dyna_realloc,dyna_finalize);
+	ppce->do_realloc=false;
+	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
+	ppce->ppc_size=64;
 
 	
 	cBB->TF_block=new_block;
-	x86e->Emit(op_cmp32,EAX,pc);
-	x86e->Emit(op_mov32,ECX,(u32)cBB);
-	x86e->Emit(op_jne,x86_ptr_imm(RewriteBasicBlockGuess_FLUT_stub));
-	x86e->Emit(op_jmp,x86_ptr_imm(new_block->Code));
+	ppce->emitLoadImmediate32(R4,pc);
+	EMIT_CMP(ppce,R3,R4,7);
+	ppce->emitLoad32(R3,cBB);
+	ppce->emitLoadImmediate32(R4,(u32)RewriteBasicBlockGuess_FLUT);
+	EMIT_MTLR(ppce,R4);
+	EMIT_BNELR(ppce,7,0);
+	ppce->emitLongBranch((void*)new_block->Code,0);
 
-	x86e->Generate();
-	delete x86e;
+	ppce->Generate();
+	delete ppce;
 
-	return new_block->Code;
+	return (void*)new_block->Code;
 }
+
 void naked RewriteBasicBlockGuess_TTG_stub(CompiledBlockInfo* ptr)
 {
-	__asm
-	{
-		call RewriteBasicBlockGuess_TTG;
-		jmp eax;
-	}
+	((void(*)())RewriteBasicBlockGuess_TTG(ptr))();
 }
 //default behavior , calls _TTG rewrite
 void FASTCALL RewriteBasicBlockGuess_NULL(CompiledBlockInfo* cBB)
 {
 	verify(cBB->Rewrite.Type==3);
 	cBB->Rewrite.RCFlags=0;
-	x86_block* x86e = new x86_block();
 
-	x86e->Init(dyna_realloc,dyna_finalize);
-	x86e->do_realloc=false;
-	x86e->x86_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	x86e->x86_size=32;
-	x86e->Emit(op_mov32,ECX,(u32)cBB);
-	x86e->Emit(op_jmp,x86_ptr_imm(RewriteBasicBlockGuess_TTG_stub));
-	x86e->Generate();
-	delete x86e;
+	ppc_block* ppce = new ppc_block();
+
+	ppce->Init(dyna_realloc,dyna_finalize);
+	ppce->do_realloc=false;
+	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
+	ppce->ppc_size=32;
+	ppce->emitLoad32(R3,cBB);
+	ppce->emitLongBranch((void*)RewriteBasicBlockGuess_TTG,0);
+	ppce->Generate();
+	delete ppce;
 }
 void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB)
 {
@@ -422,26 +423,27 @@ void naked ret_cache_misscall()
 	__asm jmp [Dynarec_Mainloop_no_update];
 }
 #endif
-void ret_cache_push(CompiledBlockInfo* cBB,x86_block* x86e)
+void ret_cache_push(CompiledBlockInfo* cBB,ppc_block* ppce)
 {
-	//x86e->Emit(op_int3);
-
-	x86e->Emit(op_add32,ESP,8);//add the ptr ;)
-	x86e->Emit(op_and32,ESP,RET_CACHE_PTR_MASK_AND);
+	EMIT_ADDI(ppce,R1,R1,8); //add the ptr ;)
+	ppce->emitLoadImmediate32(R3,RET_CACHE_PTR_MASK_AND);
+	EMIT_AND(ppce,R1,R1,R3);
 
 	//Adress
-	x86e->Emit(op_mov32,x86_mrm(ESP,x86_ptr::create(RET_CACHE_STACK_OFFSET_A)),cBB->TT_next_addr);
+	ppce->emitLoadImmediate32(R3,cBB->TT_next_addr);
+	EMIT_STW(ppce,R3,RET_CACHE_STACK_OFFSET_A,R1);
 	//Block
-	x86e->Emit(op_mov32,x86_mrm(ESP,x86_ptr::create(RET_CACHE_STACK_OFFSET_B)),(u32)(cBB));
+	ppce->emitLoadImmediate32(R4,(u32)cBB);
+	EMIT_STW(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
 }
 bool BasicBlock::Compile()
 {
 	FloatRegAllocator*		fra;
 	IntegerRegAllocator*	ira;
 
-	x86_block* x86e=new x86_block();
+	ppc_block* ppce=new ppc_block();
 	
-	x86e->Init(dyna_realloc,dyna_finalize);
+	ppce->Init(dyna_realloc,dyna_finalize);
 
 	cBB=new CompiledBlockInfo();
 
@@ -449,23 +451,27 @@ bool BasicBlock::Compile()
 
 	/*
 	//that is a realy nice debug helper :)
-	x86e->Emit(op_mov32,&Curr_block,(u32)cBB);
+	ppce->Emit(op_mov32,&Curr_block,(u32)cBB);
 	*/
 
-	x86_Label* block_exit = x86e->CreateLabel(false,0);
+	ppc_Label* block_exit = ppce->CreateLabel(false,0);
 
 	/*
-	x86e->Emit(op_mov32,ECX,(u32)cBB);
-	x86e->Emit(op_call,x86_ptr_imm(CheckBlock));
+	ppce->Emit(op_mov32,ECX,(u32)cBB);
+	ppce->Emit(op_call,ppc_ptr_imm(CheckBlock));
 	*/
 
-	x86e->Emit(op_sub32 ,&rec_cycles,cycles);
-	x86e->Emit(op_js,block_exit);
+	verify(cycles<0x10000);
+	ppce->emitLoad32(R3,&rec_cycles);
+	EMIT_ADDI(ppce,R3,R3,-cycles);
+	EMIT_CMPI(ppce,R3,0,0);
+	ppce->emitStore32(&rec_cycles,R3);
+	ppce->emitBranchConditionalToLabel(block_exit,0,PPC_CC_T,PPC_CC_NEG);
 
 	if (flags.ProtectionType==BLOCK_PROTECTIONTYPE_MANUAL)
 	{
 #ifdef COUNT_BLOCK_LOCKTYPE_USAGE
-		x86e->Emit(op_add32,&manbs,1);
+		ppce->Emit(op_add32,&manbs,1);
 #endif
 		int sz=Size();
 		verify(sz!=0);
@@ -473,21 +479,23 @@ bool BasicBlock::Compile()
 		int i=0;
 		//that can be optimised a lota :p
 		
-		x86_Label* exit_discard_block= x86e->CreateLabel(false,0);
-		x86_Label* execute_block= x86e->CreateLabel(false,8);
+		ppc_Label* exit_discard_block= ppce->CreateLabel(false,0);
+		ppc_Label* execute_block= ppce->CreateLabel(false,8);
 		verify(sz!=0);
 		while(sz>=4)
 		{
 			u32* pmem=(u32*)GetMemPtr(start+i,4);
-			x86e->Emit(op_cmp32 ,pmem,*pmem);
-			
+			ppce->emitLoad32(R3,pmem);
+			ppce->emitLoadImmediate32(R4,*pmem);
+			EMIT_CMP(ppce,R3,R4,0);
+
 			if (sz==4)
 			{
-				x86e->Emit(op_je ,execute_block);
+				ppce->emitBranchConditionalToLabel(execute_block,0,PPC_CC_T,PPC_CC_ZER);
 			}
 			else
 			{
-				x86e->Emit(op_jne ,exit_discard_block);
+				ppce->emitBranchConditionalToLabel(exit_discard_block,0,PPC_CC_F,PPC_CC_ZER);
 			}
 			i+=4;
 			sz-=4;
@@ -496,38 +504,40 @@ bool BasicBlock::Compile()
 		{
 			//die("lol");
 			u16* pmem=(u16*)GetMemPtr(start+i,2);
-			x86e->Emit(op_cmp16 ,pmem,*pmem);
+			EMIT_LI(ppce,R3,(u32)pmem);
+			EMIT_CMPI(ppce,R3,*pmem,0);
 			
-			x86e->Emit(op_je ,execute_block);
+			ppce->emitBranchConditionalToLabel(execute_block,0,PPC_CC_T,PPC_CC_ZER);
 
 			i+=2;
 			sz-=2;
 		}
 		verify(sz==0);
 
-		x86e->MarkLabel(exit_discard_block);
-		x86e->Emit(op_mov32,ECX,(u32)cBB);
-		x86e->Emit(op_mov32,GetRegPtr(reg_pc),start);
-		x86e->Emit(op_call,x86_ptr_imm(SuspendBlock));
-		x86e->Emit(op_jmp,x86_ptr_imm(Dynarec_Mainloop_no_update));
-		x86e->MarkLabel(execute_block);
+		ppce->MarkLabel(exit_discard_block);
+		ppce->emitLoadImmediate32(R3,start);
+		ppce->emitStore32(GetRegPtr(reg_pc),R3);
+		ppce->emitLoad32(R3,cBB);
+		ppce->emitLongBranch((void*)SuspendBlock,1);
+		ppce->emitLongBranch((void*)Dynarec_Mainloop_no_update,0);
+		ppce->MarkLabel(execute_block);
 	}
 #ifdef COUNT_BLOCK_LOCKTYPE_USAGE
 	else
-		x86e->Emit(op_add32,&lockbs,1);
+		ppce->Emit(op_add32,&lockbs,1);
 #endif
 
 	fra=GetFloatAllocator();
 	ira=GetGPRtAllocator();
 	
-	ira->DoAllocation(this,x86e);
-	fra->DoAllocation(this,x86e);
+	ira->DoAllocation(this,ppce);
+	fra->DoAllocation(this,ppce);
 
 	ira->BeforeEmit();
 	fra->BeforeEmit();
 
 	
-	shil_compiler_init(x86e,ira,fra);
+	shil_compiler_init(ppce,ira,fra);
 
 	u32 list_sz=(u32)ilst.opcodes.size();
 	
@@ -577,51 +587,58 @@ compile_normaly:
 	{
 	case BLOCK_EXITTYPE_DYNAMIC_CALL:	//same as below , sets call guess
 		{
-			ret_cache_push(cBB,x86e);
+			ret_cache_push(cBB,ppce);
 		}
 	case BLOCK_EXITTYPE_DYNAMIC:		//not guess 
 		{
 			cBB->Rewrite.Type=3;
 			cBB->Rewrite.RCFlags=0;
-			cBB->Rewrite.Offset=x86e->x86_indx;
-			x86e->Emit(op_mov32,ECX,(u32)cBB);
-			x86e->Emit(op_jmp,x86_ptr_imm(RewriteBasicBlockGuess_TTG_stub));
-			u32 extrasz=26-(x86e->x86_indx-cBB->Rewrite.Offset);
+			cBB->Rewrite.Offset=ppce->ppc_indx;
+			ppce->emitLoad32(R3,cBB);
+			ppce->emitLongBranch((void*)RewriteBasicBlockGuess_TTG,0);
+			u32 extrasz=26-(ppce->ppc_indx-cBB->Rewrite.Offset);
 			for (u32 i=0;i<extrasz;i++)
-				x86e->write8(0xCC);
+				ppce->write8(0xCC);
 		}
 		break;
 	case BLOCK_EXITTYPE_RET:			//guess
 		{
 #ifdef RET_CACHE_PROF
-			x86e->Emit(op_add32,x86_ptr(&ret_cache_total),1);
+			ppce->Emit(op_add32,ppc_ptr(&ret_cache_total),1);
 #endif
 			//cmp pr,guess
 			//call_ret_cache_ptr
-			//x86e->Emit(op_int3);
+			//ppce->Emit(op_int3);
 			
-			//x86e->Emit(op_mov32 ,EAX,GetRegPtr(reg_pc));
-			x86e->Emit(op_cmp32 ,EAX,x86_mrm(ESP,x86_ptr::create(RET_CACHE_STACK_OFFSET_A)));
+			//ppce->Emit(op_mov32 ,EAX,GetRegPtr(reg_pc));
+			EMIT_LWZ(ppce,R4,RET_CACHE_STACK_OFFSET_A,R1);
+			EMIT_CMP(ppce,R3,R4,0);
 			//je ok
 #ifndef RET_CACHE_PROF
-			x86e->Emit(op_jne ,x86_ptr_imm(Dynarec_Mainloop_no_update));
+			ppce->emitLoadImmediate32(R3,(u32)Dynarec_Mainloop_no_update);
+			EMIT_MTCTR(ppce,R3);
+			EMIT_BCCTR(ppce,PPC_CC_F,PPC_CC_ZER,0);
 #else
-			x86e->Emit(op_jne ,x86_ptr_imm(ret_cache_misscall));
+			ppce->Emit(op_jne ,ppc_ptr_imm(ret_cache_misscall));
 #endif
 			//ok:
 			
-			//x86e->Emit(op_int3);
+			//ppce->Emit(op_int3);
 			//Get the block ptr
-			x86e->Emit(op_mov32 ,ECX,x86_mrm(ESP,x86_ptr::create(RET_CACHE_STACK_OFFSET_B)));
-			x86e->Emit(op_sub32 ,ESP,8);//decrease the ptr ;)
-			x86e->Emit(op_and32,ESP,RET_CACHE_PTR_MASK_AND);
-			x86e->Emit(op_or32,ESP,RET_CACHE_PTR_MASK_OR);
+			EMIT_LWZ(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
+			EMIT_ADDI(ppce,R1,R1,-8);
+			ppce->emitLoadImmediate32(R4,RET_CACHE_PTR_MASK_AND);
+			EMIT_AND(ppce,R1,R1,R4);
+			ppce->emitLoadImmediate32(R4,RET_CACHE_PTR_MASK_OR);
+			EMIT_OR(ppce,R1,R1,R4);
 #ifdef RET_CACHE_PROF
-			x86e->Emit(op_add32,x86_ptr(&ret_cache_hits),1);
+			ppce->Emit(op_add32,ppc_ptr(&ret_cache_hits),1);
 #endif
 			
 			//mov eax,[pcall_ret_address+codeoffset]
-			x86e->Emit(op_jmp32,x86_mrm(ECX,x86_ptr::create(offsetof(CompiledBlockInfo,pTT_next_addr))));
+			EMIT_ADDI(ppce,R4,R3,offsetof(CompiledBlockInfo,pTT_next_addr));
+			EMIT_MTCTR(ppce,R4);
+			EMIT_BCTR(ppce);
 		}
 		break;
 	case BLOCK_EXITTYPE_COND:			//linkable
@@ -633,7 +650,8 @@ compile_normaly:
 			
 			if (exit_cond_direct==16)
 			{
-				x86e->Emit(op_cmp32,&T_jcond_value,1);
+				ppce->emitLoad32(R3,&T_jcond_value);
+				EMIT_CMPI(ppce,R3,1,0);
 				exit_cond_direct=CC_E;
 			}
 
@@ -665,18 +683,22 @@ compile_normaly:
 
 			cBB->Rewrite.Type=1;
 			cBB->Rewrite.RCFlags=exit_cond_direct;
-			cBB->Rewrite.Offset=x86e->x86_indx;
+			cBB->Rewrite.Offset=ppce->ppc_indx;
 			
-			
-			x86e->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
-			x86e->Emit(JumpCC[exit_cond_direct],x86_ptr_imm(0));//jne
-			x86e->Emit(op_jmp,x86_ptr_imm(0));
-			x86e->Emit(op_int3);
+			ppce->emitLoad32(R3,cBB);
+			ppce->write32(PPC_NOP);
+			ppce->write32(PPC_NOP);
+			ppce->write32(PPC_NOP);
+/*			
+			ppce->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
+			ppce->Emit(JumpCC[exit_cond_direct],ppc_ptr_imm(0));//jne
+			ppce->Emit(op_jmp,ppc_ptr_imm(0));
+			ppce->Emit(op_int3);*/
 		} 
 		break;
 	case BLOCK_EXITTYPE_FIXED_CALL:		//same as below
 		{
-			ret_cache_push(cBB,x86e);
+			ret_cache_push(cBB,ppce);
 		}
 	case BLOCK_EXITTYPE_FIXED:			//linkable
 		{
@@ -692,25 +714,25 @@ compile_normaly:
 			}
 
 			cBB->Rewrite.Type=2;
-			cBB->Rewrite.Offset=x86e->x86_indx;
+			cBB->Rewrite.Offset=ppce->ppc_indx;
 			//link to next block :
-			x86e->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , cBB
-			x86e->Emit(op_jmp32,x86_ptr((u32*)&(cBB->pTF_next_addr)));	//mov eax , [pTF_next_addr]
+			ppce->emitLoad32(R3,cBB);
+			ppce->emitLongBranch((u32*)&(cBB->pTF_next_addr),0);
 		}
 		break;
 	case BLOCK_EXITTYPE_FIXED_CSC:		//forced lookup , possible state chainge
 		{
-			//x86e->Emit(op_int3);
+			//ppce->Emit(op_int3);
 			//We have to exit , as we gota do mode lookup :)
 			//We also have to reset return cache to ensure its ok -> removed for now
 
 			//call_ret_address=0xFFFFFFFF;
-			//x86e->Emit(op_mov32 ,EBX,&call_ret_cache_ptr);
-			//x86e->Emit(op_mov32,x86_mrm(EBX),0xFFFFFFFF);
+			//ppce->Emit(op_mov32 ,EBX,&call_ret_cache_ptr);
+			//ppce->Emit(op_mov32,ppc_mrm(EBX),0xFFFFFFFF);
 
 			//pcall_ret_address=0;
 			//Good , now return to caller :)
-			x86e->Emit(op_jmp,x86_ptr_imm(Dynarec_Mainloop_no_update));
+			ppce->emitLongBranch((void*)Dynarec_Mainloop_no_update,0);
 		}
 		break;
 	}
@@ -718,32 +740,34 @@ compile_normaly:
 	ira->AfterTrail();
 	fra->AfterTrail();
 
-	x86e->MarkLabel(block_exit);
-	x86e->Emit(op_add32 ,&rec_cycles,cycles);
-	x86e->Emit(op_mov32 ,GetRegPtr(reg_pc),start);
-	x86e->Emit(op_jmp,x86_ptr_imm(Dynarec_Mainloop_do_update));
+	ppce->MarkLabel(block_exit);
 
-	x86e->Emit(op_int3);
+	ppce->emitLoad32(R3,&rec_cycles);
+	EMIT_ADDI(ppce,R3,R3,cycles);
+	ppce->emitStore32(&rec_cycles,R3);
+	ppce->emitLoadImmediate32(R3,start);
+	ppce->emitStore32(GetRegPtr(reg_pc),R3);
+	ppce->emitLongBranch((void*)Dynarec_Mainloop_do_update,0);
 
 	//apply roml patches and generate needed code
-	apply_roml_patches();
+//gli86	apply_roml_patches();
 
-	void* codeptr=x86e->Generate();//NOTE, codeptr can be 0 here </NOTE>
+	void* codeptr=ppce->Generate();//NOTE, codeptr can be 0 here </NOTE>
 	
 	cBB->Code=(BasicBlockEP*)codeptr;
-	cBB->size=x86e->x86_indx;
+	cBB->size=ppce->ppc_indx;
 
 	//make it call the stubs , unless otherwise needed
-	cBB->pTF_next_addr=bb_link_compile_inject_TF_stub;
-	cBB->pTT_next_addr=bb_link_compile_inject_TT_stub;
+	cBB->pTF_next_addr=(void*)bb_link_compile_inject_TF_stub;
+	cBB->pTT_next_addr=(void*)bb_link_compile_inject_TT_stub;
 
-	cBB->x86_code_fixups=x86e->GetExterns();
+	cBB->ppc_code_fixups=ppce->GetExterns();
 
 	delete fra;
 	delete ira;
-	x86e->Free();
-	delete x86e;
-
+	ppce->Free();
+	delete ppce;
+	
 	if (codeptr==0)
 		return false; // didnt manage to generate code
 	//rewrite needs valid codeptr
@@ -802,7 +826,7 @@ void CompiledBlockInfo::ClearBlock(CompiledBlockInfo* block)
 	if (TF_block==block)
 	{
 		TF_block=0;
-		pTF_next_addr=bb_link_compile_inject_TF_stub;
+		pTF_next_addr=(void*)bb_link_compile_inject_TF_stub;
 		if (block_type.exit_type==BLOCK_EXITTYPE_DYNAMIC ||
 			block_type.exit_type==BLOCK_EXITTYPE_DYNAMIC_CALL)
 		{
@@ -816,7 +840,7 @@ void CompiledBlockInfo::ClearBlock(CompiledBlockInfo* block)
 	if (TT_block==block)
 	{
 		TT_block=0;
-		pTT_next_addr=bb_link_compile_inject_TT_stub;
+		pTT_next_addr=(void*)bb_link_compile_inject_TT_stub;
 		if (Rewrite.Type)
 			RewriteBasicBlock(this);
 	}
@@ -864,5 +888,5 @@ void CompiledBlockInfo::Suspend()
 void CompiledBlockInfo::Free()
 {
 		Code=0;	
-		((x86_block_externs*)x86_code_fixups)->Free();
+		((ppc_block_externs*)ppc_code_fixups)->Free();
 }
