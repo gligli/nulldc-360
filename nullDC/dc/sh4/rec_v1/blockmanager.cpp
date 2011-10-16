@@ -536,6 +536,8 @@ CompiledBlockInfo* __fastcall FindBlock_full(u32 address,CompiledBlockInfo* fast
 	return thisblock;
 }
 
+extern "C" { // called from asm
+
 BasicBlockEP* __fastcall FindCode_full(u32 address,CompiledBlockInfo* fastblock);
 //Code lookups
 BasicBlockEP* __fastcall FindCode_fast(u32 address)
@@ -592,6 +594,7 @@ BasicBlockEP* __fastcall FindCode_full(u32 address,CompiledBlockInfo* fastblock)
 	return thisblock->Code;
 }
 
+}
 
 CompiledBlockInfo* bm_ReverseLookup(void* code_ptr)
 {

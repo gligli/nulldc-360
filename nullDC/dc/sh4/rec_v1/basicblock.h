@@ -112,7 +112,10 @@ struct ret_cache_entry
 	CompiledBlockInfo* cBB;
 };
 extern ret_cache_entry* ret_cache_base;
+
+extern "C" { // called from asm
 void ret_cache_reset();
+}
 
 
 #define RET_CACHE_COUNT 32

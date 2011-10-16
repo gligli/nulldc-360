@@ -71,7 +71,7 @@ sh4_if* Get_Sh4Recompiler()
 {
 	sh4_if* rv=(sh4_if*)malloc(sizeof(sh4_if));
 	
-/*gli	rv->Run=rec_Sh4_int_Run;
+	rv->Run=rec_Sh4_int_Run;
 	rv->Stop=rec_Sh4_int_Stop;
 	rv->Step=rec_Sh4_int_Step;
 	rv->Skip=rec_Sh4_int_Skip;
@@ -83,7 +83,7 @@ sh4_if* Get_Sh4Recompiler()
 	rv->SetRegister=Sh4_int_SetRegister;
 	//rv->RaiseInterrupt=RaiseInterrupt_;
 	rv->RaiseExeption=rec_sh4_int_RaiseExeption;
-	rv->ResetCache=rec_sh4_ResetCache;*/
+	rv->ResetCache=rec_sh4_ResetCache;
 	
 	assert(false);
 	

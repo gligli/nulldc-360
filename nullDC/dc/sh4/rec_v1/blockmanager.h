@@ -25,8 +25,10 @@ pginfo GetPageInfo(u32 address);
 #define FindBlock FindBlock_fast
 #define FindCode FindCode_fast
 
+extern "C" { // called from asm
 CompiledBlockInfo* __fastcall FindBlock_fast(u32 address);
 BasicBlockEP* __fastcall FindCode_fast(u32 address);
+}
 
 void RegisterBlock(CompiledBlockInfo* block);
 void UnRegisterBlock(CompiledBlockInfo* block);

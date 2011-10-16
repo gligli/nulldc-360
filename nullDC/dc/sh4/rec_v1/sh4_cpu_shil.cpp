@@ -13,7 +13,11 @@
 
 shil_stream* ilst;
 
-#define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
+#if 0
+    #define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
+#else
+    #define sh4op(str) void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
+#endif
 
 #define GetN(str) ((str>>8) & 0xf)
 #define GetM(str) ((str>>4) & 0xf)

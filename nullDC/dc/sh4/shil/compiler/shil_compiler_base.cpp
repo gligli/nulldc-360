@@ -1046,22 +1046,6 @@ void __fastcall shil_compile_movex(shil_opcode* op)
 		}
 	}
 }
-//shil_ifb opcode
-//calls interpreter to emulate the opcode
-void __fastcall shil_compile_shil_ifb(shil_opcode* op)
-{
-
-	//if opcode needs pc , save it
-	if (OpTyp[op->imm1] !=Normal)
-		SaveReg(reg_pc,op->imm2);
-	
-	ira->FlushRegCache();
-	fra->FlushRegCache();
-	
-	ppce->Emit(op_mov32,ECX,op->imm1);
-	ppce->Emit(op_call,ppc_ptr_imm(OpPtr[op->imm1]));
-}
-
 //shift based
 //swap8/16 reg32
 void __fastcall shil_compile_swap(shil_opcode* op)
@@ -2696,6 +2680,22 @@ void __fastcall shil_compile_nimp(shil_opcode* op)
 	log("*********SHIL \"%s\" not recompiled*********\n",GetShilName((shil_opcodes)op->opcode));
 }
 
+//shil_ifb opcode
+//calls interpreter to emulate the opcode
+void __fastcall shil_compile_shil_ifb(shil_opcode* op)
+{
+
+	//if opcode needs pc , save it
+	if (OpTyp[op->imm1] !=Normal)
+		SaveReg(reg_pc,op->imm2);
+	
+	ira->FlushRegCache();
+	fra->FlushRegCache();
+	
+	ppce->emitLoadImmediate32(R3,op->imm1);
+	ppce->emitLongBranch((void*)OpPtr[op->imm1],1);
+}
+
 //decoding table ;)
 
 shil_compileFP* sclt[shilop_count]=
@@ -2731,6 +2731,7 @@ bool sclt_inited=false;
 void sclt_Init()
 {
 	//
+	SetH(shilop_ifb,shil_compile_shil_ifb);
 /* gli86
 	SetH(shilop_adc,shil_compile_adc);
 	SetH(shilop_add,shil_compile_add);
@@ -2759,7 +2760,6 @@ void sclt_Init()
 	SetH(shilop_sar,shil_compile_sar);
 	SetH(shilop_SaveT,shil_compile_SaveT);
 
-	SetH(shilop_ifb,shil_compile_shil_ifb);
 	SetH(shilop_shl,shil_compile_shl);
 	SetH(shilop_shr,shil_compile_shr);
 	SetH(shilop_sub,shil_compile_sub);

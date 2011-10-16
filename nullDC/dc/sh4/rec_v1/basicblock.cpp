@@ -297,6 +297,9 @@ void CBBs_BlockSuspended(CompiledBlockInfo* block,u32* sp)
 		}
 	}
 }
+
+extern "C" { // called from asm
+
 void ret_cache_reset()
 {
 	if (ret_cache_base==0)
@@ -307,6 +310,9 @@ void ret_cache_reset()
 		ret_cache_base[i].cBB=0;
 	}
 }
+
+}
+
 void __fastcall CheckBlock(CompiledBlockInfo* block)
 {
 	verify(block->cpu_mode_tag==fpscr.PR_SZ);
