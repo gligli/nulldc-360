@@ -13,7 +13,7 @@
 extern struct XenosDevice * xe;
 
 #include "drkPvr.h"
-#include "renderer_if.h"
+#include "Renderer_if.h"
 
 #if REND_API == REND_D3D
 

@@ -1,5 +1,5 @@
 #include "regs.h"
-#include "renderer_if.h"
+#include "Renderer_if.h"
 #include "ta.h"
 #include "spg.h"
 
