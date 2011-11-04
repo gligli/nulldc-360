@@ -85,8 +85,6 @@ sh4_if* Get_Sh4Recompiler()
 	rv->RaiseExeption=rec_sh4_int_RaiseExeption;
 	rv->ResetCache=rec_sh4_ResetCache;
 	
-	assert(false);
-	
 	return rv;
 }
 

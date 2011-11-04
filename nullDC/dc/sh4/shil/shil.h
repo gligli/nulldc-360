@@ -283,7 +283,7 @@ CC_NLE			=0xF,			// greater (ZF=0 and SF=OF)
 CC_G			=CC_NLE 		//
 };
 
-enum x86_flags
+enum shil_flags
 {
 	CF=1,
 	jcond_flag=128
@@ -384,7 +384,7 @@ public :
 	void test(Sh4RegType to,u8 from);
 
 	void SaveT(cmd_cond cond);
-	void LoadT(x86_flags to);
+	void LoadT(shil_flags to);
 
 	//bit shits
 	void dec(Sh4RegType to);

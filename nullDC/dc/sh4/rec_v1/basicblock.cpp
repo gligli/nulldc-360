@@ -41,8 +41,8 @@ int JumpCC[][2] = {
 };
 
 //needed declarations
-void* bb_link_compile_inject_TF(CompiledBlockInfo* ptr);
-void* bb_link_compile_inject_TT(CompiledBlockInfo* ptr);
+void bb_link_compile_inject_TF_stub(CompiledBlockInfo* ptr);
+void bb_link_compile_inject_TT_stub(CompiledBlockInfo* ptr);
 void RewriteBasicBlockCond(CompiledBlockInfo* cBB);
 
 
@@ -101,18 +101,18 @@ void RewriteBasicBlockFixed(CompiledBlockInfo* cBB)
 	ppce->Init(dyna_realloc,dyna_finalize);
 	ppce->do_realloc=false;
 	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	ppce->ppc_size=32;
+	ppce->ppc_size=64;
 
 	cBB->Rewrite.Last=flags;
 
 	if  (cBB->TF_block)
 	{
-		ppce->emitLongBranch((void*)cBB->TF_block->Code,0);
+		ppce->emitBranch((void*)cBB->TF_block->Code,0);
 	}
 	else
 	{
-		ppce->emitLoad32(R3,cBB);
-		ppce->emitLongBranch((void*)bb_link_compile_inject_TF,0);
+		ppce->emitLoadImmediate32(R3,(u32)cBB);
+		ppce->emitBranch((void*)bb_link_compile_inject_TF_stub,0);
 	}
 	ppce->Generate();
 
@@ -141,9 +141,12 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	ppce->Init(dyna_realloc,dyna_finalize);
 	ppce->do_realloc=false;
 	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	ppce->ppc_size=32;
+	ppce->ppc_size=64;
 
 	cBB->Rewrite.Last=flags;
+	
+//	printf("cBB->Rewrite.RCFlags %08x %d\n",cBB->Rewrite.RCFlags,flags);
+	
 	int bo=JumpCC[cBB->Rewrite.RCFlags][0];
 	int bi=JumpCC[cBB->Rewrite.RCFlags][1];
 
@@ -153,38 +156,38 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	if (flags==1)
 	{
 		
-		EMIT_LIS(ppce,R3,HA((u32)cBB->TT_block->Code));
-		EMIT_ADDI(ppce,R3,R3,(u32)cBB->TT_block->Code);
+		EMIT_LIS(ppce,R3,((u32)cBB->TT_block->Code)>>16);
+		EMIT_ORI(ppce,R3,R3,(u32)cBB->TT_block->Code);
 		EMIT_MTCTR(ppce,R3);
 		EMIT_BCCTR(ppce,bo,bi,0);
-		ppce->emitLoad32(R3,cBB);
-		ppce->emitLongBranch((void*)bb_link_compile_inject_TF,0);
+		ppce->emitLoadImmediate32(R3,(u32)cBB);
+		ppce->emitBranch((void*)bb_link_compile_inject_TF_stub,0);
 	}
 	else if  (flags==2)
 	{
-		EMIT_LIS(ppce,R3,HA((u32)cBB->TF_block->Code));
-		EMIT_ADDI(ppce,R3,R3,(u32)cBB->TF_block->Code);
+		EMIT_LIS(ppce,R3,((u32)cBB->TF_block->Code)>>16);
+		EMIT_ORI(ppce,R3,R3,(u32)cBB->TF_block->Code);
 		EMIT_MTCTR(ppce,R3);
 		EMIT_BCCTR(ppce,bo_n,bi_n,0);
-		ppce->emitLoad32(R3,cBB);
-		ppce->emitLongBranch((void*)bb_link_compile_inject_TT,0);
+		ppce->emitLoadImmediate32(R3,(u32)cBB);
+		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	else  if  (flags==3)
 	{
-		EMIT_LIS(ppce,R3,HA((u32)cBB->TF_block->Code));
-		EMIT_ADDI(ppce,R3,R3,(u32)cBB->TF_block->Code);
+		EMIT_LIS(ppce,R3,((u32)cBB->TF_block->Code)>>16);
+		EMIT_ORI(ppce,R3,R3,(u32)cBB->TF_block->Code);
 		EMIT_MTCTR(ppce,R3);
 		EMIT_BCCTR(ppce,bo_n,bi_n,0);
-		ppce->emitLongBranch((void*)cBB->TT_block->Code,0);
+		ppce->emitBranch((void*)cBB->TT_block->Code,0);
 	}
 	else
 	{
-		EMIT_LIS(ppce,R3,HA((u32)bb_link_compile_inject_TF));
-		EMIT_ADDI(ppce,R3,R3,(u32)bb_link_compile_inject_TF);
+		EMIT_LIS(ppce,R3,((u32)bb_link_compile_inject_TF_stub)>>16);
+		EMIT_ORI(ppce,R3,R3,(u32)bb_link_compile_inject_TF_stub);
 		EMIT_MTCTR(ppce,R3);
-		ppce->emitLoad32(R3,cBB);
+		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		EMIT_BCCTR(ppce,bo_n,bi_n,0);
-		ppce->emitLongBranch((void*)bb_link_compile_inject_TT,0);
+		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	ppce->Generate();
 
@@ -227,12 +230,12 @@ void* __fastcall bb_link_compile_inject_TT(CompiledBlockInfo* ptr)
 } 
 
 //call link_compile_inject_TF , and jump to code
-void naked bb_link_compile_inject_TF_stub(CompiledBlockInfo* ptr)
+void bb_link_compile_inject_TF_stub(CompiledBlockInfo* ptr)
 {
 	((void(*)())bb_link_compile_inject_TF(ptr))();
 }
 
-void naked bb_link_compile_inject_TT_stub(CompiledBlockInfo* ptr)
+void bb_link_compile_inject_TT_stub(CompiledBlockInfo* ptr)
 {
 	((void(*)())bb_link_compile_inject_TT(ptr))();
 }
@@ -302,6 +305,7 @@ extern "C" { // called from asm
 
 void ret_cache_reset()
 {
+	printf("ret_cache_base %08x\n",ret_cache_base);
 	if (ret_cache_base==0)
 		return;
 	for (int i=0;i<RET_CACHE_COUNT;i++)
@@ -334,13 +338,13 @@ void FASTCALL RewriteBasicBlockGuess_FLUT(CompiledBlockInfo* cBB)
 	ppce->ppc_size=64;
 
 
-	ppce->emitLongBranch(Dynarec_Mainloop_no_update,0);
+	ppce->emitBranch(Dynarec_Mainloop_no_update,0);
 	
 	ppce->Generate();
 	delete ppce;
 }
 //can corrupt anything apart esp
-void naked RewriteBasicBlockGuess_FLUT_stub(CompiledBlockInfo* ptr)
+void RewriteBasicBlockGuess_FLUT_stub(CompiledBlockInfo* ptr)
 {
 	RewriteBasicBlockGuess_FLUT(ptr);
 	
@@ -374,11 +378,11 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 	cBB->TF_block=new_block;
 	ppce->emitLoadImmediate32(R4,pc);
 	EMIT_CMP(ppce,R3,R4,7);
-	ppce->emitLoad32(R3,cBB);
+	ppce->emitLoadImmediate32(R3,(u32)cBB);
 	ppce->emitLoadImmediate32(R4,(u32)RewriteBasicBlockGuess_FLUT);
 	EMIT_MTLR(ppce,R4);
 	EMIT_BNELR(ppce,7,0);
-	ppce->emitLongBranch((void*)new_block->Code,0);
+	ppce->emitBranch((void*)new_block->Code,0);
 
 	ppce->Generate();
 	delete ppce;
@@ -386,7 +390,7 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 	return (void*)new_block->Code;
 }
 
-void naked RewriteBasicBlockGuess_TTG_stub(CompiledBlockInfo* ptr)
+void RewriteBasicBlockGuess_TTG_stub(CompiledBlockInfo* ptr)
 {
 	((void(*)())RewriteBasicBlockGuess_TTG(ptr))();
 }
@@ -402,8 +406,8 @@ void FASTCALL RewriteBasicBlockGuess_NULL(CompiledBlockInfo* cBB)
 	ppce->do_realloc=false;
 	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
 	ppce->ppc_size=32;
-	ppce->emitLoad32(R3,cBB);
-	ppce->emitLongBranch((void*)RewriteBasicBlockGuess_TTG,0);
+	ppce->emitLoadImmediate32(R3,(u32)cBB);
+	ppce->emitBranch((void*)RewriteBasicBlockGuess_TTG,0);
 	ppce->Generate();
 	delete ppce;
 }
@@ -439,7 +443,7 @@ void ret_cache_push(CompiledBlockInfo* cBB,ppc_block* ppce)
 	ppce->emitLoadImmediate32(R3,cBB->TT_next_addr);
 	EMIT_STW(ppce,R3,RET_CACHE_STACK_OFFSET_A,R1);
 	//Block
-	ppce->emitLoadImmediate32(R4,(u32)cBB);
+	ppce->emitLoadImmediate32(R3,(u32)cBB);
 	EMIT_STW(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
 }
 bool BasicBlock::Compile()
@@ -523,9 +527,9 @@ bool BasicBlock::Compile()
 		ppce->MarkLabel(exit_discard_block);
 		ppce->emitLoadImmediate32(R3,start);
 		ppce->emitStore32(GetRegPtr(reg_pc),R3);
-		ppce->emitLoad32(R3,cBB);
-		ppce->emitLongBranch((void*)SuspendBlock,1);
-		ppce->emitLongBranch((void*)Dynarec_Mainloop_no_update,0);
+		ppce->emitLoadImmediate32(R3,(u32)cBB);
+		ppce->emitBranch((void*)SuspendBlock,1);
+		ppce->emitBranch((void*)Dynarec_Mainloop_no_update,0);
 		ppce->MarkLabel(execute_block);
 	}
 #ifdef COUNT_BLOCK_LOCKTYPE_USAGE
@@ -589,6 +593,7 @@ compile_normaly:
 	cBB->Rewrite.Last=0xFF;
 	cBB->block_type.exit_type=flags.ExitType;
 
+//	printf("flags.ExitType %d\n",flags.ExitType);
 	switch(flags.ExitType)
 	{
 	case BLOCK_EXITTYPE_DYNAMIC_CALL:	//same as below , sets call guess
@@ -600,8 +605,8 @@ compile_normaly:
 			cBB->Rewrite.Type=3;
 			cBB->Rewrite.RCFlags=0;
 			cBB->Rewrite.Offset=ppce->ppc_indx;
-			ppce->emitLoad32(R3,cBB);
-			ppce->emitLongBranch((void*)RewriteBasicBlockGuess_TTG,0);
+			ppce->emitLoadImmediate32(R3,(u32)cBB);
+			ppce->emitBranch((void*)RewriteBasicBlockGuess_TTG,0);
 			u32 extrasz=26-(ppce->ppc_indx-cBB->Rewrite.Offset);
 			for (u32 i=0;i<extrasz;i++)
 				ppce->write8(0xCC);
@@ -691,10 +696,9 @@ compile_normaly:
 			cBB->Rewrite.RCFlags=exit_cond_direct;
 			cBB->Rewrite.Offset=ppce->ppc_indx;
 			
-			ppce->emitLoad32(R3,cBB);
-			ppce->write32(PPC_NOP);
-			ppce->write32(PPC_NOP);
-			ppce->write32(PPC_NOP);
+			/* gli 16 ops max for cond rewrite */
+			for(int i=0;i<16;++i) ppce->write32(PPC_NOP);
+			
 /*			
 			ppce->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
 			ppce->Emit(JumpCC[exit_cond_direct],ppc_ptr_imm(0));//jne
@@ -722,8 +726,8 @@ compile_normaly:
 			cBB->Rewrite.Type=2;
 			cBB->Rewrite.Offset=ppce->ppc_indx;
 			//link to next block :
-			ppce->emitLoad32(R3,cBB);
-			ppce->emitLongBranch((u32*)&(cBB->pTF_next_addr),0);
+			ppce->emitLoadImmediate32(R3,(u32)cBB);
+			ppce->emitBranch((u32*)&(cBB->pTF_next_addr),0);
 		}
 		break;
 	case BLOCK_EXITTYPE_FIXED_CSC:		//forced lookup , possible state chainge
@@ -738,7 +742,7 @@ compile_normaly:
 
 			//pcall_ret_address=0;
 			//Good , now return to caller :)
-			ppce->emitLongBranch((void*)Dynarec_Mainloop_no_update,0);
+			ppce->emitBranch((void*)Dynarec_Mainloop_no_update,0);
 		}
 		break;
 	}
@@ -753,7 +757,7 @@ compile_normaly:
 	ppce->emitStore32(&rec_cycles,R3);
 	ppce->emitLoadImmediate32(R3,start);
 	ppce->emitStore32(GetRegPtr(reg_pc),R3);
-	ppce->emitLongBranch((void*)Dynarec_Mainloop_do_update,0);
+	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,0);
 
 	//apply roml patches and generate needed code
 //gli86	apply_roml_patches();
@@ -820,6 +824,8 @@ CompiledBlockInfo*  __fastcall CompileBasicBlock(u32 pc)
 		rv=0;
 
 	delete block;
+	
+	printf("rec pc %p\n",pc);
 	
 	return rv;
 }

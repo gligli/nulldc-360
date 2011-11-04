@@ -13,11 +13,8 @@
 
 shil_stream* ilst;
 
-#if 0
-    #define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
-#else
-    #define sh4op(str) void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
-#endif
+#define rsh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
+#define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { ilst->shil_ifb(op,pc); }; void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 
 #define GetN(str) ((str>>8) & 0xf)
 #define GetM(str) ((str>>4) & 0xf)
@@ -1428,9 +1425,10 @@ void DoDslot(u32 pc,BasicBlock* bb)
 
 	if (opcode==0 || opcode==0)
 		log("0 on delayslot , ingoring it ..\n");
-	else
+	else{
 		RecOpPtr[opcode](opcode,pc+2,bb);
 		bb->flags.HasDelaySlot=true;
+	}
 }
 
 //braf <REG_N>                  
@@ -1524,7 +1522,7 @@ sh4op(i0000_nnnn_0010_0011)
 
 
 // bf <bdisp8>                   
- sh4op(i1000_1011_iiii_iiii)
+ rsh4op(i1000_1011_iiii_iiii)
 {//ToDo : Check Me [26/4/05]  | Check DELAY SLOT [28/1/06]
 	/*
 	if (sr.T==0)
@@ -1546,7 +1544,7 @@ sh4op(i0000_nnnn_0010_0011)
 
 
 // bf.s <bdisp8>                 
- sh4op(i1000_1111_iiii_iiii)
+ rsh4op(i1000_1111_iiii_iiii)
 {//TODO : Check This [26/4/05] | Check DELAY SLOT [28/1/06]
 	/*
 	if (sr.T==0)
@@ -1574,7 +1572,7 @@ sh4op(i0000_nnnn_0010_0011)
 
 
 // bt <bdisp8>                   
- sh4op(i1000_1001_iiii_iiii)
+ rsh4op(i1000_1001_iiii_iiii)
 {//TODO : Check This [26/4/05]  | Check DELAY SLOT [28/1/06]
 	/*
 	if (sr.T==1)
@@ -1596,7 +1594,7 @@ sh4op(i0000_nnnn_0010_0011)
 
 
 // bt.s <bdisp8>                 
- sh4op(i1000_1101_iiii_iiii)
+ rsh4op(i1000_1101_iiii_iiii)
 {
 	/*
 	if (sr.T == 1)
@@ -2001,9 +1999,9 @@ void shil_DynarecInit()
 #undef iNimp
 #define iNimp(op,info) rec_shil_iNimp(pc,op,info)
 
-#include "dc\sh4\sh4_cpu_arith.h"
-#include "dc\sh4\sh4_cpu_branch.h"
-#include "dc\sh4\sh4_cpu_logic.h"
-#include "dc\sh4\sh4_cpu_movs.h"
-#include "dc\sh4\sh4_cpu_loadstore.h"
+#include "dc/sh4/sh4_cpu_arith.h"
+#include "dc/sh4/sh4_cpu_branch.h"
+#include "dc/sh4/sh4_cpu_logic.h"
+#include "dc/sh4/sh4_cpu_movs.h"
+#include "dc/sh4/sh4_cpu_loadstore.h"
 #endif

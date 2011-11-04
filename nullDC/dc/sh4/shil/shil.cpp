@@ -399,7 +399,7 @@ void shil_stream::SaveT(cmd_cond cond)
 {
 	emit32(shilop_SaveT,(u32)cond);
 }
-void shil_stream::LoadT(x86_flags to)
+void shil_stream::LoadT(shil_flags to)
 {
 	emit32(shilop_LoadT,(u32)to);
 }

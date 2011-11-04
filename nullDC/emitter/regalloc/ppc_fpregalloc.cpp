@@ -188,9 +188,8 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 			{
 				if ((mode & RA_NODATA)==0)
 				{
-					u32 rp = (u32) GetRegPtr(reg);
-					EMIT_LIS(ppce,0,HA(rp));
-					EMIT_LFS(ppce,r1->reg,rp,0);
+					u32 * rp = (u32*) GetRegPtr(reg);
+					ppce->emitLoadFloat(r1->reg,rp);
 					r1->WritenBack=true;//data on reg is same w/ data on mem
 				}
 				else
@@ -215,9 +214,8 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 		else
 		{
 			if ((mode & RA_NODATA)==0){
-				u32 rp = (u32) GetRegPtr(reg);
-				EMIT_LIS(ppce,0,HA(rp));
-				EMIT_LFS(ppce,d_reg,rp,0);
+				u32 * rp = (u32*) GetRegPtr(reg);
+				ppce->emitLoadFloat(d_reg,rp);
 			}
 			return d_reg;
 		}
@@ -239,9 +237,8 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 		}
 		else
 		{
-			u32 rp = (u32) GetRegPtr(reg);
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_STFS(ppce,from,rp,0);
+			u32 * rp = (u32*) GetRegPtr(reg);
+			ppce->emitStoreFloat(rp,from);			
 		}
 	}
 	
@@ -254,18 +251,15 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 			r1->Loaded=true;
 			r1->WritenBack=false;
 	
-			u32 rp = (u32) from;
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_LFS(ppce,r1->reg,rp,0);
+			u32 * rp = (u32*) from;
+			ppce->emitLoadFloat(r1->reg,rp);
 		}
 		else
 		{
-			u32 rp = (u32) from;
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_LFS(ppce,FR0,rp,0);
-			rp = (u32) GetRegPtr(reg);
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_STFS(ppce,FR0,rp,0);
+			u32 * rp = (u32*) from;
+			ppce->emitLoadFloat(FR0,rp);
+			rp = (u32*) GetRegPtr(reg);
+			ppce->emitStoreFloat(rp,FR0);
 		}
 	}
 	//FlushRegister		: write reg to reg location , and reload it on next use that needs reloading
@@ -305,9 +299,8 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 			{
 				if (r1->WritenBack==false)
 				{
-					u32 rp = (u32) GetRegPtr(reg);
-					EMIT_LIS(ppce,0,HA(rp));
-					EMIT_STFS(ppce,r1->reg,rp,0);
+					u32 * rp = (u32*) GetRegPtr(reg);
+					ppce->emitStoreFloat(rp,r1->reg);					
 					r1->WritenBack=true;
 				}
 			}
@@ -327,9 +320,8 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 	{
 		bool ra=IsRegAllocated(to);
 
-		u32 rp = (u32) GetRegPtr(to);
-		EMIT_LIS(ppce,0,HA(rp));
-		EMIT_STW(ppce,from,rp,0);
+		u32 * rp = (u32*) GetRegPtr(to);
+		ppce->emitStore32(rp,from);
 		
 		if (ra) ReloadRegister(to);
 	}
@@ -337,9 +329,8 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 	{
 		if (IsRegAllocated(from)) WriteBackRegister(from);
 		
-		u32 rp = (u32) GetRegPtr(from);
-		EMIT_LIS(ppce,0,HA(rp));
-		EMIT_LWZ(ppce,to,rp,0);
+		u32 * rp = (u32*) GetRegPtr(from);
+		ppce->emitLoad32(to,rp);
 	}
 };
 

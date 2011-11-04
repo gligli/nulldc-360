@@ -20,7 +20,7 @@ struct XenosVertexBuffer *vb;
 
 struct XenosSurface * rtt_texture[2]={0,0};
 u32 rtt_index;
-u32 rtt_address=0;
+u32 rtt_address=-1;
 u32 rtt_FrameNumber=0xFFFFFFFF;
 u32 ppar_BackBufferWidth,ppar_BackBufferHeight;
 
@@ -545,6 +545,7 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 	struct XenosSurface * __fastcall GetTexture(TSP tsp,TCW tcw)
 	{	
 		u32 addr=(tcw.NO_PAL.TexAddr<<3) & VRAM_MASK;
+//		printf("GetTexture %08x %08x %08x\n",tsp.full,tcw.full,addr);
 		if (addr==rtt_address)
 		{
 			rtt_FrameNumber=FrameNumber;
@@ -1069,7 +1070,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 	{
 		addr&=0xF00000;
 		//return;
-		//printf("SetCurrentTARC:0x%X\n",addr);
+//		printf("SetCurrentTARC:0x%X\n",addr);
 		if (addr==tarc.Address)
 			return;//nothing to do realy
 
@@ -1097,7 +1098,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 	{
 		addr&=0xF00000;
 		//return;
-		//printf("SetCurrentPVRRC:0x%X\n",addr);
+//		printf("SetCurrentPVRRC:0x%X\n",addr);
 		if (addr==tarc.Address)
 		{
 			memcpy(&pvrrc,&tarc,sizeof(TA_context));

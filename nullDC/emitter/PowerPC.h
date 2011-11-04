@@ -33,7 +33,7 @@
 #define POWERPC_H
 
 
-#define HA(x) ((x)&0x8000?(x>>16)+1:(x>>16))
+#define HA(x) (((u32)(x))&0x8000?(x>>16)+1:(x>>16))
 
 // type definitions
 typedef unsigned int PowerPC_instr;

@@ -130,6 +130,15 @@
         <in>dc.h</in>
       </df>
       <df name="emitter">
+        <df name="disasm">
+          <in>asm_ppc.c</in>
+          <in>dis-asm.h</in>
+          <in>mybfd.h</in>
+          <in>opintl.h</in>
+          <in>ppc-dis.c</in>
+          <in>ppc-opc.c</in>
+          <in>ppc.h</in>
+        </df>
         <df name="regalloc">
           <in>ppc_fpregalloc.cpp</in>
           <in>ppc_fpregalloc.h</in>
@@ -327,7 +336,7 @@
       <makefileType>
         <makeTool>
           <buildCommandWorkingDir>C:\X360 Hack\x360dev\ppc\nulldc-360</buildCommandWorkingDir>
-          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <buildCommand>${MAKE} -f Makefile run</buildCommand>
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
           <executablePath>../../nulldc-360.elf</executablePath>
           <cTool>

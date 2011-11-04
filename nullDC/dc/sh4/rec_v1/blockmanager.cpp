@@ -42,6 +42,8 @@
 // Average list size : 3.4 blocks
 //
 
+#define DYNA_MEM_POOL_SIZE 32*1024*1024
+
 void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB);
 
 #include <vector>
@@ -832,7 +834,7 @@ void InitBlockManager()
 	BLOCK_NONE->start=0xFFFFFFFF;
 	BLOCK_NONE->cpu_mode_tag=0xFFFFFFFF;
 	BLOCK_NONE->lookups=0;
-	init_memalloc(32*1024*1024);
+	init_memalloc(DYNA_MEM_POOL_SIZE);
 }
 void ResetBlockManager()
 {
@@ -871,6 +873,8 @@ void DumpBlockMappings()
 
 //Memory allocator
 
+u8 __attribute__ ((aligned(128))) dyna_mem_pool[DYNA_MEM_POOL_SIZE];
+
 void init_memalloc(u32 size)
 {
 	log("Dynarec cache : size is %.2fMB\n",size/1024.f/1024.f);
@@ -878,7 +882,9 @@ void init_memalloc(u32 size)
 	DynarecCacheSize=size;
 	DynarecCacheUsed=0;
 
-	DynarecCache = (u8*)malloc(DynarecCacheSize);
+	verify(size<=sizeof(dyna_mem_pool));
+	
+	DynarecCache = dyna_mem_pool;
 	verify(DynarecCache!=0);
 
 	

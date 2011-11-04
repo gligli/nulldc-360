@@ -5,7 +5,7 @@
 */
 
 // sub <REG_M>,<REG_N>           
- sh4op(i0011_nnnn_mmmm_1000)
+ rsh4op(i0011_nnnn_mmmm_1000)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -16,7 +16,7 @@
 }
 
 //add <REG_M>,<REG_N>           
- sh4op(i0011_nnnn_mmmm_1100)
+ rsh4op(i0011_nnnn_mmmm_1100)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -27,7 +27,7 @@
 // 7xxx
 
 //add #<imm>,<REG_N>
- sh4op(i0111_nnnn_iiii_iiii)
+ rsh4op(i0111_nnnn_iiii_iiii)
 {
 	u32 n = GetN(op);
 	s32 stmp1 = GetSImm8(op);

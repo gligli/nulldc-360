@@ -76,10 +76,14 @@ CompiledBlockInfo*  __fastcall CompileCode(u32 pc)
 	
 	return cblock;
 }
+
+extern "C" { // called from asm
 BasicBlockEP* __fastcall CompileCodePtr()
 {
 	return CompileCode(pc)->Code;
 }
+}
+
 INLINE BasicBlockEP * __fastcall GetRecompiledCodePointer(u32 pc)
 {
 	return FindCode(pc);
@@ -97,12 +101,19 @@ CompiledBlockInfo* FindOrRecompileBlock(u32 pc)
 
 void naked CompileAndRunCode()
 {
-	CompileCodePtr()();
-/*	__asm 
+#ifdef XENON
+	asm volatile (
+		"bl CompileCodePtr	\n"
+		"mtctr 3			\n"
+		"bctr				\n"
+	);
+#else
+	__asm 
 	{
 		call CompileCodePtr;
 		jmp eax;
-	}*/
+	}
+#endif
 }
 
 void __fastcall rec_sh4_int_RaiseExeption(u32 ExeptionCode,u32 VectorAddress)
@@ -126,7 +137,7 @@ void naked DynaMainLoop()
 {
 #ifdef XENON
 	asm volatile (
-		"lis 3,old_esp@h						\n"
+		"lis 3,old_esp@ha						\n"
 		"stw 1,old_esp@l(3)						\n"
 
 		//Allocate the ret cache table on stack
@@ -141,7 +152,7 @@ void naked DynaMainLoop()
 		"subi 1,1," xstr(RET_CACHE_SZ*2)		"\n" //<- now we are '10'
 
 		//now store it !
-		"lis 3,ret_cache_base@h					\n"
+		"lis 3,ret_cache_base@ha				\n"
 		"addi 4,1," xstr(RET_CACHE_SZ)			"\n"
 		"stw 4,ret_cache_base@l(3)				\n" //pointer to the table base ;)
 
@@ -149,26 +160,26 @@ void naked DynaMainLoop()
 		"bl ret_cache_reset						\n"
 
 		//misc pointers needed
-		"lis 3,block_stack_pointer@h			\n"
+		"lis 3,block_stack_pointer@ha			\n"
 		"stw 1,block_stack_pointer@l(3)			\n"
 		"lis 4,no_update@h						\n"
-		"addi 4,4,no_update@h					\n"
-		"lis 3,Dynarec_Mainloop_no_update@h		\n"
+		"ori 4,4,no_update@l					\n"
+		"lis 3,Dynarec_Mainloop_no_update@ha	\n"
 		"stw 4,Dynarec_Mainloop_no_update@l(3)	\n"
-		"lis 3,Dynarec_Mainloop_no_update_fast@h		\n"
+		"lis 3,Dynarec_Mainloop_no_update_fast@ha		\n"
 		"stw 4,Dynarec_Mainloop_no_update_fast@l(3)		\n"
 		"lis 4,do_update@h						\n"
-		"addi 4,4,do_update@h					\n"
-		"lis 3,Dynarec_Mainloop_do_update@h		\n"
+		"ori 4,4,do_update@l					\n"
+		"lis 3,Dynarec_Mainloop_do_update@ha	\n"
 		"stw 4,Dynarec_Mainloop_do_update@l(3)	\n"
 		"lis 4,end_of_mainloop@h				\n"
-		"addi 4,4,end_of_mainloop@h				\n"
-		"lis 3,Dynarec_Mainloop_end@h			\n"
+		"ori 4,4,end_of_mainloop@l				\n"
+		"lis 3,Dynarec_Mainloop_end@ha			\n"
 		"stw 4,Dynarec_Mainloop_end@l(3)		\n"
 
 		//Max cycle count :)
 		"li 4," xstr(CPU_TIMESLICE*9/10)		"\n"
-		"lis 3,rec_cycles@h						\n" 
+		"lis 3,rec_cycles@ha					\n" 
 		"stw 4,rec_cycles@l(3)					\n"
 
 		"b no_update							\n"
@@ -196,15 +207,15 @@ void naked DynaMainLoop()
 		fastblock=BlockLookupGuess[GetLookupHash(address)];
 		*/
 		
-		"lis 3,pc@h								\n"
+		"lis 3,pc@ha							\n"
 		"lwz 3,pc@l(3)							\n"
 		"mr 4,3									\n"
 				
 		"andi. 4,4," xstr(LOOKUP_HASH_MASK<<2)	"\n"
 		"lis 5,BlockLookupGuess@h				\n"
-		"addi 5,5,BlockLookupGuess@l			\n"
+		"ori 5,5,BlockLookupGuess@l				\n"
 		"lwzx 4,5,4								\n"
-
+	
 		/*
 		if ((fastblock->start==address) && 
 			(fastblock->cpu_mode_tag ==fpscr.PR_SZ)
@@ -214,7 +225,7 @@ void naked DynaMainLoop()
 			return fastblock->Code;
 		}*/
 		
-		"lis 5,fpscr@h							\n"
+		"lis 5,fpscr@ha							\n"
 		"lwz 5,fpscr@l(5)						\n"
 		"lwz 6,0(4)								\n"
 		"cmp 0,6,3								\n"
@@ -249,7 +260,7 @@ void naked DynaMainLoop()
 "do_update:										\n"
 		//called if update is needed
 		"li 3," xstr(CPU_TIMESLICE)				"\n"
-		"lis 6,rec_cycles@h						\n" 
+		"lis 6,rec_cycles@ha					\n" 
 		"lwz 7,rec_cycles@l(6)					\n"
 		"add 7,7,3								\n"
 		"stw 7,rec_cycles@l(6)					\n"
@@ -257,17 +268,17 @@ void naked DynaMainLoop()
 		"bl UpdateSystem						\n"
 
 		//check for exit
-		"lis 6,rec_sh4_int_bCpuRun@h			\n"
+		"lis 6,rec_sh4_int_bCpuRun@ha			\n"
 		"lwz 6,rec_sh4_int_bCpuRun@l(6)			\n"
 		"cmpwi 6,0								\n"
 		"bne no_update							\n"
 
 		//exit from function
-		"lis 6,old_esp@h						\n"
+		"lis 6,old_esp@ha						\n"
 		"lwz 1,old_esp@l(6)						\n"
 "end_of_mainloop:								\n"
 		"blr									\n"
-	);
+	::: "15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31");
 
 	// ecx 3 edx 4 eax 5
 				

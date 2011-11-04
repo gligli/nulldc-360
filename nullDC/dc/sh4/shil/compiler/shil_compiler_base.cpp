@@ -83,7 +83,7 @@ void c_Ensure32()
 //emit a call to c_Ensure32 
 bool Ensure32()
 {
-	ppce->emitLongBranch((void*)c_Ensure32,1);
+	ppce->emitBranch((void*)c_Ensure32,1);
 	return true;
 }
 
@@ -127,14 +127,23 @@ u32 IsInFReg(u32 reg)
 #define LoadReg_nodata(to,reg) ira->GetRegister(to,reg,RA_NODATA)
 #define SaveReg(reg,from)	ira->SaveRegister(reg,from)
 
-#if 0 //gli86
 
-//intel sugest not to use the ItoM forms for some reason .. speed diference isnt big .. < 1%
+#define EMIT_SET_RDRARB(ppc,rd,ra,rb,inv) {				\
+	if(inv){											\
+		PPC_SET_RD(ppc,ra);PPC_SET_RA(ppc,rd);			\
+	}else{												\
+		PPC_SET_RD(ppc,rd);PPC_SET_RA(ppc,ra);			\
+	}													\
+	PPC_SET_RB(ppc,rb);									\
+	ppce->write32(ppc);									\
+}
+
 
 //Common opcode handling code
 //reg to reg
-void fastcall op_reg_to_reg(shil_opcode* op,ppc_opcode_class op_cl)
+void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
 {
+//	ppce->do_disasm=true;
 	assert(FLAG_32==(op->flags & 3));
 	assert(0==(op->flags & (FLAG_IMM2)));
 	assert(op->flags & FLAG_REG1);
@@ -143,44 +152,55 @@ void fastcall op_reg_to_reg(shil_opcode* op,ppc_opcode_class op_cl)
 		assert(0==(op->flags & FLAG_REG2));
 		if (ira->IsRegAllocated(op->reg1))
 		{
-			ppc_gpr_reg r1 = LoadReg(EAX,op->reg1);
-			assert(r1!=EAX);
-			ppce-> Emit(op_cl,r1,op->imm1);
+			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
+			assert(r1!=R3);
+			ppce->emitLoadImmediate32(R4,op->imm1);
+			EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA);
 			SaveReg(op->reg1,r1);
 		}
 		else
 		{
 			/*ppce-> _ItM_ (GetRegPtr(op->reg1),op->imm1);*/
-			ppce->Emit(op_mov32,EAX,op->imm1);
-			ppce->Emit(op_cl,GetRegPtr(op->reg1),EAX);
+			u32 * ptr = GetRegPtr(op->reg1);
+			ppce->emitLoad32(R4,ptr);
+			ppce->emitLoadImmediate32(R3,op->imm1);
+			EMIT_SET_RDRARB(ppc,R4,R3,R4,invRDRA);
+			ppce->emitStore32(ptr,R4);
 		}
 	}
 	else
 	{
 		assert(op->flags & FLAG_REG2);
-		if (ira->IsRegAllocated(op->reg1))\
+		if (ira->IsRegAllocated(op->reg1))
 		{
-			ppc_gpr_reg r1 = LoadReg(EAX,op->reg1);
-			assert(r1!=EAX);
+			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
+			assert(r1!=R3);
 			if (ira->IsRegAllocated(op->reg2))
 			{
-				ppc_gpr_reg r2 = LoadReg(EAX,op->reg2);
-				assert(r2!=EAX);
-				ppce-> Emit(op_cl,r1,r2);
+				ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
+				assert(r2!=R3);
+				EMIT_SET_RDRARB(ppc,r1,r2,r1,invRDRA);
 			}
 			else
 			{
-				ppce-> Emit(op_cl,r1,GetRegPtr(op->reg2));
+				ppce->emitLoad32(R4,GetRegPtr(op->reg2));
+				EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA);
 			}
 			SaveReg(op->reg1,r1);
 		}
 		else
 		{
-			ppc_gpr_reg r2 = LoadReg(EAX,op->reg2);
-			ppce->Emit(op_cl,GetRegPtr(op->reg1),r2);
+			ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
+
+			u32 * ptr = GetRegPtr(op->reg1);
+			ppce->emitLoad32(R4,ptr);
+			EMIT_SET_RDRARB(ppc,R4,r2,R4,invRDRA);
+			ppce->emitStore32(ptr,R4);
 		}
 	}
 }
+
+#if 0 //gli86
 
 //imm to reg
 void fastcall op_imm_to_reg(shil_opcode* op,ppc_opcode_class op_cl)
@@ -1119,21 +1139,30 @@ void __fastcall shil_compile_not(shil_opcode* op)
 {
 	op_reg(op,op_not32);
 }
+#endif
+
 //xor reg32,reg32/imm32
 void __fastcall shil_compile_xor(shil_opcode* op)
 {
-	op_reg_to_reg(op,op_xor32);
+	PowerPC_instr ppc;
+	GEN_XOR(ppc,0,0,0);
+	op_reg_to_reg(op,ppc,true);
 }
 //or reg32,reg32/imm32
 void __fastcall shil_compile_or(shil_opcode* op)
 {
-	op_reg_to_reg(op,op_or32);
+	PowerPC_instr ppc;
+	GEN_OR(ppc,0,0,0);
+	op_reg_to_reg(op,ppc,true);
 }
 //and reg32,reg32/imm32
 void __fastcall shil_compile_and(shil_opcode* op)
 {
-	op_reg_to_reg(op,op_and32);
+	PowerPC_instr ppc;
+	GEN_AND(ppc,0,0,0);
+	op_reg_to_reg(op,ppc,true);
 }
+#if 0 //gli86
 //readm/writem 
 //Address calculation helpers
 void readwrteparams1(u8 reg1,u32 imm,ppc_reg* fast_nimm)
@@ -1694,56 +1723,6 @@ void apply_roml_patches()
 	}
 	roml_patch_list.clear();
 }
-//save-loadT
-void __fastcall shil_compile_SaveT(shil_opcode* op)
-{
-	assert(op->flags & FLAG_IMM1);//imm1
-	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
-
-	//ppce->Emit(SetCC[op->imm1],ppc_ptr(GetRegPtr(reg_sr_T)));	 -> LOADS slower
-	//strange .. anyway :p
-	if (op->imm1==CC_FPU_E)
-	{
-		//special case
-		//We want to take in account the 'unordered' case on the fpu
-		ppce->Emit(op_lahf);
-		ppce->Emit(op_test8,AH,0x44);
-		ppce->Emit(op_setnp,EAX);
-		//ppce->Emit(op_sete,EAX); old code :)
-	}
-	else
-	{
-		ppce->Emit(SetCC[op->imm1],EAX);
-	}
-
-	//meh , it just LOVES that way more :P
-	ppce->Emit(op_movzx8to32, EAX,EAX);				//zero out rest of eax
-	ppce->Emit(op_mov32,GetRegPtr(reg_sr_T),EAX);
-	
-	//ppce->Emit(op_mov8,GetRegPtr(reg_sr_T),EAX);
-	//ppce->Emit(op_xor32,EAX,EAX);
-
-}
-void __fastcall shil_compile_LoadT(shil_opcode* op)
-{
-	assert(op->flags & FLAG_IMM1);//imm1
-	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
-	
-
-	assert( (op->imm1==ppc_flags::CF) || (op->imm1==ppc_flags::jcond_flag) );
-
-	if (op->imm1==jcond_flag)
-	{
-		LoadReg_force(EAX,reg_sr_T);
-		ppce->Emit(op_mov32,&T_jcond_value,EAX);//T_jcond_value;
-	}
-	else
-	{
-		//LoadReg_force(EAX,reg_sr_T);
-		//ppce->Emit(op_shr32,EAX,1);//heh T bit is there now :P CF
-		ppce->Emit(op_bt32,GetRegPtr(reg_sr_T),0);
-	}
-}
 //cmp-test
 void __fastcall shil_compile_cmp(shil_opcode* op)
 {
@@ -1818,21 +1797,30 @@ void __fastcall shil_compile_test(shil_opcode* op)
 		//eflags is used w/ combination of SaveT
 	}
 }
+#endif
 
 //add-sub
 void __fastcall shil_compile_add(shil_opcode* op)
 {
-	op_reg_to_reg(op,op_add32);
+	PowerPC_instr ppc;
+	GEN_ADD(ppc,0,0,0);
+	op_reg_to_reg(op,ppc,false);
 }
 void __fastcall shil_compile_adc(shil_opcode* op)
 {
-	op_reg_to_reg(op,op_adc32);
+	PowerPC_instr ppc;
+	GEN_ADDC(ppc,0,0,0);
+	op_reg_to_reg(op,ppc,false);
 }
 void __fastcall shil_compile_sub(shil_opcode* op)
 {
-	op_reg_to_reg(op,op_sub32);
+	PowerPC_instr ppc;
+	GEN_SUBF(ppc,0,0,0);
+	op_reg_to_reg(op,ppc,false);
 }
 
+
+#if 0 //gli86
 //left over from older code
 void __fastcall shil_compile_jcond(shil_opcode* op)
 {
@@ -2674,10 +2662,17 @@ void __fastcall shil_compile_fipr(shil_opcode* op)
 }
 #endif
 
+
+extern "C" {
+	void tain(){
+	}
+}
+
 //Default handler , should never be called
 void __fastcall shil_compile_nimp(shil_opcode* op)
 {
-	log("*********SHIL \"%s\" not recompiled*********\n",GetShilName((shil_opcodes)op->opcode));
+	log("*********SHIL \"%s\" not recompiled*********\n\n",GetShilName((shil_opcodes)op->opcode));
+	asm volatile("sc");
 }
 
 //shil_ifb opcode
@@ -2693,7 +2688,63 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	fra->FlushRegCache();
 	
 	ppce->emitLoadImmediate32(R3,op->imm1);
-	ppce->emitLongBranch((void*)OpPtr[op->imm1],1);
+	ppce->emitBranch((void*)OpPtr[op->imm1],1);
+}
+
+
+//save-loadT
+#if 0
+void __fastcall shil_compile_SaveT(shil_opcode* op)
+{
+	assert(op->flags & FLAG_IMM1);//imm1
+	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
+
+	//ppce->Emit(SetCC[op->imm1],ppc_ptr(GetRegPtr(reg_sr_T)));	 -> LOADS slower
+	//strange .. anyway :p
+	if (op->imm1==CC_FPU_E)
+	{
+		//special case
+		//We want to take in account the 'unordered' case on the fpu
+		ppce->Emit(op_lahf);
+		ppce->Emit(op_test8,AH,0x44);
+		ppce->Emit(op_setnp,EAX);
+		//ppce->Emit(op_sete,EAX); old code :)
+	}
+	else
+	{
+		ppce->Emit(SetCC[op->imm1],EAX);
+	}
+
+	//meh , it just LOVES that way more :P
+	ppce->Emit(op_movzx8to32, EAX,EAX);				//zero out rest of eax
+	ppce->Emit(op_mov32,GetRegPtr(reg_sr_T),EAX);
+	
+	//ppce->Emit(op_mov8,GetRegPtr(reg_sr_T),EAX);
+	//ppce->Emit(op_xor32,EAX,EAX);
+
+}
+#endif
+
+void __fastcall shil_compile_LoadT(shil_opcode* op)
+{
+	assert(op->flags & FLAG_IMM1);//imm1
+	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
+	
+
+	assert( (op->imm1==CF) || (op->imm1==jcond_flag) );
+
+	if (op->imm1==jcond_flag)
+	{
+		LoadReg_force(R3,reg_sr_T);
+		ppce->emitStore32(&T_jcond_value,R3);
+	}
+	else
+	{
+		//LoadReg_force(EAX,reg_sr_T);
+		//ppce->Emit(op_shr32,EAX,1);//heh T bit is there now :P CF
+		ppce->emitLoad32(R3,GetRegPtr(reg_sr_T));
+		EMIT_ANDI(ppce,R3,R3,1);
+	}
 }
 
 //decoding table ;)
@@ -2732,10 +2783,14 @@ void sclt_Init()
 {
 	//
 	SetH(shilop_ifb,shil_compile_shil_ifb);
-/* gli86
 	SetH(shilop_adc,shil_compile_adc);
 	SetH(shilop_add,shil_compile_add);
 	SetH(shilop_and,shil_compile_and);
+	SetH(shilop_or,shil_compile_or);
+	SetH(shilop_sub,shil_compile_sub);
+	SetH(shilop_xor,shil_compile_xor);
+	SetH(shilop_LoadT,shil_compile_LoadT);
+/* gli86
 	SetH(shilop_cmp,shil_compile_cmp);
 	SetH(shilop_fabs,shil_compile_fabs);
 	SetH(shilop_fadd,shil_compile_fadd);
@@ -2745,13 +2800,11 @@ void sclt_Init()
 	SetH(shilop_fmul,shil_compile_fmul);
 	SetH(shilop_fneg,shil_compile_fneg);
 	SetH(shilop_fsub,shil_compile_fsub);
-	SetH(shilop_LoadT,shil_compile_LoadT);
 	SetH(shilop_mov,shil_compile_mov);
 	SetH(shilop_movex,shil_compile_movex);
 	SetH(shilop_neg,shil_compile_neg);
 	SetH(shilop_not,shil_compile_not);
 
-	SetH(shilop_or,shil_compile_or);
 	SetH(shilop_rcl,shil_compile_rcl);
 	SetH(shilop_rcr,shil_compile_rcr);
 	SetH(shilop_readm,shil_compile_readm);
@@ -2762,11 +2815,9 @@ void sclt_Init()
 
 	SetH(shilop_shl,shil_compile_shl);
 	SetH(shilop_shr,shil_compile_shr);
-	SetH(shilop_sub,shil_compile_sub);
 	SetH(shilop_swap,shil_compile_swap);
 	SetH(shilop_test,shil_compile_test);
 	SetH(shilop_writem,shil_compile_writem);
-	SetH(shilop_xor,shil_compile_xor);
 	SetH(shilop_jcond,shil_compile_jcond);
 	SetH(shilop_jmp,shil_compile_jmp);
 	SetH(shilop_mul,shil_compile_mul);

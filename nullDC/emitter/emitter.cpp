@@ -1,6 +1,10 @@
 #include "types.h"
 #include "emitter.h"
 
+extern "C"{
+#include <ppc/cache.h>
+}
+
 bool IsS8(u32 value)
 {
 	if (((value&0xFFFFFF80)==0xFFFFFF80) ||
@@ -71,8 +75,41 @@ void* ppc_block::Generate()
 
 		ppc_buff=final_buffer;
 	}
+	
+	/* process branches */
+	u32 i;
+	PowerPC_instr op,newop;
+	u32 opaddr,jmpaddr;
+	for(i=0;i<ppc_indx;i+=4)
+	{
+		opaddr=(u32)&ppc_buff[i];
+		op=*(u32*)&ppc_buff[i];
+
+		jmpaddr=(op&0x03ffffff)-(opaddr&0x7fffffff);
+		
+		if((op&0xfc000000) == 0) // b
+		{
+			//printf("b %08x %08x %08x\n",opaddr,op,jmpaddr);
+			GEN_B(newop,jmpaddr>>2,0,0);
+			*(PowerPC_instr*)opaddr=newop;
+		}
+		else if((op&0xfc000000) == 1<<26) // bl
+		{
+			//printf("bl %08x %08x %08x\n",opaddr,op,jmpaddr);
+			GEN_B(newop,jmpaddr>>2,0,1);
+			*(PowerPC_instr*)opaddr=newop;
+		}
+	}
+		
 	ApplyPatches(ppc_buff);
 
+	memicbi(ppc_buff,ppc_indx);
+	
+	printf("ppc_block::Generate %p %04x %04x\n",ppc_buff,ppc_size,ppc_indx);
+	
+	if (do_disasm) for(u32 i=0;i<ppc_indx;i+=4) disassemble((u32)&ppc_buff[i],*(u32*)&ppc_buff[i]);
+	do_disasm=false;
+	
 	return &ppc_buff[0];
 }
 
@@ -178,7 +215,7 @@ void ppc_block::ApplyPatches(u8* base)
 		u8* dest=(u8*)patches[i].dest;
 
 		u8* code_offset=base+patches[i].offset;
-		u8* diff_offset=code_offset+(patches[i].type&0xF);
+		u8* diff_offset=code_offset;//gli wtf?!? +(patches[i].type&0xF);
 
 		if (patches[i].type&16)
 		{
@@ -207,13 +244,13 @@ void ppc_block::ApplyPatches(u8* base)
 		else if ((patches[i].type&0xF)==5) // 5 is for BC
 		{
 			verify(!(diff&3));
-			verify(diff>0x10000);
-			*(u16*)code_offset|=(u16)diff;
+			verify(diff<0x10000);
+			*(u32*)code_offset|=(u32)diff;
 		}
 		else if ((patches[i].type&0xF)==6) // 6 is for B
 		{
 			verify(!(diff&3));
-			verify(diff>0x4000000);
+			verify(diff<0x4000000);
 			*(u32*)code_offset|=(u32)diff;
 		}
 	}
@@ -223,6 +260,7 @@ ppc_block::ppc_block()
 	_patches=new vector<code_patch>;
 	_labels=new vector<code_patch>;
 	labels.reserve(64);
+	do_disasm=false;
 }
 ppc_block::~ppc_block()
 {
@@ -252,22 +290,23 @@ void ppc_block::ppc_buffer_ensure(u32 size)
 void  ppc_block::write8(u32 value)
 {
 	ppc_buffer_ensure(15);
-	//printf("%02X ",value);
+	printf("ppc_block::write8 %02X\n",value);
 	ppc_buff[ppc_indx]=value;
 	ppc_indx+=1;
 }
 void  ppc_block::write16(u32 value)
 {
 	ppc_buffer_ensure(15);
-	//printf("%04X ",value);
+	printf("ppc_block::write16 %04X\n",value);
 	*(u16*)&ppc_buff[ppc_indx]=value;
 	ppc_indx+=2;
 }
 void  ppc_block::write32(u32 value)
 {
 	ppc_buffer_ensure(15);
-	//printf("%08X ",value);
+	//printf("ppc_block::write32 %08X\n",value);
 	*(u32*)&ppc_buff[ppc_indx]=value;
+	//if (do_disasm) disassemble(ppc_indx,*(u32*)&ppc_buff[ppc_indx]);
 	ppc_indx+=4;
 }
 
@@ -300,13 +339,19 @@ void ppc_block::MarkLabel(ppc_Label* lbl)
 	//lbl->target_opcode=(u32)opcodes.size();
 }
 
-void ppc_block::emitLongBranch(void * addr, int lk)
+void ppc_block::emitBranch(void * addr, int lk)
 {
-	emitMoveRegister(R0,R3);
-	EMIT_LIS(this,R3,HA((u32)addr));
-	EMIT_ADDI(this,R3,R3,(u32)addr);
-	EMIT_MTCTR(this,R3);
-	emitMoveRegister(R3,R0);
+#if 1
+	u32 faa=(u32)addr&0x7fffffff;	
+	u32 aa=faa&0x03ffffff;
+	
+	verify(aa==faa); // 26 bits max
+
+	write32(aa|((lk?1:0)<<26)); // primary opcode 0=b; 1=bl
+#else	
+	EMIT_LIS(this,R15,((u32)addr)>>16);
+	EMIT_ORI(this,R15,R15,(u32)addr);
+	EMIT_MTCTR(this,R15);
 	if (lk)
 	{
 		EMIT_BCTRL(this);
@@ -315,42 +360,55 @@ void ppc_block::emitLongBranch(void * addr, int lk)
 	{
 		EMIT_BCTR(this);
 	}
+#endif	
 }
 
+void ppc_block::emitLoadFloat(ppc_fpr_reg reg, void * addr)
+{
+	EMIT_LIS(this,R15,HA((u32)addr));
+	EMIT_LFS(this,reg,(u32)addr,R15);
+}
+	
 void ppc_block::emitLoad32(ppc_gpr_reg reg, void * addr)
 {
-	EMIT_LIS(this,0,HA((u32)addr));
-	EMIT_LWZ(this,reg,(u32)addr,0);
+	EMIT_LIS(this,R15,HA((u32)addr));
+	EMIT_LWZ(this,reg,(u32)addr,R15);
 }
 
 void ppc_block::emitLoad16(ppc_gpr_reg reg, void * addr)
 {
-	EMIT_LIS(this,0,HA((u32)addr));
-	EMIT_LHZ(this,reg,(u32)addr,0);
+	EMIT_LIS(this,R15,HA((u32)addr));
+	EMIT_LHZ(this,reg,(u32)addr,R15);
 }
 
 void ppc_block::emitLoad8(ppc_gpr_reg reg, void * addr)
 {
-	EMIT_LIS(this,0,HA((u32)addr));
-	EMIT_LBZ(this,reg,(u32)addr,0);
+	EMIT_LIS(this,R15,HA((u32)addr));
+	EMIT_LBZ(this,reg,(u32)addr,R15);
+}
+
+void ppc_block::emitStoreFloat(void * addr, ppc_fpr_reg reg)
+{
+	EMIT_LIS(this,R15,HA((u32)addr));
+	EMIT_STFS(this,reg,(u32)addr,R15);
 }
 
 void ppc_block::emitStore32(void * addr, ppc_gpr_reg reg)
 {
-	EMIT_LIS(this,0,HA((u32)addr));
-	EMIT_STW(this,reg,(u32)addr,0);
+	EMIT_LIS(this,R15,HA((u32)addr));
+	EMIT_STW(this,reg,(u32)addr,R15);
 }
 
 void ppc_block::emitStore16(void * addr, ppc_gpr_reg reg)
 {
-	EMIT_LIS(this,0,HA((u32)addr));
-	EMIT_STH(this,reg,(u32)addr,0);
+	EMIT_LIS(this,R15,HA((u32)addr));
+	EMIT_STH(this,reg,(u32)addr,R15);
 }
 
 void ppc_block::emitStore8(void * addr, ppc_gpr_reg reg)
 {
-	EMIT_LIS(this,0,HA((u32)addr));
-	EMIT_STB(this,reg,(u32)addr,0);
+	EMIT_LIS(this,R15,HA((u32)addr));
+	EMIT_STB(this,reg,(u32)addr,R15);
 }
 
 void ppc_block::emitMoveRegister(ppc_gpr_reg to,ppc_gpr_reg from)
@@ -360,8 +418,15 @@ void ppc_block::emitMoveRegister(ppc_gpr_reg to,ppc_gpr_reg from)
 
 void ppc_block::emitLoadImmediate32(ppc_gpr_reg reg, u32 val)
 {
-	EMIT_LIS(this,reg,HA(val));
-	EMIT_ADDI(this,reg,reg,val);
+	if(val&0xffff0000)
+	{
+		EMIT_LIS(this,reg,val>>16);
+		if (val&0xffff) EMIT_ORI(this,reg,reg,val);
+	}
+	else
+	{
+		EMIT_LI(this,reg,val);
+	}
 }
 
 void ppc_block::emitBranchConditionalToLabel(ppc_Label * lab,int lk,int bo,int bi)
@@ -370,7 +435,7 @@ void ppc_block::emitBranchConditionalToLabel(ppc_Label * lab,int lk,int bo,int b
 	
 	cp.type=5|16;
 	cp.lbl=lab;
-	cp.offset=ppc_indx+2; // lower half of next op
+	cp.offset=ppc_indx; // next op
 	patches.push_back(cp);	
 	
 	EMIT_BC(this,0,0,lk,bo,bi);
@@ -384,6 +449,28 @@ void ppc_block::emitBranchToLabel(ppc_Label * lab,int lk)
 	cp.lbl=lab;
 	cp.offset=ppc_indx; // next op
 	patches.push_back(cp);	
-	
+
 	EMIT_B(this,0,0,lk);
+}
+
+extern "C" {
+
+void debugValue(u32 value){
+	printf("dv %d(%x)\n",value,value);
+}
+
+}
+
+static u32 r[32];
+
+void ppc_block::emitDebugValue(u32 value)
+{
+	emitStore32(&r[3],R3);	
+	emitStore32(&r[4],R4);	
+	emitStore32(&r[5],R5);
+	emitLoadImmediate32(R3,value);
+	emitBranch((void*)debugValue,1);
+	emitLoad32(R3,&r[3]);	
+	emitLoad32(R4,&r[4]);	
+	emitLoad32(R5,&r[5]);	
 }

@@ -36,6 +36,7 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 
 	if (addr==STARTRENDER_addr)
 	{
+//		asm("sc");
 		//start render
 		rend_start_render();
 		//PrintfInfo();

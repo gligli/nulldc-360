@@ -5,6 +5,7 @@
 
 #undef sh4op
 #define sh4op(str) void  __fastcall str (u32 op)
+#define rsh4op(str) void  __fastcall str (u32 op)
 typedef void (__fastcall OpCallFP) (u32 op);
 
 enum OpcodeType

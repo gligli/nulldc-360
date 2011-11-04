@@ -5,12 +5,14 @@
 #include <xenos/xenos.h>
 #include <input/input.h>
 #include <console/console.h>
+#include <console/telnet_console.h>
 #include <diskio/diskio.h>
 #include <diskio/ata.h>
 #include <usb/usbmain.h>
 #include <time/time.h>
 #include <ppc/timebase.h>
 #include <xenon_soc/xenon_power.h>
+#include <network/network.h>
 
 //initialse Emu
 #include "types.h"
@@ -192,9 +194,13 @@ int main()
 
 	xenos_init(VIDEO_MODE_AUTO);
 	console_init();
-
 	xenon_make_it_faster(XENON_SPEED_FULL);
 	
+/*	network_init();
+	network_print_config();
+	
+	telnet_console_init();*/
+
 	usb_init();
 	usb_do_poll();
 	
@@ -223,8 +229,8 @@ int main()
 
 void LoadSettings()
 {
-	settings.dynarec.Enable=cfgLoadInt(_T"nullDC",_T"Dynarec.Enabled",1)!=0;
-	settings.dynarec.CPpass=cfgLoadInt(_T"nullDC",_T"Dynarec.DoConstantPropagation",1)!=0;
+	settings.dynarec.Enable=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.Enabled",1)!=0;
+	settings.dynarec.CPpass=0; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.DoConstantPropagation",1)!=0;
 	settings.dynarec.Safe=cfgLoadInt(_T"nullDC",_T"Dynarec.SafeMode",1)!=0;
 	settings.dynarec.UnderclockFpu=cfgLoadInt(_T"nullDC",_T"Dynarec.UnderclockFpu",0)!=0;
 	

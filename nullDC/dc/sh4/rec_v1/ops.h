@@ -3,17 +3,7 @@
 #include "BasicBlock.h"
 
 #undef sh4op
-
-#if 0
 #define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
-#else
-#include "dc/sh4/shil/shil.h"
-extern shil_stream* ilst;
-#define sh4op(str) inline void __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { ilst->shil_ifb(op,pc); }
-#endif
-
-
-
 
 /* Opcodes :) */
 

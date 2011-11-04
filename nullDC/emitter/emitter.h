@@ -32,6 +32,9 @@ enum ppc_reg
 #define ppc_gpr_reg ppc_reg
 
 #include "PowerPC.h"
+extern "C" {
+int disassemble(u32 a, u32 op);
+}
 
 //memory managment !
 typedef void* dyna_reallocFP(void*ptr,u32 oldsize,u32 newsize);
@@ -112,6 +115,7 @@ public:
 	u32 ppc_indx;
 	u32 ppc_size;
 	bool do_realloc;
+	bool do_disasm;
 
 	ppc_block();
 	~ppc_block();
@@ -143,10 +147,12 @@ public:
 	//Get an index to next emitted opcode
 	u32 GetOpcodeIndex();
 		
-	void emitLongBranch(void * addr, int lk);
+	void emitBranch(void * addr, int lk);
+	void emitLoadFloat(ppc_fpr_reg reg, void * addr);
 	void emitLoad32(ppc_gpr_reg reg, void * addr);
 	void emitLoad16(ppc_gpr_reg reg, void * addr);
 	void emitLoad8(ppc_gpr_reg reg, void * addr);
+	void emitStoreFloat(void * addr, ppc_fpr_reg reg);
 	void emitStore32(void * addr, ppc_gpr_reg reg);
 	void emitStore16(void * addr, ppc_gpr_reg reg);
 	void emitStore8(void * addr, ppc_gpr_reg reg);
@@ -154,6 +160,7 @@ public:
 	void emitLoadImmediate32(ppc_gpr_reg reg, u32 val);
 	void emitBranchConditionalToLabel(ppc_Label * lab,int lk,int bo,int bi);
 	void emitBranchToLabel(ppc_Label * lab,int lk);
+	void emitDebugValue(u32 value);
 };
 
 #define EMIT_B(ppce,dst,aa,lk) \
@@ -340,3 +347,8 @@ public:
 {PowerPC_instr ppc;GEN_ORIS(ppc,rd,rs,immed);ppce->write32(ppc);}
 #define EMIT_CROR(ppce,cd,ca,cb) \
 {PowerPC_instr ppc;GEN_CROR(ppc,cd,ca,cb);ppce->write32(ppc);}
+
+
+// debug
+
+#define EMIT_LINE(ppce) ppce->emitDebugValue(__LINE__); // fucks up regs

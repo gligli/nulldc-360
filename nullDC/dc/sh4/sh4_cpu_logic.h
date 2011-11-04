@@ -8,7 +8,7 @@
 //
 
 //and <REG_M>,<REG_N>           
- sh4op(i0010_nnnn_mmmm_1001)
+ rsh4op(i0010_nnnn_mmmm_1001)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -16,7 +16,7 @@
 }
 
 //xor <REG_M>,<REG_N>           
- sh4op(i0010_nnnn_mmmm_1010)
+ rsh4op(i0010_nnnn_mmmm_1010)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -24,7 +24,7 @@
 }
 
 //or <REG_M>,<REG_N>            
- sh4op(i0010_nnnn_mmmm_1011)
+ rsh4op(i0010_nnnn_mmmm_1011)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);	
@@ -81,7 +81,7 @@
 }
 
 // and #<imm>,R0                 
- sh4op(i1100_1001_iiii_iiii)
+ rsh4op(i1100_1001_iiii_iiii)
 {//ToDo : Check This [26/4/05]
 	//iNimp("and #<imm>,R0");
 	u32 imm = GetImm8(op);
@@ -90,7 +90,7 @@
 
 
 // xor #<imm>,R0                 
- sh4op(i1100_1010_iiii_iiii)
+ rsh4op(i1100_1010_iiii_iiii)
 {
 	//iNimp("xor #<imm>,R0");
 	u32  imm  = GetImm8(op);
@@ -99,7 +99,7 @@
 
 
 // or #<imm>,R0                  
- sh4op(i1100_1011_iiii_iiii)
+ rsh4op(i1100_1011_iiii_iiii)
 {//ToDo : Check This [26/4/05]
 	//iNimp("or #<imm>,R0");
 	u32 imm = GetImm8(op);

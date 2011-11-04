@@ -20,12 +20,13 @@
 
 u32 ssenoalloc=0;
 u32 ssealloc=0;
-ppc_gpr_reg reg_to_alloc[8]=
+ppc_gpr_reg reg_to_alloc[16]=
 {
-	R5,R6,R7,R8,R9,R10,R11,R12
+//	R5,R6,R7,R8,R9,R10,R11,R12
+	R16,R17,R18,R19,R20,R21,R22,R23,R24,R25,R26,R27,R28,R29,R30,R31
 };
 
-#define REG_ALLOC_COUNT 8
+#define REG_ALLOC_COUNT 16
 
 //////////////////////////////////////////////////
 // new reg alloc class							//
@@ -183,10 +184,7 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 				if ((mode & RA_NODATA)==0)
 				{
 					//if we must load , and its not loaded
-					u32 rp = (u32) GetRegPtr(sh4_reg);
-					EMIT_LIS(ppce,0,HA(rp));
-					EMIT_LWZ(ppce,r_alloced[sh4_reg].ppcreg,rp,0);
-										
+					ppce->emitLoad32(r_alloced[sh4_reg].ppcreg,GetRegPtr(sh4_reg));
 					
 					r_alloced[sh4_reg].Dirty=false;//not dirty .ffs, we just loaded it....
 				}
@@ -203,7 +201,7 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 			{
 				//move to forced reg , if needed
 				if ((r_alloced[sh4_reg].ppcreg!=d_reg) && ((mode & RA_NODATA)==0))
-					EMIT_OR(ppce,d_reg,r_alloced[sh4_reg].ppcreg,r_alloced[sh4_reg].ppcreg);
+					ppce->emitMoveRegister(d_reg,r_alloced[sh4_reg].ppcreg);
 				return d_reg;
 			}
 			else
@@ -217,9 +215,7 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 			//MtoR move , force has no effect (allways forced) ;)
 			if (0==(mode & RA_NODATA))
 			{
-				u32 rp = (u32) GetRegPtr(sh4_reg);
-				EMIT_LIS(ppce,0,HA(rp));
-				EMIT_LWZ(ppce,d_reg,rp,0);
+				ppce->emitLoad32(d_reg,GetRegPtr(sh4_reg));
 			}
 			return d_reg;
 		}
@@ -234,15 +230,13 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		checkvr(reg);
 		if (!IsRegAllocated(reg))
 		{
-			u32 rp = (u32) GetRegPtr(reg);
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_STW(ppce,from,rp,0);
+			ppce->emitStore32(GetRegPtr(reg),from);
 		}
 		else
 		{
 			ppc_gpr_reg ppcreg=GetRegister(R3,reg,RA_NODATA);
 			if (ppcreg!=from)
-				EMIT_OR(ppce,ppcreg,from,from);
+				ppce->emitMoveRegister(ppcreg,from);
 		}
 		MarkDirty(reg);
 	}
@@ -251,14 +245,13 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		checkvr(reg);
 		if (!IsRegAllocated(reg))
 		{
-			u32 rp = (u32) GetRegPtr(reg);
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_STW(ppce,from,rp,0);
+			ppce->emitLoadImmediate32(R3,from);
+			ppce->emitStore32(GetRegPtr(reg),R3);
 		}
 		else
 		{
 			ppc_gpr_reg ppcreg=GetRegister(R3,reg,RA_NODATA);
-			EMIT_OR(ppce,ppcreg,from,from);
+			ppce->emitLoadImmediate32(ppcreg,from);
 		}
 		MarkDirty(reg);
 	}
@@ -267,19 +260,13 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		checkvr(reg);
 		if (!IsRegAllocated(reg))
 		{
-			u32 rp = (u32) from;
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_LWZ(ppce,R4,rp,0);
-			rp = (u32) GetRegPtr(reg);
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_STW(ppce,R4,rp,0);
+			ppce->emitLoad32(R4,from);
+			ppce->emitStore32(GetRegPtr(reg),R4);
 		}
 		else
 		{
 			ppc_gpr_reg ppcreg=GetRegister(R3,reg,RA_NODATA);
-			u32 rp = (u32) from;
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_LWZ(ppce,ppcreg,rp,0);
+			ppce->emitLoad32(ppcreg,from);
 		}
 		MarkDirty(reg);
 	}
@@ -288,19 +275,13 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		checkvr(reg);
 		if (!IsRegAllocated(reg))
 		{
-			u32 rp = (u32) from;
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_LHZ(ppce,R4,rp,0);
-			rp = (u32) GetRegPtr(reg);
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_STH(ppce,R4,rp,0);
+			ppce->emitLoad16(R4,from);
+			ppce->emitStore16(GetRegPtr(reg),R4);
 		}
 		else
 		{
 			ppc_gpr_reg ppcreg=GetRegister(R3,reg,RA_NODATA);
-			u32 rp = (u32) from;
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_LHZ(ppce,ppcreg,rp,0);
+			ppce->emitLoad16(ppcreg,from);
 		}
 		MarkDirty(reg);
 	}
@@ -309,19 +290,13 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		checkvr(reg);
 		if (!IsRegAllocated(reg))
 		{
-			u32 rp = (u32) from;
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_LBZ(ppce,R4,rp,0);
-			rp = (u32) GetRegPtr(reg);
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_STB(ppce,R4,rp,0);
+			ppce->emitLoad8(R4,from);
+			ppce->emitStore8(GetRegPtr(reg),R4);
 		}
 		else
 		{
 			ppc_gpr_reg ppcreg=GetRegister(R3,reg,RA_NODATA);
-			u32 rp = (u32) from;
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_LBZ(ppce,ppcreg,rp,0);
+			ppce->emitLoad8(ppcreg,from);
 		}
 		MarkDirty(reg);
 	}
@@ -334,9 +309,7 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		{
 			if (r_alloced[reg].Dirty)
 			{
-				u32 rp = (u32) GetRegPtr(reg);
-				EMIT_LIS(ppce,0,HA(rp));
-				EMIT_STW(ppce,r_alloced[reg].ppcreg,rp,0);
+				ppce->emitStore32(GetRegPtr(reg),r_alloced[reg].ppcreg);
 			}
 			r_alloced[reg].InReg=false;
 			r_alloced[reg].Dirty=false;
@@ -357,9 +330,7 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		if (IsRegAllocated(reg) && r_alloced[reg].InReg && r_alloced[reg].Dirty)
 		{
 			r_alloced[reg].Dirty=false;
-			u32 rp = (u32) GetRegPtr(reg);
-			EMIT_LIS(ppce,0,HA(rp));
-			EMIT_STW(ppce,r_alloced[reg].ppcreg,rp,0);
+			ppce->emitStore32(GetRegPtr(reg),r_alloced[reg].ppcreg);
 		}
 	}
 	//ReloadRegister	: read reg from reg location , discard old result

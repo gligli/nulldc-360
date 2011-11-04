@@ -542,7 +542,7 @@ void LoadSettingsPvr()
 	drkpvr_settings.Enhancements.AspectRatioMode		=	cfgGetIntPvr("Enhancements.AspectRatioMode",1);
 	
 	drkpvr_settings.Emulation.ZBufferMode=2;
-	drkpvr_settings.Emulation.AlphaSortMode=2;
+	drkpvr_settings.Emulation.AlphaSortMode=1;
 	drkpvr_settings.Emulation.ModVolMode=MVM_Off;
 }
 
