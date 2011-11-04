@@ -141,7 +141,7 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	ppce->Init(dyna_realloc,dyna_finalize);
 	ppce->do_realloc=false;
 	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	ppce->ppc_size=64;
+	ppce->ppc_size=32;
 
 	cBB->Rewrite.Last=flags;
 	
@@ -155,38 +155,25 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 
 	if (flags==1)
 	{
-		
-		EMIT_LIS(ppce,R3,((u32)cBB->TT_block->Code)>>16);
-		EMIT_ORI(ppce,R3,R3,(u32)cBB->TT_block->Code);
-		EMIT_MTCTR(ppce,R3);
-		EMIT_BCCTR(ppce,bo,bi,0);
+		ppce->emitReverseBranchConditional((void*)cBB->TT_block->Code,bo_n,bi_n,0);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TF_stub,0);
 	}
 	else if  (flags==2)
 	{
-		EMIT_LIS(ppce,R3,((u32)cBB->TF_block->Code)>>16);
-		EMIT_ORI(ppce,R3,R3,(u32)cBB->TF_block->Code);
-		EMIT_MTCTR(ppce,R3);
-		EMIT_BCCTR(ppce,bo_n,bi_n,0);
+		ppce->emitReverseBranchConditional((void*)cBB->TF_block->Code,bo,bi,0);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	else  if  (flags==3)
 	{
-		EMIT_LIS(ppce,R3,((u32)cBB->TF_block->Code)>>16);
-		EMIT_ORI(ppce,R3,R3,(u32)cBB->TF_block->Code);
-		EMIT_MTCTR(ppce,R3);
-		EMIT_BCCTR(ppce,bo_n,bi_n,0);
+		ppce->emitReverseBranchConditional((void*)cBB->TF_block->Code,bo,bi,0);
 		ppce->emitBranch((void*)cBB->TT_block->Code,0);
 	}
 	else
 	{
-		EMIT_LIS(ppce,R3,((u32)bb_link_compile_inject_TF_stub)>>16);
-		EMIT_ORI(ppce,R3,R3,(u32)bb_link_compile_inject_TF_stub);
-		EMIT_MTCTR(ppce,R3);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
-		EMIT_BCCTR(ppce,bo_n,bi_n,0);
+		ppce->emitReverseBranchConditional((void*)bb_link_compile_inject_TF_stub,bo,bi,0);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	ppce->Generate();
@@ -696,8 +683,8 @@ compile_normaly:
 			cBB->Rewrite.RCFlags=exit_cond_direct;
 			cBB->Rewrite.Offset=ppce->ppc_indx;
 			
-			/* gli 16 ops max for cond rewrite */
-			for(int i=0;i<16;++i) ppce->write32(PPC_NOP);
+			/* gli 8 ops max for cond rewrite */
+			for(int i=0;i<8;++i) ppce->write32(PPC_NOP);
 			
 /*			
 			ppce->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
@@ -825,7 +812,7 @@ CompiledBlockInfo*  __fastcall CompileBasicBlock(u32 pc)
 
 	delete block;
 	
-	printf("rec pc %p\n",pc);
+	//printf("rec pc %p\n",pc);
 	
 	return rv;
 }

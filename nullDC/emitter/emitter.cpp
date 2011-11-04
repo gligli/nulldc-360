@@ -105,7 +105,7 @@ void* ppc_block::Generate()
 
 	memicbi(ppc_buff,ppc_indx);
 	
-	printf("ppc_block::Generate %p %04x %04x\n",ppc_buff,ppc_size,ppc_indx);
+	if(do_realloc) printf("ppc_block::Generate %p %04x %04x\n",ppc_buff,ppc_size,ppc_indx);
 	
 	if (do_disasm) for(u32 i=0;i<ppc_indx;i+=4) disassemble((u32)&ppc_buff[i],*(u32*)&ppc_buff[i]);
 	do_disasm=false;
@@ -361,6 +361,12 @@ void ppc_block::emitBranch(void * addr, int lk)
 		EMIT_BCTR(this);
 	}
 #endif	
+}
+
+void ppc_block::emitReverseBranchConditional(void * addr, int bo, int bi, int lk)
+{
+	EMIT_BC(this,2,0,0,bo,bi);
+	emitBranch(addr,lk); // makes the assumption that emitBranch will only generate 1 op
 }
 
 void ppc_block::emitLoadFloat(ppc_fpr_reg reg, void * addr)

@@ -148,6 +148,7 @@ public:
 	u32 GetOpcodeIndex();
 		
 	void emitBranch(void * addr, int lk);
+	void emitReverseBranchConditional(void * addr, int bo, int bi, int lk);
 	void emitLoadFloat(ppc_fpr_reg reg, void * addr);
 	void emitLoad32(ppc_gpr_reg reg, void * addr);
 	void emitLoad16(ppc_gpr_reg reg, void * addr);
