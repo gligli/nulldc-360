@@ -33,7 +33,7 @@
 
 
 //shll2 <REG_N>                 
- sh4op(i0100_nnnn_0000_1000)
+ rsh4op(i0100_nnnn_0000_1000)
 {
 	u32 n = GetN(op);
 	r[n] <<= 2;
@@ -41,7 +41,7 @@
 
 
 //shll8 <REG_N>                 
- sh4op(i0100_nnnn_0001_1000)
+ rsh4op(i0100_nnnn_0001_1000)
 {//ToDo : Check This [26/4/05]
 	u32 n = GetN(op);
 	r[n] <<= 8;
@@ -49,7 +49,7 @@
 
 
 //shll16 <REG_N>                
- sh4op(i0100_nnnn_0010_1000)
+ rsh4op(i0100_nnnn_0010_1000)
 {//ToDo : Check This [26/4/05]
 	u32 n = GetN(op);
 	r[n] <<= 16;
@@ -57,7 +57,7 @@
 
 
 //shlr2 <REG_N>                 
- sh4op(i0100_nnnn_0000_1001)
+ rsh4op(i0100_nnnn_0000_1001)
 {//ToDo : Check This [26/4/05]
 	u32 n = GetN(op);
 	r[n] >>= 2;
@@ -65,7 +65,7 @@
 
 
 //shlr8 <REG_N>                 
- sh4op(i0100_nnnn_0001_1001)
+ rsh4op(i0100_nnnn_0001_1001)
 {
 	//iNimp("shlr8 <REG_N>");
 	u32 n = GetN(op);
@@ -74,7 +74,7 @@
 
 
 //shlr16 <REG_N>                
- sh4op(i0100_nnnn_0010_1001)
+ rsh4op(i0100_nnnn_0010_1001)
 {
 	u32 n = GetN(op);
 	r[n] >>= 16;
@@ -110,7 +110,7 @@
  
 //TODO : move it somewhere better
 //nop                           
-sh4op(i0000_0000_0000_1001)
+rsh4op(i0000_0000_0000_1001)
 {
 	//no operation xD XD .. i just love this opcode ..
 	//what ? you expected something fancy or smth ?

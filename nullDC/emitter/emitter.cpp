@@ -5,6 +5,32 @@ extern "C"{
 #include <ppc/cache.h>
 }
 
+int ppc_condition_flags[][3] = { // bo,bi,logical
+	{PPC_CC_T, PPC_CC_OVR,0}, // 0
+	{PPC_CC_F, PPC_CC_OVR,0}, // 1
+
+	{PPC_CC_T, PPC_CC_NEG,1}, // 2
+	{PPC_CC_F, PPC_CC_NEG,1}, // 3
+
+	{PPC_CC_T, PPC_CC_ZER,0}, // 4
+	{PPC_CC_F, PPC_CC_ZER,0}, // 5
+
+	{PPC_CC_F, PPC_CC_POS,1}, // 6
+	{PPC_CC_T, PPC_CC_POS,1}, // 7
+
+	{PPC_CC_A, PPC_CC_NEG,0}, // 8 fake
+	{PPC_CC_A, PPC_CC_NEG,0}, // 9 fake
+
+	{PPC_CC_A, PPC_CC_NEG,0}, // A fake
+	{PPC_CC_A, PPC_CC_NEG,0}, // B fake
+
+	{PPC_CC_T, PPC_CC_NEG,0}, // C
+	{PPC_CC_F, PPC_CC_NEG,0}, // D
+
+	{PPC_CC_F, PPC_CC_POS,0}, // E
+	{PPC_CC_T, PPC_CC_POS,0}, // F
+};
+
 bool IsS8(u32 value)
 {
 	if (((value&0xFFFFFF80)==0xFFFFFF80) ||
@@ -105,9 +131,13 @@ void* ppc_block::Generate()
 
 	memicbi(ppc_buff,ppc_indx);
 	
-	if(do_realloc) printf("ppc_block::Generate %p %04x %04x\n",ppc_buff,ppc_size,ppc_indx);
+	bool force=false;
 	
-	if (do_disasm) for(u32 i=0;i<ppc_indx;i+=4) disassemble((u32)&ppc_buff[i],*(u32*)&ppc_buff[i]);
+//	force=true;
+	
+	if(do_realloc || force) printf("Gen %p %04x %04x\n",ppc_buff,ppc_size,ppc_indx);
+	
+	if (do_disasm || force) for(u32 i=0;i<ppc_indx;i+=4) disassemble((u32)&ppc_buff[i],*(u32*)&ppc_buff[i]);
 	do_disasm=false;
 	
 	return &ppc_buff[0];

@@ -60,7 +60,7 @@ void UpdateFPSCR();
 bool UpdateSR();
 
 #ifndef DEBUG
-static INLINE f64 GetDR(u32 n)
+static INLINE  __attribute__((unused)) f64 GetDR(u32 n)
 {
 #ifdef TRACE
 	if (n>7)
@@ -73,7 +73,7 @@ static INLINE f64 GetDR(u32 n)
 	return t;
 }
 
-static INLINE f64 GetXD(u32 n)
+static INLINE __attribute__((unused)) f64 GetXD(u32 n)
 {
 #ifdef TRACE
 	if (n>7)
@@ -86,7 +86,7 @@ static INLINE f64 GetXD(u32 n)
 	return t;
 }
 
-static INLINE void SetDR(u32 n,f64 val)
+static INLINE __attribute__((unused)) void SetDR(u32 n,f64 val)
 {
 #ifdef TRACE
 	if (n>7)
@@ -96,7 +96,7 @@ static INLINE void SetDR(u32 n,f64 val)
 	fr_hex[(n<<1) | 0]=((u32*)(&val))[1];
 }
 
-static INLINE void SetXD(u32 n,f64 val)
+static INLINE __attribute__((unused)) void SetXD(u32 n,f64 val)
 {
 #ifdef TRACE
 	if (n>7)

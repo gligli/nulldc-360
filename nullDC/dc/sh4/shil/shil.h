@@ -91,7 +91,8 @@ enum shil_opflags
 	FLAG_MACL=make_bit(12),
 
 	FLAG_SETFLAGS=make_bit(13),
-	FLAG_PRESERVE=make_bit(14)
+	FLAG_PRESERVE=make_bit(14),
+	FLAG_LOGICAL_CMP=make_bit(15),
 };
 
 enum shil_opcodes
@@ -258,7 +259,7 @@ CC_NB			=3,				// above or equal (CF=0)
 CC_NC			=3,				//
 CC_AE			=CC_NB,			//
 CC_E			=4,				// zero (ZF=1)
-CC_FPU_E		=0xF0,			// zero (ZF=1)
+CC_FPU_E		=4,//gli 0xF0,			// zero (ZF=1)
 CC_Z			=CC_E,			//
 SaveZF			=CC_Z,
 CC_NE			=5,				// not zero (ZF=0)
@@ -377,7 +378,8 @@ public :
 	void writem32(Sh4RegType from,Sh4RegType base,u32 offset);
 
 	
-	void cmp(Sh4RegType to,Sh4RegType from);
+
+	void cmp(Sh4RegType to,Sh4RegType from,bool logical);
 	void cmp(Sh4RegType to,s8 from);
 
 	void test(Sh4RegType to,Sh4RegType from);

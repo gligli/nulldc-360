@@ -120,7 +120,7 @@ void shil_stream::emit(shil_opcodes op,Sh4RegType reg1,Sh4RegType  reg2,u32 imm1
 	sh_op.reg2=(u8)reg2;
 	sh_op.imm1=imm1;
 	sh_op.imm2=imm2;
-	sh_op.flags=(u16)flags;
+	sh_op.flags=flags;
 
 	opcodes.push_back(sh_op);
 }
@@ -376,9 +376,9 @@ void shil_stream::writem32(Sh4RegType from,Sh4RegType base,u32 offset)
 }
 
 //compares
-void shil_stream::cmp(Sh4RegType to,Sh4RegType from)
+void shil_stream::cmp(Sh4RegType to,Sh4RegType from,bool logical)
 {
-	emit32(shilop_cmp,to,from);
+	emit32(shilop_cmp,to,from,logical?FLAG_LOGICAL_CMP:0);
 }
 
 void shil_stream::cmp(Sh4RegType to,s8 from)

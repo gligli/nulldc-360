@@ -28,6 +28,8 @@ enum ppc_reg
 	ERROR_REG=-2,
 };
 
+extern int ppc_condition_flags[][3];
+
 #define ppc_fpr_reg ppc_reg
 #define ppc_gpr_reg ppc_reg
 
@@ -352,4 +354,4 @@ public:
 
 // debug
 
-#define EMIT_LINE(ppce) ppce->emitDebugValue(__LINE__); // fucks up regs
+#define EMIT_LINE(ppce) ppce->emitDebugValue(__LINE__);

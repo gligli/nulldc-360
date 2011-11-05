@@ -148,7 +148,7 @@ sh4op(i0000_nnnn_0010_1001)
 
 //************************ Reg Compares ************************
 //cmp/pz <REG_N>                
-sh4op(i0100_nnnn_0001_0001)
+rsh4op(i0100_nnnn_0001_0001)
 {
 	u32 n = GetN(op);
 
@@ -157,7 +157,7 @@ sh4op(i0100_nnnn_0001_0001)
 }
 
 //cmp/pl <REG_N>                
-sh4op(i0100_nnnn_0001_0101)
+rsh4op(i0100_nnnn_0001_0101)
 {
 	u32 n = GetN(op);
 
@@ -166,59 +166,59 @@ sh4op(i0100_nnnn_0001_0101)
 }
 
 //cmp/eq #<imm>,R0              
-sh4op(i1000_1000_iiii_iiii)
+rsh4op(i1000_1000_iiii_iiii)
 {
 	ilst->cmp(r[0],GetSImm8(op));
 	ilst->SaveT(CC_E);
 }
 
 //cmp/eq <REG_M>,<REG_N>        
-sh4op(i0011_nnnn_mmmm_0000)
+rsh4op(i0011_nnnn_mmmm_0000)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 
-	ilst->cmp(r[n],r[m]);
+	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_E][2]);
 	ilst->SaveT(CC_E);
 }
 
 //cmp/hs <REG_M>,<REG_N>        
-sh4op(i0011_nnnn_mmmm_0010)
+rsh4op(i0011_nnnn_mmmm_0010)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 
-	ilst->cmp(r[n],r[m]);
+	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_AE][2]);
 	ilst->SaveT(CC_AE);
 }
 
 //cmp/ge <REG_M>,<REG_N>        
-sh4op(i0011_nnnn_mmmm_0011)
+rsh4op(i0011_nnnn_mmmm_0011)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 
-	ilst->cmp(r[n],r[m]);
+	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_GE][2]);
 	ilst->SaveT(CC_GE);
 }
 
 //cmp/hi <REG_M>,<REG_N>        
-sh4op(i0011_nnnn_mmmm_0110)
+rsh4op(i0011_nnnn_mmmm_0110)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 
-	ilst->cmp(r[n],r[m]);
+	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_A][2]);
 	ilst->SaveT(CC_A);
 }
 
 //cmp/gt <REG_M>,<REG_N>        
-sh4op(i0011_nnnn_mmmm_0111)
+rsh4op(i0011_nnnn_mmmm_0111)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 
-	ilst->cmp(r[n],r[m]);
+	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_G][2]);
 	ilst->SaveT(CC_G);
 }
 
@@ -229,13 +229,13 @@ sh4op(i0010_nnnn_mmmm_1100)
 }
 
 //tst #<imm>,R0                 
-sh4op(i1100_1000_iiii_iiii)
+rsh4op(i1100_1000_iiii_iiii)
 {
 	ilst->test(r[0],GetImm8(op));
 	ilst->SaveT(CC_Z);
 }
 //tst <REG_M>,<REG_N>           
-sh4op(i0010_nnnn_mmmm_1000)
+rsh4op(i0010_nnnn_mmmm_1000)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -444,7 +444,7 @@ sh4op(i0011_nnnn_mmmm_0100)
 
 //************************ Simple maths ************************ 
 //addc <REG_M>,<REG_N>          
-sh4op(i0011_nnnn_mmmm_1110)
+rsh4op(i0011_nnnn_mmmm_1110)
 {
 	u32 n=GetN(op);
 	u32 m=GetM(op);
@@ -520,39 +520,39 @@ sh4op(i0110_nnnn_mmmm_0111)
 
 //************************ shifts/rotates ************************
 //shll <REG_N>                  
-sh4op(i0100_nnnn_0000_0000)
+rsh4op(i0100_nnnn_0000_0000)
 {
 	u32 n = GetN(op);
 
 	ilst->shl(r[n],1);
-	ilst->SaveT(SaveCF);
+	ilst->SaveT(CC_E);
 }
 
 //shal <REG_N>                  
-sh4op(i0100_nnnn_0010_0000)
+rsh4op(i0100_nnnn_0010_0000)
 {
 	u32 n=GetN(op);
 
 	ilst->shl(r[n],1);
-	ilst->SaveT(SaveCF);
+	ilst->SaveT(CC_E);
 }
 
 //shlr <REG_N>                  
-sh4op(i0100_nnnn_0000_0001)
+rsh4op(i0100_nnnn_0000_0001)
 {
 	u32 n = GetN(op);
 	
 	ilst->shr(r[n],1);
-	ilst->SaveT(SaveCF);
+	ilst->SaveT(CC_E);
 }
 
 //shar <REG_N>                  
-sh4op(i0100_nnnn_0010_0001)
+rsh4op(i0100_nnnn_0010_0001)
 {
 	u32 n = GetN(op);
 
 	ilst->sar(r[n],1);
-	ilst->SaveT(SaveCF);
+	ilst->SaveT(CC_E);
 }
 
 //shad <REG_M>,<REG_N>          

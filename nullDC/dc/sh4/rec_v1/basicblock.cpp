@@ -14,32 +14,6 @@
 
 void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB);
 
-int JumpCC[][2] = {
-	{PPC_CC_T, PPC_CC_OVR},
-	{PPC_CC_F, PPC_CC_OVR},
-
-	{PPC_CC_T, PPC_CC_NEG},
-	{PPC_CC_F, PPC_CC_NEG},
-
-	{PPC_CC_T, PPC_CC_ZER},
-	{PPC_CC_F, PPC_CC_ZER},
-
-	{PPC_CC_F, PPC_CC_POS},
-	{PPC_CC_T, PPC_CC_POS},
-
-	{PPC_CC_A, PPC_CC_NEG}, // fake
-	{PPC_CC_A, PPC_CC_NEG}, // fake
-
-	{PPC_CC_A, PPC_CC_NEG}, // fake
-	{PPC_CC_A, PPC_CC_NEG}, // fake
-
-	{PPC_CC_T, PPC_CC_NEG},
-	{PPC_CC_F, PPC_CC_NEG},
-
-	{PPC_CC_F, PPC_CC_POS},
-	{PPC_CC_T, PPC_CC_POS},
-};
-
 //needed declarations
 void bb_link_compile_inject_TF_stub(CompiledBlockInfo* ptr);
 void bb_link_compile_inject_TT_stub(CompiledBlockInfo* ptr);
@@ -147,11 +121,11 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	
 //	printf("cBB->Rewrite.RCFlags %08x %d\n",cBB->Rewrite.RCFlags,flags);
 	
-	int bo=JumpCC[cBB->Rewrite.RCFlags][0];
-	int bi=JumpCC[cBB->Rewrite.RCFlags][1];
+	int bo=ppc_condition_flags[cBB->Rewrite.RCFlags][0];
+	int bi=ppc_condition_flags[cBB->Rewrite.RCFlags][1];
 
-	int bo_n=JumpCC[cBB->Rewrite.RCFlags^1][0];
-	int bi_n=JumpCC[cBB->Rewrite.RCFlags^1][1];
+	int bo_n=ppc_condition_flags[cBB->Rewrite.RCFlags^1][0];
+	int bi_n=ppc_condition_flags[cBB->Rewrite.RCFlags^1][1];
 
 	if (flags==1)
 	{
@@ -560,8 +534,9 @@ bool BasicBlock::Compile()
 				}
 				//log("Flag promotion @ %d out of %d\n",i,(list_sz-1));
 				exit_cond_direct=op[-1].imm1;
-				if (exit_cond_direct==CC_FPU_E)
-					exit_cond_direct=CC_NP;
+
+/*gli wtf		if (exit_cond_direct==CC_FPU_E)
+					exit_cond_direct=CC_NP;*/
 
 				//skip the LoadT jcond, work on opcodes after
 				continue;

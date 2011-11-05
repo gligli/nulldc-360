@@ -25,28 +25,6 @@ vector<roml_patch> roml_patch_list;
 
 ppc_block* ppce;
 
-#if 0 //gli86
-ppc_opcode_class SetCC[] =
-{
-	op_seto ,//r/m8 = 0F 90 /0
-	op_setno ,//r/m8 = 0F 91 /0
-	op_setb ,//r/m8 = 0F 92 /0
-	op_setae ,//r/m8 = 0F 93 /0
-	op_sete ,//r/m8 = 0F 94 /0
-	op_setnz ,//r/m8 = 0F 95 /0
-	op_setna ,//r/m8 = 0F 96 /0
-	op_seta ,//r/m8 = 0F 97 /0
-	op_sets ,//r/m8 = 0F 98 /0
-	op_setns ,//r/m8 = 0F 99 /0
-	op_setp ,//r/m8 = 0F 9A /0
-	op_setnp ,//r/m8 = 0F 9B /0
-	op_setl ,//r/m8 = 0F 9C /0
-	op_setge ,//r/m8 = 0F 9D /0
-	op_setle ,//r/m8 = 0F 9E /0
-	op_setg ,//r/m8 = 0F 9F /0
-};
-#endif
-
 typedef void __fastcall shil_compileFP(shil_opcode* op);
 
 bool inited=false;
@@ -141,7 +119,7 @@ u32 IsInFReg(u32 reg)
 
 //Common opcode handling code
 //reg to reg
-void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
+void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc_imm, bool invRDRA)
 {
 //	ppce->do_disasm=true;
 	assert(FLAG_32==(op->flags & 3));
@@ -154,8 +132,20 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
 		{
 			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
 			assert(r1!=R3);
-			ppce->emitLoadImmediate32(R4,op->imm1);
-			EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA);
+			
+			if(ppc_imm)
+			{
+				PPC_SET_RD(ppc_imm,r1);
+				PPC_SET_RA(ppc_imm,r1);
+				PPC_SET_IMMED(ppc_imm,op->imm1);
+				ppce->write32(ppc_imm);
+			}
+			else
+			{
+				ppce->emitLoadImmediate32(R4,op->imm1);
+				EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA);
+			}
+			
 			SaveReg(op->reg1,r1);
 		}
 		else
@@ -163,8 +153,19 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
 			/*ppce-> _ItM_ (GetRegPtr(op->reg1),op->imm1);*/
 			u32 * ptr = GetRegPtr(op->reg1);
 			ppce->emitLoad32(R4,ptr);
-			ppce->emitLoadImmediate32(R3,op->imm1);
-			EMIT_SET_RDRARB(ppc,R4,R3,R4,invRDRA);
+
+			if(ppc_imm)
+			{
+				PPC_SET_RD(ppc_imm,R4);
+				PPC_SET_RA(ppc_imm,R4);
+				PPC_SET_IMMED(ppc_imm,op->imm1);
+				ppce->write32(ppc_imm);
+			}
+			else
+			{
+				ppce->emitLoadImmediate32(R3,op->imm1);
+				EMIT_SET_RDRARB(ppc,R4,R3,R4,invRDRA);
+			}
 			ppce->emitStore32(ptr,R4);
 		}
 	}
@@ -200,10 +201,8 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
 	}
 }
 
-#if 0 //gli86
-
 //imm to reg
-void fastcall op_imm_to_reg(shil_opcode* op,ppc_opcode_class op_cl)
+void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
 {
 	assert(FLAG_32==(op->flags & 3));
 	assert(op->flags & FLAG_IMM1);
@@ -212,16 +211,24 @@ void fastcall op_imm_to_reg(shil_opcode* op,ppc_opcode_class op_cl)
 	assert(0==(op->flags & FLAG_REG2));
 	if (ira->IsRegAllocated(op->reg1))
 	{
-		ppc_gpr_reg r1=LoadReg(EAX,op->reg1);
-		assert(r1!=EAX);
-		ppce->Emit(op_cl,r1,op->imm1);
+		ppc_gpr_reg r1=LoadReg(R3,op->reg1);
+		assert(r1!=R3);
+		ppce->emitLoadImmediate32(R4,op->imm1);
+		EMIT_SET_RDRARB(ppc,r1,r1,R4,invRDRA);
 		SaveReg(op->reg1,r1);
 	}
-	else
-		ppce->Emit(op_cl,GetRegPtr(op->reg1),op->imm1);
+	else{
+		u32 * ptr = GetRegPtr(op->reg1);
+		ppce->emitLoad32(R4,ptr);
+		ppce->emitLoadImmediate32(R3,op->imm1);
+		EMIT_SET_RDRARB(ppc,R4,R4,R3,invRDRA);
+		ppce->emitStore32(ptr,R4);
+	}
 }
+
+/*
 //reg
-void fastcall op_reg(shil_opcode* op,ppc_opcode_class op_cl)
+void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc)
 {
 	assert(FLAG_32==(op->flags & 3));
 	assert(0==(op->flags & FLAG_IMM1));
@@ -238,7 +245,8 @@ void fastcall op_reg(shil_opcode* op,ppc_opcode_class op_cl)
 	else
 		ppce->Emit(op_cl,ppc_ptr(GetRegPtr(op->reg1)));
 }
-
+*/
+#if 0 //gli86
 
 //_vmem for dynarec ;)
 //on dynarec we have 3 cases for input , mem , reg , const
@@ -1093,21 +1101,34 @@ void __fastcall shil_compile_swap(shil_opcode* op)
 		SaveReg(op->reg1,r1);
 	}
 }
+#endif
+
 //shl reg32,imm , set flags
 void __fastcall shil_compile_shl(shil_opcode* op)
 {
-	op_imm_to_reg(op,op_shl32);
+	PowerPC_instr ppc;
+	GEN_SLW(ppc,0,0,0);
+	ppc|=1; // record bit
+	op_imm_to_reg(op,ppc,true);
 }
 //shr reg32,imm , set flags
 void __fastcall shil_compile_shr(shil_opcode* op)
 {
-	op_imm_to_reg(op,op_shr32);
+	PowerPC_instr ppc;
+	GEN_SRW(ppc,0,0,0);
+	ppc|=1; // record bit
+	op_imm_to_reg(op,ppc,true);
 }
 //sar reg32,imm , set flags
 void __fastcall shil_compile_sar(shil_opcode* op)
 {
-	op_imm_to_reg(op,op_sar32);
+	PowerPC_instr ppc;
+	GEN_SRAW(ppc,0,0,0);
+	ppc|=1; // record bit
+	op_imm_to_reg(op,ppc,true);
 }
+
+#if 0
 //rotates
 //rcl reg32, CF is set before calling
 void __fastcall shil_compile_rcl(shil_opcode* op)
@@ -1144,23 +1165,25 @@ void __fastcall shil_compile_not(shil_opcode* op)
 //xor reg32,reg32/imm32
 void __fastcall shil_compile_xor(shil_opcode* op)
 {
-	PowerPC_instr ppc;
+	PowerPC_instr ppc,ppc_imm;
 	GEN_XOR(ppc,0,0,0);
-	op_reg_to_reg(op,ppc,true);
+	GEN_XORI(ppc_imm,0,0,0);
+	op_reg_to_reg(op,ppc,ppc_imm,true);
 }
 //or reg32,reg32/imm32
 void __fastcall shil_compile_or(shil_opcode* op)
 {
-	PowerPC_instr ppc;
+	PowerPC_instr ppc,ppc_imm;
 	GEN_OR(ppc,0,0,0);
-	op_reg_to_reg(op,ppc,true);
+	GEN_ORI(ppc_imm,0,0,0);
+	op_reg_to_reg(op,ppc,ppc_imm,true);
 }
 //and reg32,reg32/imm32
 void __fastcall shil_compile_and(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_AND(ppc,0,0,0);
-	op_reg_to_reg(op,ppc,true);
+	op_reg_to_reg(op,ppc,0,true);
 }
 #if 0 //gli86
 //readm/writem 
@@ -1723,6 +1746,40 @@ void apply_roml_patches()
 	}
 	roml_patch_list.clear();
 }
+#endif
+//save-loadT
+void __fastcall shil_compile_SaveT(shil_opcode* op)
+{
+	assert(op->flags & FLAG_IMM1);//imm1
+	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
+
+	EMIT_LI(ppce,R3,1);
+	EMIT_BC(ppce,2,0,0,ppc_condition_flags[op->imm1][0],ppc_condition_flags[op->imm1][1]);
+	EMIT_LI(ppce,R3,0);
+	ppce->emitStore32(GetRegPtr(reg_sr_T),R3);
+}
+
+void __fastcall shil_compile_LoadT(shil_opcode* op)
+{
+	assert(op->flags & FLAG_IMM1);//imm1
+	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
+	
+
+	assert( (op->imm1==CF) || (op->imm1==jcond_flag) );
+
+	if (op->imm1==jcond_flag)
+	{
+		LoadReg_force(R3,reg_sr_T);
+		ppce->emitStore32(&T_jcond_value,R3);
+	}
+	else
+	{
+		//LoadReg_force(EAX,reg_sr_T);
+		//ppce->Emit(op_shr32,EAX,1);//heh T bit is there now :P CF
+		ppce->emitLoad32(R3,GetRegPtr(reg_sr_T));
+		EMIT_CMPLI(ppce,R3,1,0);
+	}
+}
 //cmp-test
 void __fastcall shil_compile_cmp(shil_opcode* op)
 {
@@ -1732,15 +1789,27 @@ void __fastcall shil_compile_cmp(shil_opcode* op)
 		assert(0==(op->flags & (FLAG_REG2|FLAG_IMM2)));
 		if (ira->IsRegAllocated(op->reg1))
 		{
-			ppc_gpr_reg r1 = LoadReg(EAX,op->reg1);
-			//if (op->imm1)
-				ppce->Emit(op_cmp32,r1,op->imm1);
-			/*else
-				ppce->Emit(op_test32,r1,r1);*/
+			ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
+			if (op->flags & FLAG_LOGICAL_CMP)
+			{
+				EMIT_CMPLI(ppce,r1,op->imm1,0);
+			}
+			else
+			{
+				EMIT_CMPI(ppce,r1,op->imm1,0);
+			}
 		}
 		else
 		{
-			ppce->Emit(op_cmp32,GetRegPtr(op->reg1),op->imm1);
+			ppce->emitLoad32(R3,GetRegPtr(op->reg1));
+			if (op->flags & FLAG_LOGICAL_CMP)
+			{
+				EMIT_CMPLI(ppce,R3,op->imm1,0);
+			}
+			else
+			{
+				EMIT_CMPI(ppce,R3,op->imm1,0);
+			}
 		}
 		//eflags is used w/ combination of SaveT
 	}
@@ -1749,15 +1818,30 @@ void __fastcall shil_compile_cmp(shil_opcode* op)
 		assert(0==(op->flags & FLAG_IMM2));
 		assert(op->flags & FLAG_REG2);
 
-		ppc_gpr_reg r1 = LoadReg(EAX,op->reg1);
+		ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
 		if (ira->IsRegAllocated(op->reg2))
 		{
-			ppc_gpr_reg r2 = LoadReg(ECX,op->reg2);
-			ppce->Emit(op_cmp32,r1,r2);//rm,rn
+			ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
+			if (op->flags & FLAG_LOGICAL_CMP)
+			{
+				EMIT_CMPL(ppce,r1,r2,0);
+			}
+			else
+			{
+				EMIT_CMP(ppce,r1,r2,0);
+			}
 		}
 		else
 		{
-			ppce->Emit(op_cmp32,r1,GetRegPtr(op->reg2));//rm,rn
+			ppce->emitLoad32(R3,GetRegPtr(op->reg2));
+			if (op->flags & FLAG_LOGICAL_CMP)
+			{
+				EMIT_CMPL(ppce,r1,R3,0);
+			}
+			else
+			{
+				EMIT_CMP(ppce,r1,R3,0);
+			}
 		}
 		//eflags is used w/ combination of SaveT
 	}
@@ -1770,12 +1854,13 @@ void __fastcall shil_compile_test(shil_opcode* op)
 		assert(0==(op->flags & (FLAG_REG2|FLAG_IMM2)));
 		if (ira->IsRegAllocated(op->reg1))
 		{
-			ppc_gpr_reg r1 = LoadReg(EAX,op->reg1);
-			ppce->Emit(op_test32,r1,op->imm1);
+			ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
+			EMIT_ANDI(ppce,R0,r1,op->imm1);
 		}
 		else
 		{
-			ppce->Emit(op_test32,GetRegPtr(op->reg1),op->imm1);
+			ppce->emitLoad32(R3,GetRegPtr(op->reg1));
+			EMIT_ANDI(ppce,R0,R3,op->imm1);
 		}
 		//eflags is used w/ combination of SaveT
 	}
@@ -1783,40 +1868,48 @@ void __fastcall shil_compile_test(shil_opcode* op)
 	{
 		assert(0==(op->flags & FLAG_IMM2));
 		assert(op->flags & FLAG_REG2);
+		
+		PowerPC_instr ppc;
 
-		ppc_gpr_reg r1 = LoadReg(EAX,op->reg1);
+		ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
 		if (ira->IsRegAllocated(op->reg2))
 		{
-			ppc_gpr_reg r2 = LoadReg(ECX,op->reg2);
-			ppce->Emit(op_test32,r1,r2);//rm,rn
+			ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
+			GEN_AND(ppc,R0,r1,r2);
+			ppc|=1; // record bit
+			ppce->write32(ppc);		
 		}
 		else
 		{
-			ppce->Emit(op_test32,r1,GetRegPtr(op->reg2));//rm,rn
+			ppce->emitLoad32(R3,GetRegPtr(op->reg2));
+			GEN_AND(ppc,R0,r1,R3);
+			ppc|=1; // record bit
+			ppce->write32(ppc);		
 		}
 		//eflags is used w/ combination of SaveT
 	}
 }
-#endif
 
 //add-sub
 void __fastcall shil_compile_add(shil_opcode* op)
 {
-	PowerPC_instr ppc;
+	PowerPC_instr ppc,ppc_imm;
 	GEN_ADD(ppc,0,0,0);
-	op_reg_to_reg(op,ppc,false);
+	GEN_ADDI(ppc_imm,0,0,0);
+	op_reg_to_reg(op,ppc,ppc_imm,false);
 }
 void __fastcall shil_compile_adc(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_ADDC(ppc,0,0,0);
-	op_reg_to_reg(op,ppc,false);
+	ppc|=1; // record bit
+	op_reg_to_reg(op,ppc,0,false);
 }
 void __fastcall shil_compile_sub(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_SUBF(ppc,0,0,0);
-	op_reg_to_reg(op,ppc,false);
+	op_reg_to_reg(op,ppc,0,false);
 }
 
 
@@ -2692,61 +2785,6 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 }
 
 
-//save-loadT
-#if 0
-void __fastcall shil_compile_SaveT(shil_opcode* op)
-{
-	assert(op->flags & FLAG_IMM1);//imm1
-	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
-
-	//ppce->Emit(SetCC[op->imm1],ppc_ptr(GetRegPtr(reg_sr_T)));	 -> LOADS slower
-	//strange .. anyway :p
-	if (op->imm1==CC_FPU_E)
-	{
-		//special case
-		//We want to take in account the 'unordered' case on the fpu
-		ppce->Emit(op_lahf);
-		ppce->Emit(op_test8,AH,0x44);
-		ppce->Emit(op_setnp,EAX);
-		//ppce->Emit(op_sete,EAX); old code :)
-	}
-	else
-	{
-		ppce->Emit(SetCC[op->imm1],EAX);
-	}
-
-	//meh , it just LOVES that way more :P
-	ppce->Emit(op_movzx8to32, EAX,EAX);				//zero out rest of eax
-	ppce->Emit(op_mov32,GetRegPtr(reg_sr_T),EAX);
-	
-	//ppce->Emit(op_mov8,GetRegPtr(reg_sr_T),EAX);
-	//ppce->Emit(op_xor32,EAX,EAX);
-
-}
-#endif
-
-void __fastcall shil_compile_LoadT(shil_opcode* op)
-{
-	assert(op->flags & FLAG_IMM1);//imm1
-	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
-	
-
-	assert( (op->imm1==CF) || (op->imm1==jcond_flag) );
-
-	if (op->imm1==jcond_flag)
-	{
-		LoadReg_force(R3,reg_sr_T);
-		ppce->emitStore32(&T_jcond_value,R3);
-	}
-	else
-	{
-		//LoadReg_force(EAX,reg_sr_T);
-		//ppce->Emit(op_shr32,EAX,1);//heh T bit is there now :P CF
-		ppce->emitLoad32(R3,GetRegPtr(reg_sr_T));
-		EMIT_ANDI(ppce,R3,R3,1);
-	}
-}
-
 //decoding table ;)
 
 shil_compileFP* sclt[shilop_count]=
@@ -2790,8 +2828,14 @@ void sclt_Init()
 	SetH(shilop_sub,shil_compile_sub);
 	SetH(shilop_xor,shil_compile_xor);
 	SetH(shilop_LoadT,shil_compile_LoadT);
-/* gli86
+	SetH(shilop_sar,shil_compile_sar);
+	SetH(shilop_shl,shil_compile_shl);
+	SetH(shilop_shr,shil_compile_shr);
+	SetH(shilop_SaveT,shil_compile_SaveT);
 	SetH(shilop_cmp,shil_compile_cmp);
+	SetH(shilop_test,shil_compile_test);
+		
+/* gli86
 	SetH(shilop_fabs,shil_compile_fabs);
 	SetH(shilop_fadd,shil_compile_fadd);
 	SetH(shilop_fdiv,shil_compile_fdiv);
@@ -2810,13 +2854,8 @@ void sclt_Init()
 	SetH(shilop_readm,shil_compile_readm);
 	SetH(shilop_rol,shil_compile_rol);
 	SetH(shilop_ror,shil_compile_ror);
-	SetH(shilop_sar,shil_compile_sar);
-	SetH(shilop_SaveT,shil_compile_SaveT);
 
-	SetH(shilop_shl,shil_compile_shl);
-	SetH(shilop_shr,shil_compile_shr);
 	SetH(shilop_swap,shil_compile_swap);
-	SetH(shilop_test,shil_compile_test);
 	SetH(shilop_writem,shil_compile_writem);
 	SetH(shilop_jcond,shil_compile_jcond);
 	SetH(shilop_jmp,shil_compile_jmp);
