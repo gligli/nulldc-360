@@ -82,6 +82,8 @@ void ppc_block::Init(dyna_reallocFP* ral,dyna_finalizeFP* alf)
 	ppc_indx=0;
 	ppc_size=0;
 	do_realloc=true;
+	RTMP_valid=false;
+	RTMP_prev_value=0xdeadbeef;
 }
 #define patches (*(vector<code_patch>*) _patches)
 #define labels (*(vector<ppc_Label*>*) _labels)
@@ -369,6 +371,20 @@ void ppc_block::MarkLabel(ppc_Label* lbl)
 	//lbl->target_opcode=(u32)opcodes.size();
 }
 
+void ppc_block::ensureRTMPValue(u16 value)
+{
+//	printf("ensureRTMPValue %d %d %d\n",RTMP_valid,value,RTMP_prev_value);
+	if(!RTMP_valid || value!=RTMP_prev_value)
+	{
+		EMIT_LIS(this,RTMP,value);
+		RTMP_valid=true;
+		RTMP_prev_value=value;
+	}
+//	else
+//		printf("ensureRTMPValue avoided!\n");
+}
+
+
 void ppc_block::emitBranch(void * addr, int lk)
 {
 	u32 faa=(u32)addr&0x7fffffff;	
@@ -380,9 +396,9 @@ void ppc_block::emitBranch(void * addr, int lk)
 	}
 	else
 	{
-		EMIT_LIS(this,R15,((u32)addr)>>16);
-		EMIT_ORI(this,R15,R15,(u32)addr);
-		EMIT_MTCTR(this,R15);
+		ensureRTMPValue(((u32)addr)>>16);
+		EMIT_ORI(this,RTMP,RTMP,(u32)addr);
+		EMIT_MTCTR(this,RTMP);
 		if (lk)
 		{
 			EMIT_BCTRL(this);
@@ -402,50 +418,50 @@ void ppc_block::emitReverseBranchConditional(void * addr, int bo, int bi, int lk
 
 void ppc_block::emitLoadFloat(ppc_fpr_reg reg, void * addr)
 {
-	EMIT_LIS(this,R15,HA((u32)addr));
-	EMIT_LFS(this,reg,(u32)addr,R15);
+	ensureRTMPValue(HA((u32)addr));
+	EMIT_LFS(this,reg,(u32)addr,RTMP);
 }
 	
 void ppc_block::emitLoad32(ppc_gpr_reg reg, void * addr)
 {
-	EMIT_LIS(this,R15,HA((u32)addr));
-	EMIT_LWZ(this,reg,(u32)addr,R15);
+	ensureRTMPValue(HA((u32)addr));
+	EMIT_LWZ(this,reg,(u32)addr,RTMP);
 }
 
 void ppc_block::emitLoad16(ppc_gpr_reg reg, void * addr)
 {
-	EMIT_LIS(this,R15,HA((u32)addr));
-	EMIT_LHZ(this,reg,(u32)addr,R15);
+	ensureRTMPValue(HA((u32)addr));
+	EMIT_LHZ(this,reg,(u32)addr,RTMP);
 }
 
 void ppc_block::emitLoad8(ppc_gpr_reg reg, void * addr)
 {
-	EMIT_LIS(this,R15,HA((u32)addr));
-	EMIT_LBZ(this,reg,(u32)addr,R15);
+	ensureRTMPValue(HA((u32)addr));
+	EMIT_LBZ(this,reg,(u32)addr,RTMP);
 }
 
 void ppc_block::emitStoreFloat(void * addr, ppc_fpr_reg reg)
 {
-	EMIT_LIS(this,R15,HA((u32)addr));
-	EMIT_STFS(this,reg,(u32)addr,R15);
+	ensureRTMPValue(HA((u32)addr));
+	EMIT_STFS(this,reg,(u32)addr,RTMP);
 }
 
 void ppc_block::emitStore32(void * addr, ppc_gpr_reg reg)
 {
-	EMIT_LIS(this,R15,HA((u32)addr));
-	EMIT_STW(this,reg,(u32)addr,R15);
+	ensureRTMPValue(HA((u32)addr));
+	EMIT_STW(this,reg,(u32)addr,RTMP);
 }
 
 void ppc_block::emitStore16(void * addr, ppc_gpr_reg reg)
 {
-	EMIT_LIS(this,R15,HA((u32)addr));
-	EMIT_STH(this,reg,(u32)addr,R15);
+	ensureRTMPValue(HA((u32)addr));
+	EMIT_STH(this,reg,(u32)addr,RTMP);
 }
 
 void ppc_block::emitStore8(void * addr, ppc_gpr_reg reg)
 {
-	EMIT_LIS(this,R15,HA((u32)addr));
-	EMIT_STB(this,reg,(u32)addr,R15);
+	ensureRTMPValue(HA((u32)addr));
+	EMIT_STB(this,reg,(u32)addr,RTMP);
 }
 
 void ppc_block::emitMoveRegister(ppc_gpr_reg to,ppc_gpr_reg from)

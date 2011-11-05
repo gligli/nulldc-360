@@ -33,6 +33,8 @@ extern int ppc_condition_flags[][3];
 #define ppc_fpr_reg ppc_reg
 #define ppc_gpr_reg ppc_reg
 
+#define RTMP R15
+
 #include "PowerPC.h"
 extern "C" {
 int disassemble(u32 a, u32 op);
@@ -119,6 +121,9 @@ public:
 	bool do_realloc;
 	bool do_disasm;
 
+	bool RTMP_valid;
+	u16 RTMP_prev_value;
+	
 	ppc_block();
 	~ppc_block();
 	void ppc_buffer_ensure(u32 size);
@@ -148,7 +153,9 @@ public:
 	//When we want to keep info to mark opcodes dead , there is no need to create labels :p
 	//Get an index to next emitted opcode
 	u32 GetOpcodeIndex();
-		
+	
+	void ensureRTMPValue(u16 value);
+	
 	void emitBranch(void * addr, int lk);
 	void emitReverseBranchConditional(void * addr, int bo, int bi, int lk);
 	void emitLoadFloat(ppc_fpr_reg reg, void * addr);
