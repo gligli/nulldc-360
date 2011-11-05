@@ -128,19 +128,19 @@ sh4op(i0000_0000_0100_1000)
 } 
 
 //sett                          
-sh4op(i0000_0000_0001_1000)
+rsh4op(i0000_0000_0001_1000)
 {
 	ilst->mov(reg_sr_T,1);
 } 
 
 //clrt                          
-sh4op(i0000_0000_0000_1000)
+rsh4op(i0000_0000_0000_1000)
 {
 	ilst->mov(reg_sr_T,0);
 } 
 
 //movt <REG_N>                  
-sh4op(i0000_nnnn_0010_1001)
+rsh4op(i0000_nnnn_0010_1001)
 {
 	u32 n = GetN(op);
 	ilst->mov(r[n],reg_sr_T);
@@ -499,7 +499,7 @@ sh4op(i0110_nnnn_mmmm_1010)
 }
 
 //neg <REG_M>,<REG_N>           
-sh4op(i0110_nnnn_mmmm_1011)
+rsh4op(i0110_nnnn_mmmm_1011)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -509,7 +509,7 @@ sh4op(i0110_nnnn_mmmm_1011)
 } 
 
 //not <REG_M>,<REG_N>           
-sh4op(i0110_nnnn_mmmm_0111)
+rsh4op(i0110_nnnn_mmmm_0111)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -1099,7 +1099,7 @@ sh4op(i1111_nnnn_mmmm_1011)
 
 
 //fmov <FREG_M>,<FREG_N>   
-sh4op(i1111_nnnn_mmmm_1100)
+rsh4op(i1111_nnnn_mmmm_1100)
 {//TODO : checkthis
 	if (fpscr.SZ == 0)
 	{
@@ -1233,7 +1233,7 @@ sh4op(i1111_nnmm_1110_1101)
 
 
 //fldi0 <FREG_N>           
-sh4op(i1111_nnnn_1000_1101)
+rsh4op(i1111_nnnn_1000_1101)
 {
 	if (fpscr.PR==0)
 	{
@@ -1251,7 +1251,7 @@ sh4op(i1111_nnnn_1000_1101)
 
 
 //fldi1 <FREG_N>           
-sh4op(i1111_nnnn_1001_1101)
+rsh4op(i1111_nnnn_1001_1101)
 {
 	if (fpscr.PR==0)
 	{
@@ -1269,7 +1269,7 @@ sh4op(i1111_nnnn_1001_1101)
 
 
 //flds <FREG_N>,FPUL       
-sh4op(i1111_nnnn_0001_1101)
+rsh4op(i1111_nnnn_0001_1101)
 {
 	//this seems to be a valid opcode even if double precicion is activated 
 	//carrier requires this
@@ -1432,7 +1432,7 @@ void DoDslot(u32 pc,BasicBlock* bb)
 }
 
 //braf <REG_N>                  
-sh4op(i0000_nnnn_0010_0011)
+rsh4op(i0000_nnnn_0010_0011)
 {
 	u32 n = GetN(op);
 	/*
@@ -1452,7 +1452,7 @@ sh4op(i0000_nnnn_0010_0011)
 	ilst->mov(reg_pc,reg_pc_temp);
 } 
 //bsrf <REG_N>                  
- sh4op(i0000_nnnn_0000_0011)
+ rsh4op(i0000_nnnn_0000_0011)
 {
 	u32 n = GetN(op);
 	/*
@@ -1480,7 +1480,7 @@ sh4op(i0000_nnnn_0010_0011)
 
 
  //rte                           
- sh4op(i0000_0000_0010_1011)
+ rsh4op(i0000_0000_0010_1011)
 {
 	/*
 	//iNimp("rte");
@@ -1501,7 +1501,7 @@ sh4op(i0000_nnnn_0010_0011)
 
 
 //rts                           
- sh4op(i0000_0000_0000_1011)
+ rsh4op(i0000_0000_0000_1011)
 {
 	/*
 	//TODO Check new delay slot code [28/1/06]
@@ -1637,7 +1637,7 @@ sh4op(i1010_iiii_iiii_iiii)
 	DoDslot(pc,bb);
 }
 // bsr <bdisp12>
-sh4op(i1011_iiii_iiii_iiii)
+rsh4op(i1011_iiii_iiii_iiii)
 {//ToDo : Check Me [26/4/05] | Check new delay slot code [28/1/06]
 	/*
 	//iNimp("bsr <bdisp12>");
@@ -1659,7 +1659,7 @@ sh4op(i1011_iiii_iiii_iiii)
 }
 
 // trapa #<imm>                  
-sh4op(i1100_0011_iiii_iiii)
+rsh4op(i1100_0011_iiii_iiii)
 {
 	/*
 	CCN_TRA = (GetImm8(op) << 2);
@@ -1672,7 +1672,7 @@ sh4op(i1100_0011_iiii_iiii)
 	return;
 }
 //jmp @<REG_N>                  
- sh4op(i0100_nnnn_0010_1011)
+ rsh4op(i0100_nnnn_0010_1011)
 {   //ToDo : Check Me [26/4/05] | Check new delay slot code [28/1/06]
 	u32 n = GetN(op);
 	/*
@@ -1694,7 +1694,7 @@ sh4op(i1100_0011_iiii_iiii)
 
 
 //jsr @<REG_N>                  
- sh4op(i0100_nnnn_0000_1011)
+ rsh4op(i0100_nnnn_0000_1011)
 {//ToDo : Check This [26/4/05] | Check new delay slot code [28/1/06]
 	u32 n = GetN(op);
 	
@@ -1716,7 +1716,7 @@ sh4op(sh4_bpt_op)
 	shil_interpret(op);
 }
 //sleep                         
- sh4op(i0000_0000_0001_1011)
+ rsh4op(i0000_0000_0001_1011)
 {
 	shil_interpret(op);	
 	ilst->add(reg_pc,2);

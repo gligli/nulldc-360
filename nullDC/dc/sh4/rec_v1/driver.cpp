@@ -412,6 +412,7 @@ void rec_Sh4_int_Run()
 	rec_cycles=0;
 	SetFloatStatusReg();
 	DynaMainLoop();
+	printf("################### out of DynaMainLoop\n");
 }
 
 void rec_Sh4_int_Stop()

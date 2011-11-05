@@ -371,26 +371,27 @@ void ppc_block::MarkLabel(ppc_Label* lbl)
 
 void ppc_block::emitBranch(void * addr, int lk)
 {
-#if 1
 	u32 faa=(u32)addr&0x7fffffff;	
 	u32 aa=faa&0x03ffffff;
 	
-	verify(aa==faa); // 26 bits max
-
-	write32(aa|((lk?1:0)<<26)); // primary opcode 0=b; 1=bl
-#else	
-	EMIT_LIS(this,R15,((u32)addr)>>16);
-	EMIT_ORI(this,R15,R15,(u32)addr);
-	EMIT_MTCTR(this,R15);
-	if (lk)
+	if(aa==faa) // 26 bits max for rel
 	{
-		EMIT_BCTRL(this);
+		write32(aa|((lk?1:0)<<26)); // primary opcode 0=b; 1=bl
 	}
 	else
 	{
-		EMIT_BCTR(this);
+		EMIT_LIS(this,R15,((u32)addr)>>16);
+		EMIT_ORI(this,R15,R15,(u32)addr);
+		EMIT_MTCTR(this,R15);
+		if (lk)
+		{
+			EMIT_BCTRL(this);
+		}
+		else
+		{
+			EMIT_BCTR(this);
+		}
 	}
-#endif	
 }
 
 void ppc_block::emitReverseBranchConditional(void * addr, int bo, int bi, int lk)

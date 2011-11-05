@@ -133,7 +133,7 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
 			assert(r1!=R3);
 			
-			if(ppc_imm)
+			if(ppc_imm && op->imm1<0x10000)
 			{
 				PPC_SET_RD(ppc_imm,r1);
 				PPC_SET_RA(ppc_imm,r1);
@@ -154,7 +154,7 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 			u32 * ptr = GetRegPtr(op->reg1);
 			ppce->emitLoad32(R4,ptr);
 
-			if(ppc_imm)
+			if(ppc_imm && op->imm1<0x10000)
 			{
 				PPC_SET_RD(ppc_imm,R4);
 				PPC_SET_RA(ppc_imm,R4);
@@ -226,27 +226,39 @@ void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
 	}
 }
 
-/*
 //reg
-void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc)
+void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc, bool setRB)
 {
-	assert(FLAG_32==(op->flags & 3));
+TR	assert(FLAG_32==(op->flags & 3));
 	assert(0==(op->flags & FLAG_IMM1));
 	assert(0==(op->flags & (FLAG_IMM2)));
 	assert(op->flags & FLAG_REG1);
 	assert(0==(op->flags & FLAG_REG2));
 	if (ira->IsRegAllocated(op->reg1))
 	{
-		ppc_gpr_reg r1=LoadReg(EAX,op->reg1);
-		assert(r1!=EAX);
-		ppce->Emit(op_cl,r1);
+		ppc_gpr_reg r1=LoadReg(R3,op->reg1);
+		assert(r1!=R3);
+		
+		PPC_SET_RD(ppc,r1);
+		PPC_SET_RA(ppc,r1);
+		if (setRB) PPC_SET_RB(ppc,r1);
+		ppce->write32(ppc);
+		
 		SaveReg(op->reg1,r1);
 	}
 	else
-		ppce->Emit(op_cl,ppc_ptr(GetRegPtr(op->reg1)));
+	{
+		u32 * ptr = GetRegPtr(op->reg1);
+		ppce->emitLoad32(R4,ptr);
+		
+		PPC_SET_RD(ppc,R4);
+		PPC_SET_RA(ppc,R4);
+		if (setRB) PPC_SET_RB(ppc,R4);
+		ppce->write32(ppc);
+
+		ppce->emitStore32(ptr,R4);
+	}
 }
-*/
-#if 0 //gli86
 
 //_vmem for dynarec ;)
 //on dynarec we have 3 cases for input , mem , reg , const
@@ -310,6 +322,7 @@ bool nvmem_GetPointer(void* &ptr,u32 addr,u32 rw,u32 sz)
 	}
 }
 
+#if 0
 //sz is 1,2,4,8
 void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 {
@@ -465,335 +478,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 		}
 		while(doloop);
 	}
-	/*
-	void* p_RWF_table=0;
-	if (rw==0)
-	{
-		if (sz==1)
-			p_RWF_table=&_vmem_RF8[0];
-		else if (sz==2)
-			p_RWF_table=&_vmem_RF16[0];
-		else if (sz==4)
-			p_RWF_table=&_vmem_RF32[0];
-		else if (sz==8)
-			p_RWF_table=&_vmem_RF32[0];
-		else
-			die("invalid read size");
-	}
-	else
-	{
-		if (sz==1)
-			p_RWF_table=&_vmem_WF8[0];
-		else if (sz==2)
-			p_RWF_table=&_vmem_WF16[0];
-		else if (sz==4)
-			p_RWF_table=&_vmem_WF32[0];
-		else if (sz==8)
-			p_RWF_table=&_vmem_WF32[0];
-		else
-			die("invalid write size");
-	}
-
-	u32 upper=ra>>16;
-
-	void * t =_vmem_MemInfo[upper];
-
-
-	u32 lower=ra& 0xFFFF;
-
-	if ((((u32)t) & 0xFFFF0000)==0)
-	{
-		verify(sz!=8);	//64 bit writes to registers are not possible so far :P.Hopefully will never happen
-		if (rw==1)
-		{
-			if (sse)
-			{
-				//die("sse + function write is not supported");
-				
-				ppce->Emit(op_movd_xmm_to_r32,EDX,ro);
-			}
-			else
-			{
-				if (ro!=EDX)
-					ppce->Emit(op_mov32,EDX,ro);
-			}
-		}
-
-		ppce->Emit(op_mov32,ECX,ra);
-
-		u32 entry=((u32)t)>>2;
-
-		ppce->Emit(op_call , ppc_ptr_imm(((u32**)p_RWF_table)[entry]));
-		if (rw==0)
-		{
-			if (sz==1)
-			{
-				ppce->Emit(op_movsx8to32, ro,EAX);
-			}
-			else if (sz==2)
-			{
-				ppce->Emit(op_movsx16to32, ro,EAX);
-			}
-			else if (sz==4)
-			{
-				if (ro!=EAX)
-					ppce->Emit(op_mov32,ro,EAX);
-			}
-		}
-	}
-	else
-	{	//Direct Ram Read
-		if (rw==1)
-		{
-			void* paddr=&((u8*)t)[lower];
-			
-			if (sz==1)
-			{	//copy to eax :p
-				if (ro!=EDX)
-					ppce->Emit(op_mov32,EDX,ro);
-				ppce->Emit(op_mov8 ,(u8*)paddr,EDX);
-			}
-			else if (sz==2)
-			{	//,dx
-				ppce->Emit(op_mov16 ,(u16*)paddr,ro);
-			}
-			else if (sz==4)
-			{	//,edx
-				if (sse)
-				{
-					ppce->Emit(op_movss,(u32*)paddr,ro);
-				}
-				else
-					ppce->Emit(op_mov32,(u32*)paddr,ro);
-			}
-			else if (sz==8)
-			{
-				ppce->Emit(op_movlps,(u32*)paddr,ro);
-			}
-		}
-		else
-		{
-			void* paddr=&((u8*)t)[lower];
-			if (sz==1)
-			{
-				ppce->Emit(op_movsx8to32, ro,(u8*)paddr);
-			}
-			else if (sz==2)
-			{
-				ppce->Emit(op_movsx16to32, ro,(u16*)paddr);
-			}
-			else if (sz==4)
-			{
-				if (sse)
-				{
-					ppce->Emit(op_movss,ro,(u32*)paddr);
-				}
-				else
-					ppce->Emit(op_mov32,ro,(u32*)paddr);
-			}
-			else if (sz==8)
-			{
-				ppce->Emit(op_movlps,ro,(u32*)paddr);
-			}
-		}
-	}
-	*/
 }
-
-#if 0
-//sz : 1,2 -> sign extended , 4 fully loaded.SSE valid olny for sz=4
-//reg_addr : either ECX , either allocated
-void emit_vmem_read(ppc_reg reg_addr,u8 reg_out,u32 sz)
-{
-	bool sse=IsInFReg(reg_out);
-	if (sse)
-		verify(sz==4);
-
-	ppc_ptr p_RF_table(0);
-	ppc_Label* direct=ppce->CreateLabel(false,8);
-	ppc_Label* end=ppce->CreateLabel(false,8);
-
-	if (sz==1)
-		p_RF_table=&_vmem_RF8[0];
-	else if (sz==2)
-		p_RF_table=&_vmem_RF16[0];
-	else if (sz==4)
-		p_RF_table=&_vmem_RF32[0];
-
-	//ppce->Emit(op_int3);
-	//copy address
-	//this is done here , among w/ the and , it should be possible to fully execute it on paraler (no depency)
-	ppce->Emit(op_mov32,EDX,reg_addr);
-	ppce->Emit(op_mov32,EAX,reg_addr);
-	//lower 16b of address
-	ppce->Emit(op_and32,EDX,0xFFFF);
-	//ppce->Emit(op_movzx16to32,EDX,EDX);
-	//get upper 16 bits
-	ppce->Emit(op_shr32,EAX,16);
-	//read mem info
-	//mov eax,[_vmem_MemInfo+eax*4];
-	ppce->Emit(op_mov32,EAX,ppc_mrm(EAX,sib_scale_4,_vmem_MemInfo));
-
-	//test eax,0xFFFF0000;
-	ppce->Emit(op_test32,EAX,0xFFFF0000);
-	//jnz direct;
-	ppce->Emit(op_jnz,direct);
-	//--other read---
-	if (reg_addr!=ECX)
-		ppce->Emit(op_mov32,ECX,reg_addr);
-	//Get function pointer and call it
-	ppce->Emit(op_call32,ppc_mrm(EAX,p_RF_table));
-
-	//save reg
-	if (!sse)
-	{
-		ppc_reg writereg= LoadReg_nodata(EAX,reg_out);
-		if (sz==1)
-		{
-			ppce->Emit(op_movsx8to32, writereg,EAX);
-		}
-		else if (sz==2)
-		{
-			ppce->Emit(op_movsx16to32, writereg,EAX);
-		}
-		else
-		{
-			if (writereg!=EAX)
-				ppce->Emit(op_mov32, writereg,EAX);
-		}
-		SaveReg(reg_out,writereg);
-	}
-	else
-	{	
-		fra->SaveRegisterGPR(reg_out,EAX);
-	}
-
-	ppce->Emit(op_jmp,end);
-//direct:
-	ppce->MarkLabel(direct);
-//	mov eax,[eax+edx];	//note : upper bits dont matter , so i do 32b read here ;) (to get read of partial register stalls)
-	if (!sse)
-	{
-		ppc_reg writereg= LoadReg_nodata(EAX,reg_out);
-		if (sz==1)
-		{
-			ppce->Emit(op_movsx8to32, writereg,ppc_mrm(EAX,EDX));
-		}
-		else if (sz==2)
-		{
-			ppce->Emit(op_movsx16to32, writereg,ppc_mrm(EAX,EDX));
-		}
-		else
-		{
-			ppce->Emit(op_mov32, writereg,ppc_mrm(EAX,EDX));
-		}
-		SaveReg(reg_out,writereg);
-	}
-	else
-	{
-		ppc_reg writereg= fra->GetRegister(XMM0,reg_out,RA_NODATA);
-		
-		ppce->Emit(op_movss, writereg,ppc_mrm(EAX,EDX));
-		
-		fra->SaveRegister(reg_out,writereg);
-	}
-	ppce->MarkLabel(end);
-}
-//SSE valid olny for sz=4
-//reg_addr : either ECX , either allocated
-void emit_vmem_write(ppc_reg reg_addr,u8 reg_data,u32 sz)
-{
-	bool sse=IsInFReg(reg_data);
-	if (sse)
-	{
-		verify(sz==4);
-		if (fra->IsRegAllocated(reg_data))
-			fra->GetRegister(XMM0,reg_data,RA_DEFAULT);
-	}
-	else
-	{
-		if (ira->IsRegAllocated(reg_data))
-			ira->GetRegister(EAX,reg_data,RA_DEFAULT);
-	}
-
-	ppc_ptr p_WF_table(0);
-	ppc_Label* direct=ppce->CreateLabel(false,8);
-	ppc_Label* end=ppce->CreateLabel(false,8);
-
-	if (sz==1)
-		p_WF_table=&_vmem_WF8[0];
-	else if (sz==2)
-		p_WF_table=&_vmem_WF16[0];
-	else if (sz==4)
-		p_WF_table=&_vmem_WF32[0];
-
-	//ppce->Emit(op_int3);
-	//copy address
-	//this is done here , among w/ the and , it should be possible to fully execute it on paraler (no depency)
-	ppce->Emit(op_mov32,EDX,reg_addr);
-	ppce->Emit(op_mov32,EAX,reg_addr);
-	//lower 16b of address
-	ppce->Emit(op_and32,EDX,0xFFFF);
-	//ppce->Emit(op_movzx16to32,EDX,EDX);
-	//get upper 16 bits
-	ppce->Emit(op_shr32,EAX,16);
-	//read mem info
-	//mov eax,[_vmem_MemInfo+eax*4];
-	ppce->Emit(op_mov32,EAX,ppc_mrm(EAX,sib_scale_4,_vmem_MemInfo));
-
-	//test eax,0xFFFF0000;
-	ppce->Emit(op_test32,EAX,0xFFFF0000);
-	//jnz direct;
-	ppce->Emit(op_jnz,direct);
-	//--other read---
-	if (reg_addr!=ECX)
-		ppce->Emit(op_mov32,ECX,reg_addr);
-
-	//load reg
-	if (!sse)
-	{
-		LoadReg_force(EDX,reg_data);
-	}
-	else
-	{	
-		fra->LoadRegisterGPR(EDX,reg_data);
-	}
-
-	//Get function pointer and call it
-	ppce->Emit(op_call32,ppc_mrm(EAX,p_WF_table));
-
-	ppce->Emit(op_jmp,end);
-//direct:
-	ppce->MarkLabel(direct);
-//	mov [eax+edx],reg;	//note : upper bits dont matter , so i do 32b read here ;) (to get read of partial register stalls)
-	if (!sse)
-	{
-		
-		if (sz==1)
-		{
-			ppc_reg readreg= LoadReg_force(ECX,reg_data);
-			ppce->Emit(op_mov8, ppc_mrm(EAX,EDX),readreg);
-		}
-		else if (sz==2)
-		{
-			ppc_reg readreg= LoadReg(ECX,reg_data);
-			ppce->Emit(op_mov16, ppc_mrm(EAX,EDX),readreg);
-		}
-		else
-		{
-			ppc_reg readreg= LoadReg(ECX,reg_data);
-			ppce->Emit(op_mov32, ppc_mrm(EAX,EDX),readreg);
-		}
-	}
-	else
-	{
-		ppc_reg readreg= fra->GetRegister(XMM0,reg_data,RA_DEFAULT);
-		
-		ppce->Emit(op_movss, ppc_mrm(EAX,EDX),readreg);
-	}
-	ppce->MarkLabel(end);
-}
-
 #endif
 
 //#define REG_ALLOC_COUNT			 (shil_compile_slow_settings.RegAllocCount)
@@ -866,18 +551,18 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		#define IMMtoGPR (mov_flag_GRP_1 | mov_flag_imm_2)
 		#define IMMtoM32 (mov_flag_M32_1 | mov_flag_imm_2)
 		
-		ppc_sse_reg sse1=ERROR_REG;
-		ppc_sse_reg sse2=ERROR_REG;
+		ppc_fpr_reg fpr1=ERROR_REG;
+		ppc_fpr_reg fpr2=ERROR_REG;
 		if (flags & mov_flag_XMM_1)
 		{
-			sse1=fra->GetRegister(XMM0,op->reg1,RA_NODATA);
-			assert(sse1!=XMM0);
+			fpr1=fra->GetRegister(FR0,op->reg1,RA_NODATA);
+			assert(fpr1!=FR0);
 		}
 
 		if (flags & mov_flag_XMM_2)
 		{
-			sse2=fra->GetRegister(XMM0,op->reg2,RA_DEFAULT);
-			assert(sse2!=XMM0);
+			fpr2=fra->GetRegister(FR0,op->reg2,RA_DEFAULT);
+			assert(fpr2!=FR0);
 		}
 
 		ppc_gpr_reg gpr1=ERROR_REG;
@@ -885,29 +570,28 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 
 		if (flags & mov_flag_GRP_1)
 		{
-			gpr1=ira->GetRegister(EAX,op->reg1,RA_NODATA);
-			assert(gpr1!=EAX);
+			gpr1=ira->GetRegister(R4,op->reg1,RA_NODATA);
+			assert(gpr1!=R4);
 		}
 
 		if (flags & mov_flag_GRP_2)
 		{
-			gpr2=ira->GetRegister(EAX,op->reg2,RA_DEFAULT);
-			assert(gpr2!=EAX);
+			gpr2=ira->GetRegister(R4,op->reg2,RA_DEFAULT);
+			assert(gpr2!=R4);
 		}
-
 
 		switch(flags)
 		{
 		case XMMtoXMM:
 			{
-				ppce->Emit(op_movss,sse1,sse2);
-				fra->SaveRegister(op->reg1,sse1);
+				EMIT_FMR(ppce,fpr1,fpr2);
+				fra->SaveRegister(op->reg1,fpr1);
 			}
 			break;
 		case XMMtoGPR:
 			{
 				//write back to mem location
-				ppce->Emit(op_movss,GetRegPtr(op->reg1),sse2);
+				ppce->emitStoreFloat(GetRegPtr(op->reg1),fpr2);
 				//mark that the register has to be reloaded from there
 				ira->ReloadRegister(op->reg1);
 			}
@@ -915,46 +599,46 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		case XMMtoM32:
 			{
 				//copy to mem location
-				ppce->Emit(op_movss,GetRegPtr(op->reg1),sse2);
+				ppce->emitStoreFloat(GetRegPtr(op->reg1),fpr2);
 			}
 			break;
 
 		case GPRtoXMM:		
 			{
 				//write back to ram
-				ppce->Emit(op_mov32,GetRegPtr(op->reg1),gpr2);
+				ppce->emitStore32(GetRegPtr(op->reg1),gpr2);
 				//mark reload on next use
 				fra->ReloadRegister(op->reg1);
 			}
 			break;
 		case GPRtoGPR:
 			{
-				ppce->Emit(op_mov32,gpr1,gpr2);
+				ppce->emitMoveRegister(gpr1,gpr2);
 				ira->SaveRegister(op->reg1,gpr1);
 			}
 			break;
 		case GPRtoM32:
 			{
 				//copy to ram
-				ppce->Emit(op_mov32,GetRegPtr(op->reg1),gpr2);
+				ppce->emitStore32(GetRegPtr(op->reg1),gpr2);
 			}
 			break;
 		case M32toXMM:
 			{
-				ppce->Emit(op_movss,sse1,GetRegPtr(op->reg2));
-				fra->SaveRegister(op->reg1,sse1);
+				ppce->emitLoadFloat(fpr1,GetRegPtr(op->reg2));
+				fra->SaveRegister(op->reg1,fpr1);
 			}
 			break;
 		case M32toGPR:
 			{
-				ppce->Emit(op_mov32,gpr1,GetRegPtr(op->reg2));
+				ppce->emitLoad32(gpr1,GetRegPtr(op->reg2));
 				ira->SaveRegister(op->reg1,gpr1);
 			}
 			break;
 		case M32toM32:
 			{
-				ppce->Emit(op_mov32,EAX,GetRegPtr(op->reg2));
-				ppce->Emit(op_mov32,GetRegPtr(op->reg1),EAX);
+				ppce->emitLoad32(R4,GetRegPtr(op->reg2));
+				ppce->emitStore32(GetRegPtr(op->reg1),R4);
 			}
 			break;
 		case IMMtoXMM:
@@ -962,7 +646,8 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 				//log("impossible mov IMMtoXMM [%X]\n",flags);
 				//__asm int 3;
 				//write back to ram
-				ppce->Emit(op_mov32,GetRegPtr(op->reg1),op->imm1);
+				ppce->emitLoadImmediate32(R4,op->imm1);
+				ppce->emitStore32(GetRegPtr(op->reg1),R4);
 				//mark reload on next use
 				fra->ReloadRegister(op->reg1);
 			}
@@ -970,20 +655,21 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 
 		case IMMtoGPR:
 			{
-				ppce->Emit(op_mov32,gpr1,op->imm1);
+				ppce->emitLoadImmediate32(gpr1,op->imm1);
 				ira->SaveRegister(op->reg1,gpr1);
 			}
 			break;
 
 		case IMMtoM32:
 			{
-				ppce->Emit(op_mov32,GetRegPtr(op->reg1),op->imm1);
+				ppce->emitLoadImmediate32(R4,op->imm1);
+				ppce->emitStore32(GetRegPtr(op->reg1),R4);
 			}
 			break;
 
 		default:
 			log("unknown mov %X\n",flags);
-			__asm int 3;
+			asm volatile ("sc");
 			break;
 		}
 	}
@@ -995,16 +681,18 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		u8 dest=GetSingleFromDouble((u8)op->reg1);
 		u8 source=GetSingleFromDouble((u8)op->reg2);
 
-		//ppce->Emit(op_mov32,EAX,GetRegPtr(source));
-		//ppce->Emit(op_mov32,ECX,GetRegPtr(source+1));
-		ppce->Emit(op_movlps,XMM0,GetRegPtr(source));
+		ppce->emitLoad32(R4,GetRegPtr(source));
+		ppce->emitLoad32(R3,GetRegPtr(source+1));
+//		ppce->Emit(op_movlps,FR0,GetRegPtr(source));
 
-		//ppce->Emit(op_mov32,GetRegPtr(dest),EAX);
-		//ppce->Emit(op_mov32,GetRegPtr(dest+1),ECX);
-		ppce->Emit(op_movlps,GetRegPtr(dest),XMM0);
+		ppce->emitStore32(GetRegPtr(dest),R4);
+		ppce->emitStore32(GetRegPtr(dest+1),R3);
+//		ppce->Emit(op_movlps,GetRegPtr(dest),FR0);
 	}
 }
 
+
+#if 0 //gli86
 
 //movex8/16 reg32,zx/sx reg8/16
 void __fastcall shil_compile_movex(shil_opcode* op)
@@ -1128,39 +816,47 @@ void __fastcall shil_compile_sar(shil_opcode* op)
 	op_imm_to_reg(op,ppc,true);
 }
 
-#if 0
 //rotates
 //rcl reg32, CF is set before calling
 void __fastcall shil_compile_rcl(shil_opcode* op)
 {
-	op_reg(op,op_rcl32);
+//	op_reg(op,op_rcl32);
 }
 //rcr reg32, CF is set before calling
 void __fastcall shil_compile_rcr(shil_opcode* op)
 {
-	op_reg(op,op_rcr32);
+//	op_reg(op,op_rcr32);
 }
 //ror reg32
 void __fastcall shil_compile_ror(shil_opcode* op)
 {
-	op_reg(op,op_ror32);
+	PowerPC_instr ppc;
+	GEN_RLWINM(ppc,0,0,31,0,31);
+	op_reg(op,ppc,false);
+	// needs T bit emu
 }
 //rol reg32
 void __fastcall shil_compile_rol(shil_opcode* op)
 {
-	op_reg(op,op_rol32);
+	PowerPC_instr ppc;
+	GEN_RLWINM(ppc,0,0,1,0,31);
+	op_reg(op,ppc,false);
+	// needs T bit emu
 }
 //neg
 void __fastcall shil_compile_neg(shil_opcode* op)
 {
-	op_reg(op,op_neg32);
+	PowerPC_instr ppc;
+	GEN_NEG(ppc,0,0);
+	op_reg(op,ppc,false);
 }
 //not
 void __fastcall shil_compile_not(shil_opcode* op)
 {
-	op_reg(op,op_not32);
+	PowerPC_instr ppc;
+	GEN_NOR(ppc,0,0,0);
+	op_reg(op,ppc,true);
 }
-#endif
 
 //xor reg32,reg32/imm32
 void __fastcall shil_compile_xor(shil_opcode* op)
@@ -2834,6 +2530,11 @@ void sclt_Init()
 	SetH(shilop_SaveT,shil_compile_SaveT);
 	SetH(shilop_cmp,shil_compile_cmp);
 	SetH(shilop_test,shil_compile_test);
+//	SetH(shilop_rol,shil_compile_rol);
+//	SetH(shilop_ror,shil_compile_ror);
+	SetH(shilop_neg,shil_compile_neg);
+	SetH(shilop_not,shil_compile_not);
+	SetH(shilop_mov,shil_compile_mov);
 		
 /* gli86
 	SetH(shilop_fabs,shil_compile_fabs);
@@ -2844,16 +2545,11 @@ void sclt_Init()
 	SetH(shilop_fmul,shil_compile_fmul);
 	SetH(shilop_fneg,shil_compile_fneg);
 	SetH(shilop_fsub,shil_compile_fsub);
-	SetH(shilop_mov,shil_compile_mov);
 	SetH(shilop_movex,shil_compile_movex);
-	SetH(shilop_neg,shil_compile_neg);
-	SetH(shilop_not,shil_compile_not);
 
 	SetH(shilop_rcl,shil_compile_rcl);
 	SetH(shilop_rcr,shil_compile_rcr);
 	SetH(shilop_readm,shil_compile_readm);
-	SetH(shilop_rol,shil_compile_rol);
-	SetH(shilop_ror,shil_compile_ror);
 
 	SetH(shilop_swap,shil_compile_swap);
 	SetH(shilop_writem,shil_compile_writem);

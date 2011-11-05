@@ -8,7 +8,7 @@
 //
 
 //stc GBR,<REG_N>               
-sh4op(i0000_nnnn_0001_0010)
+rsh4op(i0000_nnnn_0001_0010)
 {
 	u32 n = GetN(op);
 
@@ -16,7 +16,7 @@ sh4op(i0000_nnnn_0001_0010)
 }
 
 //stc VBR,<REG_N>               
-sh4op(i0000_nnnn_0010_0010)
+rsh4op(i0000_nnnn_0010_0010)
 {
 	u32 n = GetN(op);
 
@@ -24,7 +24,7 @@ sh4op(i0000_nnnn_0010_0010)
 }
 
 //stc SSR,<REG_N>               
-sh4op(i0000_nnnn_0011_0010)
+rsh4op(i0000_nnnn_0011_0010)
 {
 	u32 n = GetN(op);
 
@@ -32,14 +32,14 @@ sh4op(i0000_nnnn_0011_0010)
 }
 
 //stc SGR,<REG_N>               
-sh4op(i0000_nnnn_0011_1010)
+rsh4op(i0000_nnnn_0011_1010)
 {
 	u32 n = GetN(op);
 	r[n] = sgr;
 }
 
 //stc SPC,<REG_N>               
-sh4op(i0000_nnnn_0100_0010)
+rsh4op(i0000_nnnn_0100_0010)
 {
 	u32 n = GetN(op);
 
@@ -47,7 +47,7 @@ sh4op(i0000_nnnn_0100_0010)
 }
 
 //stc RM_BANK,<REG_N>           
-sh4op(i0000_nnnn_1mmm_0010)
+rsh4op(i0000_nnnn_1mmm_0010)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op) & 0x7;
@@ -56,7 +56,7 @@ sh4op(i0000_nnnn_1mmm_0010)
 }
 
 //sts FPUL,<REG_N>              
-sh4op(i0000_nnnn_0101_1010)
+rsh4op(i0000_nnnn_0101_1010)
 {
 	u32 n = GetN(op);
 
@@ -64,7 +64,7 @@ sh4op(i0000_nnnn_0101_1010)
 }
 
 //stc DBR,<REG_N>             
-sh4op(i0000_nnnn_1111_1010)
+rsh4op(i0000_nnnn_1111_1010)
 {
 	u32 n = GetN(op);
 
@@ -72,7 +72,7 @@ sh4op(i0000_nnnn_1111_1010)
 }
 
 //sts MACH,<REG_N>              
-sh4op(i0000_nnnn_0000_1010)
+rsh4op(i0000_nnnn_0000_1010)
 {
 	u32 n = GetN(op);
 
@@ -80,7 +80,7 @@ sh4op(i0000_nnnn_0000_1010)
 }
 
 //sts MACL,<REG_N>              
-sh4op(i0000_nnnn_0001_1010)
+rsh4op(i0000_nnnn_0001_1010)
 {
 	u32 n = GetN(op);
 
@@ -88,7 +88,7 @@ sh4op(i0000_nnnn_0001_1010)
 } 
 
 //sts PR,<REG_N>                
-sh4op(i0000_nnnn_0010_1010)
+rsh4op(i0000_nnnn_0010_1010)
 {
 	u32 n = GetN(op);
 
@@ -96,7 +96,7 @@ sh4op(i0000_nnnn_0010_1010)
 } 
 
 //lds <REG_N>,MACH              
-sh4op(i0100_nnnn_0000_1010)
+rsh4op(i0100_nnnn_0000_1010)
 {
 	u32 n = GetN(op);
 
@@ -105,7 +105,7 @@ sh4op(i0100_nnnn_0000_1010)
 
 
 //lds <REG_N>,MACL              
-sh4op(i0100_nnnn_0001_1010)
+rsh4op(i0100_nnnn_0001_1010)
 {
 	u32 n = GetN(op);
 
@@ -113,14 +113,14 @@ sh4op(i0100_nnnn_0001_1010)
 }
 
 //lds <REG_N>,PR                
-sh4op(i0100_nnnn_0010_1010)
+rsh4op(i0100_nnnn_0010_1010)
 {
 	u32 n = GetN(op);
 	pr = r[n];
 }
 
 //lds <REG_N>,FPUL              
-sh4op(i0100_nnnn_0101_1010)
+rsh4op(i0100_nnnn_0101_1010)
 {
 	u32 n = GetN(op);
 
@@ -128,7 +128,7 @@ sh4op(i0100_nnnn_0101_1010)
 }
 
 //ldc <REG_N>,DBR                
-sh4op(i0100_nnnn_1111_1010)
+rsh4op(i0100_nnnn_1111_1010)
 {
 	u32 n = GetN(op);
 
@@ -136,7 +136,7 @@ sh4op(i0100_nnnn_1111_1010)
 }
 
 //ldc <REG_N>,GBR               
-sh4op(i0100_nnnn_0001_1110)
+rsh4op(i0100_nnnn_0001_1110)
 {
 	u32 n = GetN(op);
 
@@ -144,7 +144,7 @@ sh4op(i0100_nnnn_0001_1110)
 }
 
 //ldc <REG_N>,VBR               
-sh4op(i0100_nnnn_0010_1110)
+rsh4op(i0100_nnnn_0010_1110)
 {
 	u32 n = GetN(op);
 
@@ -152,7 +152,7 @@ sh4op(i0100_nnnn_0010_1110)
 }
 
 //ldc <REG_N>,SSR               
-sh4op(i0100_nnnn_0011_1110)
+rsh4op(i0100_nnnn_0011_1110)
 {
 	u32 n = GetN(op);
 
@@ -160,7 +160,7 @@ sh4op(i0100_nnnn_0011_1110)
 }
 
 //ldc <REG_N>,SGR               
-sh4op(i0100_nnnn_0011_1010)
+rsh4op(i0100_nnnn_0011_1010)
 {
 	u32 n = GetN(op);
 
@@ -168,7 +168,7 @@ sh4op(i0100_nnnn_0011_1010)
 }
 
 //ldc <REG_N>,SPC               
-sh4op(i0100_nnnn_0100_1110)
+rsh4op(i0100_nnnn_0100_1110)
 {
 	u32 n = GetN(op);
 
@@ -176,7 +176,7 @@ sh4op(i0100_nnnn_0100_1110)
 }
 
 //ldc <REG_N>,RM_BANK           
-sh4op(i0100_nnnn_1mmm_1110)
+rsh4op(i0100_nnnn_1mmm_1110)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op) & 7;
@@ -185,7 +185,7 @@ sh4op(i0100_nnnn_1mmm_1110)
 }
 
 //mov <REG_M>,<REG_N>           
-sh4op(i0110_nnnn_mmmm_0011)
+rsh4op(i0110_nnnn_mmmm_0011)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -197,7 +197,7 @@ sh4op(i0110_nnnn_mmmm_0011)
 //Cxxx
 
 // mova @(<disp>,PC),R0          
-sh4op(i1100_0111_iiii_iiii)
+rsh4op(i1100_0111_iiii_iiii)
 {
 	u32 disp = GetImm8(op);
 
@@ -208,7 +208,7 @@ sh4op(i1100_0111_iiii_iiii)
 // Exxx
 
 // mov #<imm>,<REG_N>
- sh4op(i1110_nnnn_iiii_iiii)
+ rsh4op(i1110_nnnn_iiii_iiii)
 {
 	u32 n = GetN(op);
 
@@ -216,7 +216,7 @@ sh4op(i1100_0111_iiii_iiii)
 }
 
 //clrmac                        
-sh4op(i0000_0000_0010_1000)
+rsh4op(i0000_0000_0010_1000)
 {
 	mac.l=(u32)0;
 	mac.h=(u32)0;

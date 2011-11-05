@@ -49,8 +49,8 @@ void irLoadSettings()
 	cfgGetStr("DefaultImage",irsettings.DefaultImage,"defualt.gdi");
 	cfgGetStr("LastImage",irsettings.LastImage,"c:\\game.gdi");
 	
-//	irsettings.LoadDefaultImage=trye;
 	irsettings.LoadDefaultImage=false;
+//	irsettings.LoadDefaultImage=true;
 	strcpy(irsettings.DefaultImage,"sda:/dcisos/soulcalibur/Soul Calibur v1.000 (1999)(Namco)(NTSC)(US)[!][4S T-1401N].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/sonic/Sonic Adventure International v1.003 (1999)(Sega)(NTSC)(JP)(M5)[!].gdi");
 //	irsettings.PatchRegion=true;

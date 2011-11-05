@@ -181,7 +181,7 @@ using namespace std;
 #define FASTCALL __fastcall
 #endif
 
-#define dbgbreak 
+#define dbgbreak asm volatile ("sc");
 
 #ifndef NO_VERIFY
 #define verify(x) if((x)==false){ msgboxf("Verify Failed  : " #x "\n in %s -> %s : %d \n",MBX_ICONERROR,_T(__FUNCTION__),_T(__FILE__),__LINE__); dbgbreak;}
