@@ -18,7 +18,7 @@ include $(DEVKITXENON)/rules
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	nullDC nullDC/dc nullDC/dc/aica nullDC/dc/asic nullDC/dc/gdrom nullDC/dc/maple nullDC/dc/mem nullDC/dc/pvr nullDC/dc/sh4 nullDC/plugins nullDC/config nullDC/cl nullDC/gui \
-			nullDC/dc/sh4/rec_v1 nullDC/dc/sh4/shil nullDC/dc/sh4/shil/compiler nulldc/emitter nulldc/emitter/regalloc nulldc/emitter/disasm \
+			nullDC/dc/sh4/rec_v1 nullDC/dc/sh4/shil nullDC/dc/sh4/shil/compiler nullDC/emitter nullDC/emitter/regalloc nullDC/emitter/disasm \
 			plugins/xenon_gui \
 			plugins/drkPvr \
 			plugins/ImgReader plugins/ImgReader/deps \
@@ -34,7 +34,7 @@ INCLUDES	:=	files nullDC . nullDC/dc/sh4
 #---------------------------------------------------------------------------------
 
 ASFLAGS	= -Wa,$(INCLUDE) -Wa,-a32
-CFLAGS	= -g -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 -Wall -Wno-format -Wno-write-strings -Wno-strict-aliasing $(MACHDEP) $(INCLUDE) -D__POWERPC__
+CFLAGS	= -pipe -g -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 -Wall -Wno-format -Wno-write-strings -Wno-strict-aliasing $(MACHDEP) $(INCLUDE) -D__POWERPC__
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	 -g $(MACHDEP) -Wl,-Map,$(notdir $@).map

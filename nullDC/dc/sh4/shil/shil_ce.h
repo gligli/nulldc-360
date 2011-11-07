@@ -2,7 +2,7 @@
 #include "types.h"
 #include "dc/sh4/sh4_if.h"
 #include "dc/sh4/sh4_if.h"
-#include "dc/sh4/rec_v1/basicBlock.h"
+#include "dc/sh4/rec_v1/basicblock.h"
 
 struct shil_ce_info_entry
 {

@@ -1,8 +1,8 @@
 #pragma once
 #include "recompiler.h"
-#include "BasicBlock.h"
+#include "basicblock.h"
 #include "ops.h"
-#include "dc\sh4\sh4_opcode_list.h"
+#include "dc/sh4/sh4_opcode_list.h"
 
 
 void ScanCode(u32 pc,CodeRegion* to);

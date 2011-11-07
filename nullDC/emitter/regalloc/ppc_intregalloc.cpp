@@ -276,12 +276,14 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		if (!IsRegAllocated(reg))
 		{
 			ppce->emitLoad16(R4,from);
-			ppce->emitStore16(GetRegPtr(reg),R4);
+			EMIT_EXTSH(ppce,R4,R4);
+			ppce->emitStore32(GetRegPtr(reg),R4);
 		}
 		else
 		{
 			ppc_gpr_reg ppcreg=GetRegister(R3,reg,RA_NODATA);
 			ppce->emitLoad16(ppcreg,from);
+			EMIT_EXTSH(ppce,ppcreg,ppcreg);
 		}
 		MarkDirty(reg);
 	}
@@ -291,12 +293,14 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		if (!IsRegAllocated(reg))
 		{
 			ppce->emitLoad8(R4,from);
-			ppce->emitStore8(GetRegPtr(reg),R4);
+			EMIT_EXTSB(ppce,R4,R4);
+			ppce->emitStore32(GetRegPtr(reg),R4);
 		}
 		else
 		{
 			ppc_gpr_reg ppcreg=GetRegister(R3,reg,RA_NODATA);
 			ppce->emitLoad8(ppcreg,from);
+			EMIT_EXTSB(ppce,ppcreg,ppcreg);
 		}
 		MarkDirty(reg);
 	}

@@ -229,7 +229,7 @@ void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
 //reg
 void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc, bool setRB)
 {
-TR	assert(FLAG_32==(op->flags & 3));
+	assert(FLAG_32==(op->flags & 3));
 	assert(0==(op->flags & FLAG_IMM1));
 	assert(0==(op->flags & (FLAG_IMM2)));
 	assert(op->flags & FLAG_REG1);
@@ -280,7 +280,7 @@ bool _vmem_translate(u32 addr,unat& entry_or_fptr);
 
 bool nvmem_GetPointer(void* &ptr,u32 addr,u32 rw,u32 sz)
 {
-	void* p_RWF_table;
+	void* p_RWF_table=NULL;
 	if (rw==0)
 	{
 		if (sz==FLAG_8)
@@ -322,10 +322,11 @@ bool nvmem_GetPointer(void* &ptr,u32 addr,u32 rw,u32 sz)
 	}
 }
 
-#if 0
 //sz is 1,2,4,8
 void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 {
+//	printf("emit_vmem_op_compat_const %d %d %08x %d\n",rw,sz,addr,reg);
+	
 	if (sz==FLAG_64)
 		reg=GetSingleFromDouble((u8)reg);
 
@@ -342,31 +343,26 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 		switch(sz)
 		{
 		case FLAG_8:
-			if (rw==0)
+TR			if (rw==0)
 			{
-				ira->SaveRegister(reg,(s8*)ptr);
+				ira->SaveRegister(reg,(s8*)((u32)ptr^3));
 			}
 			else
 			{
-				ppc_reg rs= ira->GetRegister(EDX,reg,RA_DEFAULT);	//must be on 8 bit accessible reg
-				if (rs>BL)
-				{
-					ppce->Emit(op_mov32,EDX,rs);
-					rs=EDX;
-				}
-				ppce->Emit(op_mov8,ptr,rs);
+				ppc_reg rs= ira->GetRegister(R5,reg,RA_DEFAULT);
+				ppce->emitStore8((s8*)((u32)ptr^3),rs);
 			}
 			break;
 
 		case FLAG_16:
 			if (rw==0)
 			{
-				ira->SaveRegister(reg,(s16*)ptr);
+				ira->SaveRegister(reg,(s16*)((u32)ptr^2));
 			}
 			else
 			{
-				ppc_reg rs= ira->GetRegister(EDX,reg,RA_DEFAULT);//any reg will do
-				ppce->Emit(op_mov16,ptr,rs);
+				ppc_reg rs= ira->GetRegister(R5,reg,RA_DEFAULT);//any reg will do
+				ppce->emitStore16((s16*)((u32)ptr^2),rs);
 			}
 			break;
 
@@ -375,7 +371,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 			{
 				if (IsSSEAllocReg(reg))
 				{
-					fra->SaveRegister(reg,(float*)ptr);
+TR					fra->SaveRegister(reg,(float*)ptr);
 				}
 				else
 				{
@@ -386,40 +382,40 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 			{
 				if (IsSSEAllocReg(reg))
 				{
-					ppce->Emit(op_mov32,EAX,GetRegPtr(reg));
-					ppce->Emit(op_mov32,(u32*)ptr,EAX);
+					ppce->emitLoad32(R4,GetRegPtr(reg));
+					ppce->emitStore32((u32*)ptr,R4);
 				}
 				else
 				{
-					ppc_reg rs= ira->GetRegister(EAX,reg,RA_DEFAULT);//any reg will do
-					ppce->Emit(op_mov32,ptr,rs);
+					ppc_reg rs= ira->GetRegister(R4,reg,RA_DEFAULT);//any reg will do
+					ppce->emitStore32(ptr,rs);
 				}
 			}
 			break;
 		case FLAG_64:
-			verify(IsFpuReg(reg));
+TR			verify(IsFpuReg(reg));
 			if (rw==0)
 			{
-				ppce->Emit(op_movlps,XMM0,(u32*)ptr);
-				ppce->Emit(op_movlps,GetRegPtr(reg),XMM0);
+				ppce->emitLoadDouble(FR0,(u32*)ptr);
+				ppce->emitStoreDouble(GetRegPtr(reg),FR0);
 			}
 			else
 			{
-				ppce->Emit(op_movlps,XMM0,GetRegPtr(reg));
-				ppce->Emit(op_movlps,(u32*)ptr,XMM0);
+				ppce->emitLoadDouble(FR0,GetRegPtr(reg));
+				ppce->emitStoreDouble((u32*)ptr,FR0);
 			}
 			break;
 		}
 	}
 	else
 	{
-		bool doloop=false;//sz==FLAG_64;
+TR		bool doloop=false;//sz==FLAG_64;
 
 		do
 		{
 			doloop=doloop ^(sz==FLAG_64); 
 			//gota call functions
-			ppce->Emit(op_mov32,ECX,addr);
+			ppce->emitLoadImmediate32(R3,addr);
 
 
 
@@ -427,16 +423,16 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 			{
 				if (IsSSEAllocReg(reg))
 				{
-					ppce->Emit(op_mov32,EDX,GetRegPtr(reg));
+					ppce->emitLoad32(R4,GetRegPtr(reg));
 				}
 				else
 				{
-					ira->GetRegister(EDX,reg,RA_FORCE);//any reg will do
+					ira->GetRegister(R4,reg,RA_FORCE);//any reg will do
 				}
 			}
 
 			//call the function
-			ppce->Emit(op_call,ppc_ptr_imm(ptr));
+			ppce->emitBranch(ptr,1);
 
 			if(rw==0)
 			{
@@ -444,30 +440,30 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 				{
 				case FLAG_8:
 					{
-					ppc_reg r=ira->GetRegister(EAX,reg,RA_NODATA);
-					ppce->Emit(op_movsx8to32,r,EAX);
+					ppc_reg r=ira->GetRegister(R3,reg,RA_NODATA);
+					EMIT_EXTSB(ppce,R3,R3);
 					ira->SaveRegister(reg,r);
 					}
 					break;
 				case FLAG_16:
 					{
-					ppc_reg r=ira->GetRegister(EAX,reg,RA_NODATA);
-					ppce->Emit(op_movsx16to32,r,EAX);
+					ppc_reg r=ira->GetRegister(R3,reg,RA_NODATA);
+					EMIT_EXTSH(ppce,R3,R3);
 					ira->SaveRegister(reg,r);
 					}
 					break;
 				case FLAG_32:
 					if (IsSSEAllocReg(reg))
 					{
-						ppce->Emit(op_mov32,GetRegPtr(reg),EAX);
+						ppce->emitStore32(GetRegPtr(reg),R3);
 					}
 					else
 					{
-						ira->SaveRegister(reg,EAX);
+						ira->SaveRegister(reg,R3);
 					}
 					break;
 				case FLAG_64:
-					ppce->Emit(op_mov32,GetRegPtr(reg),EAX);
+					ppce->emitStore32(GetRegPtr(reg),R3);
 					break;
 				}
 			}
@@ -479,7 +475,6 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 		while(doloop);
 	}
 }
-#endif
 
 //#define REG_ALLOC_COUNT			 (shil_compile_slow_settings.RegAllocCount)
 //#define REG_ALLOC_X86			 (shil_compile_slow_settings.RegAllocX86)
@@ -881,47 +876,49 @@ void __fastcall shil_compile_and(shil_opcode* op)
 	GEN_AND(ppc,0,0,0);
 	op_reg_to_reg(op,ppc,0,true);
 }
-#if 0 //gli86
 //readm/writem 
 //Address calculation helpers
 void readwrteparams1(u8 reg1,u32 imm,ppc_reg* fast_nimm)
 {
+	verify((imm&0xffff)==imm);
+		
 	if (ira->IsRegAllocated(reg1))
 	{
 		//lea ecx,[reg1+imm]
-		ppc_reg reg=LoadReg(ECX,reg1);
-		assert(reg!=ECX);
+		ppc_reg reg=LoadReg(R3,reg1);
+		assert(reg!=R3);
 		*fast_nimm=reg;
-		ppce->Emit(op_lea32 ,ECX, ppc_mrm(reg,ppc_ptr::create(imm)));
+		
+		EMIT_ADDI(ppce,R3,reg,imm);
 	}
 	else
 	{
 		//mov ecx,imm
 		//add ecx,reg1
-		ppce->Emit(op_mov32,ECX,imm);
-		ppce->Emit(op_add32,ECX,GetRegPtr(reg1));
+		ppce->emitLoad32(R3,GetRegPtr(reg1));
+		EMIT_ADDI(ppce,R3,R3,imm);
 	}
 }
 void readwrteparams2(u8 reg1,u8 reg2)
 {
 	if (ira->IsRegAllocated(reg1))
 	{
-		ppc_reg r1=LoadReg(ECX,reg1);
-		assert(r1!=ECX);
+		ppc_reg r1=LoadReg(R3,reg1);
+		assert(r1!=R3);
 		
 		if (ira->IsRegAllocated(reg2))
 		{
 			//lea ecx,[reg1+reg2]
-			ppc_reg r2=LoadReg(ECX,reg2);
-			assert(r2!=ECX);
-			ppce->Emit(op_lea32,ECX,ppc_mrm(r1,r2));
+			ppc_reg r2=LoadReg(R3,reg2);
+			assert(r2!=R3);
+			EMIT_ADD(ppce,R3,r1,r2);
 		}
 		else
 		{
 			//mov ecx,reg1
 			//add ecx,[reg2]
-			ppce->Emit(op_mov32,ECX,r1);
-			ppce->Emit(op_add32,ECX,GetRegPtr(reg2));
+			ppce->emitLoad32(R3,GetRegPtr(reg2));
+			EMIT_ADD(ppce,R3,R3,r1);
 		}
 	}
 	else
@@ -934,31 +931,36 @@ void readwrteparams2(u8 reg1,u8 reg2)
 		{
 			//mov ecx,[reg1]
 			//add ecx,[reg2]
-			ppce->Emit(op_mov32,ECX,GetRegPtr(reg1));
-			ppce->Emit(op_add32,ECX,GetRegPtr(reg2));
+			ppce->emitLoad32(R3,GetRegPtr(reg1));
+			ppce->emitLoad32(R4,GetRegPtr(reg2));
+			EMIT_ADD(ppce,R3,R3,R4);
 		}
 	}
 }
 void readwrteparams3(u8 reg1,u8 reg2,u32 imm)
 {
+	verify((imm&0xffff)==imm);
+		
 	if (ira->IsRegAllocated(reg1))
 	{
-		ppc_reg r1=LoadReg(ECX,reg1);
-		assert(r1!=ECX);
+		ppc_reg r1=LoadReg(R3,reg1);
+		assert(r1!=R3);
 		
 		if (ira->IsRegAllocated(reg2))
 		{
 			//lea ecx,[reg1+reg2]
-			ppc_reg r2=LoadReg(ECX,reg2);
-			assert(r2!=ECX);
-			ppce->Emit(op_lea32,ECX,ppc_mrm(r1,r2,sib_scale_1,ppc_ptr::create(imm)));
+			ppc_reg r2=LoadReg(R3,reg2);
+			assert(r2!=R3);
+			EMIT_ADD(ppce,R3,r1,r2);
+			EMIT_ADDI(ppce,R3,R3,imm);
 		}
 		else
 		{
 			//lea ecx,[reg1+imm]
 			//add ecx,[reg2]
-			ppce->Emit(op_lea32,ECX,ppc_mrm(r1,ppc_ptr::create(imm)));
-			ppce->Emit(op_add32,ECX,GetRegPtr(reg2));
+			ppce->emitLoad32(R3,GetRegPtr(reg2));
+			EMIT_ADD(ppce,R3,R3,r1);
+			EMIT_ADDI(ppce,R3,R3,imm);
 		}
 	}
 	else
@@ -971,9 +973,10 @@ void readwrteparams3(u8 reg1,u8 reg2,u32 imm)
 		{
 			//mov ecx,[reg1]
 			//add ecx,[reg2]
-			ppce->Emit(op_mov32,ECX,GetRegPtr(reg1));
-			ppce->Emit(op_add32,ECX,imm);
-			ppce->Emit(op_add32,ECX,GetRegPtr(reg2));
+			ppce->emitLoad32(R3,GetRegPtr(reg1));
+			ppce->emitLoad32(R4,GetRegPtr(reg2));
+			EMIT_ADD(ppce,R3,R3,R4);
+			EMIT_ADDI(ppce,R3,R3,imm);
 		}
 	}
 }
@@ -1021,65 +1024,66 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,u32* fast_offset)
 	verify(flags!=0);
 	ppc_reg reg=ERROR_REG;
 
+//	printf("readwrteparams flags %d\n",flags);
 	switch(flags)
 	{
 		//1 olny
 	case flag_imm:
-		ppce->Emit(op_mov32,ECX,op->imm1);
-		reg=ECX;
+		ppce->emitLoadImmediate32(R3,op->imm1);
+		reg=R3;
 		dbgbreak;//must never ever happen
 		break;
 
 	case flag_r2:
-		reg=LoadReg(ECX,op->reg2);
+		reg=LoadReg(R3,op->reg2);
 		break;
 
 	case flag_r0:
-		reg=LoadReg(ECX,r0);
+		reg=LoadReg(R3,r0);
 		break;
 
 	case flag_gbr:
-		reg=LoadReg(ECX,reg_gbr);
+		reg=LoadReg(R3,reg_gbr);
 		break;
 
 		//2 olny
 	case flag_imm | flag_r2:
 		*fast_offset=op->imm1;
 		readwrteparams1((u8)op->reg2,op->imm1,fast_reg);
-		reg=ECX;
+		reg=R3;
 		break;
 
 	case flag_imm | flag_r0:
 		*fast_offset=op->imm1;
 		readwrteparams1((u8)r0,op->imm1,fast_reg);
-		reg=ECX;
+		reg=R3;
 		break;
 
 	case flag_imm | flag_gbr:
 		*fast_offset=op->imm1;
 		readwrteparams1((u8)reg_gbr,op->imm1,fast_reg);
-		reg=ECX;
+		reg=R3;
 		break;
 
 	case flag_r2 | flag_r0:
 		readwrteparams2((u8)op->reg2,(u8)r0);
-		reg=ECX;
+		reg=R3;
 		break;
 
 	case flag_r2 | flag_gbr:
 		readwrteparams2((u8)op->reg2,(u8)reg_gbr);
-		reg=ECX;
+		reg=R3;
 		break;
 
 		//3 olny
 	case flag_imm | flag_r2 | flag_gbr:
 		readwrteparams3((u8)op->reg2,(u8)reg_gbr,op->imm1);
-		reg=ECX;
+		reg=R3;
 		break;
 
 	case flag_imm | flag_r2 | flag_r0:
 		readwrteparams3((u8)op->reg2,(u8)r0,op->imm1);
-		reg=ECX;
+		reg=R3;
 		break;
 
 	default:
@@ -1094,37 +1098,40 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,u32* fast_offset)
 
 const u32 m_unpack_sz[4]={1,2,4,8};
 //Ram Only Mem Lookup
-void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,ppc_reg fast_reg,u32 fast_offset)
+void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size)
 {
 	//mov ecx,reg_addr
-	if (reg!=ECX)
+	if (reg!=R3)
 	{
 		u32 old=ppce->ppc_indx;
-		ppce->Emit(op_mov32,ECX,reg);
+		ppce->emitMoveRegister(R3,reg);
 		old=ppce->ppc_indx-old;
 		*offset_Edit+=old;
 	}
-	//ppce->Emit(op_mov32,EAX,reg); <- no longer used , since i have the offset for it :)
-	//cmp ecx,mask1
-	if (fast_reg!=ERROR_REG)
+
+	// endianess
+	switch(size)
 	{
-		//fast_reg has the reg before adding the imm and moving to ecx
-		ppce->Emit(op_cmp32,fast_reg,0xE0000000-fast_offset);
-		//log("fast reG !!!%X\n",fast_offset);
+		case FLAG_8:  EMIT_XORI(ppce,R3,R3,3); break;
+		case FLAG_16: EMIT_XORI(ppce,R3,R3,2); break;
 	}
-	else
-	{
-		ppce->Emit(op_cmp32,reg,0xE0000000);
-	}
+	
+	ppce->emitLoadImmediate32(R5,0xE0000000);
+	EMIT_CMPL(ppce,reg,R5,0);
+
 	//jae full_lookup
-	ppce->Emit(op_jae,lbl);
+	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
 	//and ecx,mask2
-	ppce->Emit(op_and32,ECX,0x1FFFFFFF);
+	EMIT_RLWINM(ppce,R5,R3,0,3,31);
 }
-const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
+//const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
 void __fastcall shil_compile_readm(shil_opcode* op)
 {
+//	ppce->do_disasm=true;
+	
 	u32 size=op->flags&3;
+	
+//	printf("shil_compile_readm %d\n",size);
 
 	//if constant read , and on ram area , make it a direct mem access
 	//_watch_ mmu
@@ -1140,62 +1147,59 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	ppc_reg fast_reg;
 	u32 fast_reg_offset;
 	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
-	/*
-	ppce->Emit(op_mov32,EAX,ECX);
-	ppce->Emit(op_shr32,EAX,29);
-	ppce->Emit(op_call32,ppc_mrm(NO_REG,EAX,sib_scale_4,&mio_pvt[0][size][0][0]));
-
-	if (size==FLAG_64)
-	{
-		//EAX:EDX copy
-	}
-	else
-	{
-		if (is_float)
-		{
-			//EAX
-		}
-		else
-		{
-			//EAX
-		}
-	}*/
 	
 	old_offset=ppce->ppc_indx-old_offset;
-	ppc_Label* patch_point= ppce->CreateLabel(true,0);
+	/*ppc_Label* patch_point=*/ ppce->CreateLabel(true,0);
 	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
+
 	//Ram Only Mem Lookup
-	roml(reg_addr,p4_handler,&old_offset,fast_reg,fast_reg_offset);
+	roml(reg_addr,p4_handler,&old_offset,size);
 
 	//mov to dest or temp
 	u32 is_float=IsInFReg(op->reg1);
 	ppc_reg destreg;
 	if (size==FLAG_64)
 	{
-		destreg=XMM0;
+		destreg=FR0;
 	}
 	else
 	{
 		if (is_float)
 		{
-			destreg=EAX;
+			destreg=R4;
 		}
 		else
 		{
-			destreg=LoadReg_nodata(EAX,op->reg1);
+			destreg=LoadReg_nodata(R4,op->reg1);
 		}
 	}
-	ppce->Emit(rm_table[size],destreg,ppc_mrm(ECX,sh4_reserved_mem));
+
+	EMIT_ADDIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
+	switch(size)
+	{
+		case FLAG_8:  EMIT_LBZ(ppce,destreg,0,R5); break;
+		case FLAG_16: EMIT_LHZ(ppce,destreg,0,R5); break;
+		case FLAG_32: EMIT_LWZ(ppce,destreg,0,R5); break;
+		case FLAG_64: EMIT_LFD(ppce,destreg,0,R5); break;
+	}
+	
 	roml_patch t;
 	
 	if (size==FLAG_64)
 	{
-		ppce->Emit(op_movlps,GetRegPtr(GetSingleFromDouble((u8)op->reg1)),XMM0);
+		ppce->emitStoreDouble(GetRegPtr(GetSingleFromDouble((u8)op->reg1)),FR0);
 		t.exit_point=ppce->CreateLabel(true,0);
 	}
 	else
 	{
 		t.exit_point=ppce->CreateLabel(true,0);
+
+		switch(size)
+		{
+			case FLAG_8:  EMIT_EXTSB(ppce,destreg,destreg); break;
+			case FLAG_16: EMIT_EXTSH(ppce,destreg,destreg); break;
+		}
+
 		if (is_float)
 		{
 			fra->SaveRegisterGPR(op->reg1,destreg);
@@ -1211,7 +1215,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	t.asz=size;
 	t.type=0;
 	t.is_float=false;
-	t.reg_addr=reg_addr;
+	t.reg_addr=R3;//reg_addr;
 	if (size!=FLAG_64)
 	{
 		t.reg_data=destreg;
@@ -1222,6 +1226,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	//emit_vmem_read(reg_addr,op->reg1,m_unpack_sz[size]);
 	roml_patch_list.push_back(t);
 }
+#if 0 //gli86
 const ppc_opcode_class wm_table[4]={op_mov8,op_mov16,op_mov32,op_movlps};
 void __fastcall shil_compile_writem(shil_opcode* op)
 {
@@ -1328,16 +1333,20 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	
 	//emit_vmem_write(reg_addr,op->reg1,m_unpack_sz[size]);
 }
-void* nvw_lut[4]={WriteMem8,WriteMem16,WriteMem32,WriteMem32};
-void* nvr_lut[4]={ReadMem8,ReadMem16,ReadMem32,ReadMem32};
+#endif
+void* nvw_lut[4]={(void*)WriteMem8,(void*)WriteMem16,(void*)WriteMem32,(void*)WriteMem32};
+void* nvr_lut[4]={(void*)ReadMem8,(void*)ReadMem16,(void*)ReadMem32,(void*)ReadMem32};
 #include "dc/mem/sh4_internal_reg.h"
 void apply_roml_patches()
 {
 	for (u32 i=0;i<roml_patch_list.size();i++)
 	{
+//		printf("apply_roml_patches %d %d\n",roml_patch_list[i].type,roml_patch_list[i].asz);
 		void * function=roml_patch_list[i].type==1 ?nvw_lut[roml_patch_list[i].asz]:nvr_lut[roml_patch_list[i].asz];
 
 		u32 offset=ppce->ppc_indx;
+		ppce->write8(42);
+		ppce->write8(0);
 		ppce->write8(0);
 		ppce->write8(roml_patch_list[i].resume_offset);
 		//log("Resume offset: %d\n",roml_patch_list[i].resume_offset);
@@ -1345,33 +1354,39 @@ void apply_roml_patches()
 		if (roml_patch_list[i].type==1 && (roml_patch_list[i].asz>=FLAG_32))
 		{
 			//check for SQ write
-			ppce->Emit(op_cmp32,roml_patch_list[i].reg_addr,0xE3FFFFFF);
+			ppce->emitLoadImmediate32(R3,0xE3FFFFFF);
+			EMIT_CMPL(ppce,roml_patch_list[i].reg_addr,R3,0);
 			
-			if (roml_patch_list[i].reg_addr!=ECX)
-				ppce->Emit(op_mov32,ECX,roml_patch_list[i].reg_addr);
+			if (roml_patch_list[i].reg_addr!=R3)
+				ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
 
 			ppc_Label* normal_write=ppce->CreateLabel(false,8);
-			ppce->Emit(op_ja,normal_write);
+			ppce->emitBranchConditionalToLabel(normal_write,0,PPC_CC_T, PPC_CC_POS);
 			//ppce->Emit(op_int3);
-			ppce->Emit(op_and32,ECX,0x3C);
+			EMIT_ANDI(ppce,R3,R3,0x3c);
 			if (FLAG_32==roml_patch_list[i].asz)
 			{
-				ppce->Emit(op_mov32,ppc_mrm(ECX,sq_both),roml_patch_list[i].reg_data);
+				//ppce->emitLoadImmediate32(R4,(u32)sq_both);
+				EMIT_LIS(ppce,R4,HA((u32)sq_both));
+				EMIT_ADD(ppce,R4,R4,R3);
+				EMIT_STW(ppce,roml_patch_list[i].reg_data,(u32)sq_both,R4);
 			}
 			else
 			{
 				//ppce->Emit(op_int3);
-				ppce->Emit(op_movlps,ppc_mrm(ECX,sq_both),XMM0);//allready readed on xmm0
+				EMIT_LIS(ppce,R4,HA((u32)sq_both));
+				EMIT_ADD(ppce,R4,R4,R3);
+				EMIT_STFD(ppce,FR0,(u32)sq_both,R4);
 			}
-			ppce->Emit(op_jmp,roml_patch_list[i].exit_point);
+			ppce->emitBranchToLabel(roml_patch_list[i].exit_point,0);
 			ppce->MarkLabel(normal_write);
 			*(u8*)&ppce->ppc_buff[offset]=(u8)( (u32)(ppce->ppc_indx-offset-2) );
-			//log("patch offset: %d\n",ppce->ppc_indx-offset-2);
+			log("patch offset: %d\n",ppce->ppc_indx-offset-2);
 		}
 		else
 		{
-			if (roml_patch_list[i].reg_addr!=ECX)
-				ppce->Emit(op_mov32,ECX,roml_patch_list[i].reg_addr);
+			if (roml_patch_list[i].reg_addr!=R3)
+				ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
 		}
 
 		if (roml_patch_list[i].asz!=FLAG_64)
@@ -1383,26 +1398,29 @@ void apply_roml_patches()
 			}
 			else
 			{
+				// endianess
+				if (roml_patch_list[i].asz==0)
+				{
+					EMIT_XORI(ppce,R3,R3,3);
+				}
+				else if (roml_patch_list[i].asz==1)
+				{
+					EMIT_XORI(ppce,R3,R3,2);
+				}
+				
 				if (roml_patch_list[i].type==1)
 				{
 					//if write make sure data is on edx
-					if (roml_patch_list[i].reg_data!=EDX)
-						ppce->Emit(op_mov32,EDX,roml_patch_list[i].reg_data);
+					if (roml_patch_list[i].reg_data!=R4)
+						ppce->emitMoveRegister(R4,roml_patch_list[i].reg_data);
 				}
 			}
 
-			ppce->Emit(op_call,ppc_ptr_imm(function));
+			ppce->emitBranch(function,1);
 			if (roml_patch_list[i].type==0)
 			{
-				if (roml_patch_list[i].asz==0)
-					ppce->Emit(op_movsx8to32,roml_patch_list[i].reg_data,EAX);
-				else if (roml_patch_list[i].asz==1)
-					ppce->Emit(op_movsx16to32,roml_patch_list[i].reg_data,EAX);
-				else if (roml_patch_list[i].asz==2)
-				{
-					if (roml_patch_list[i].reg_data!=EAX)
-						ppce->Emit(op_mov32,roml_patch_list[i].reg_data,EAX);
-				}
+				if (roml_patch_list[i].reg_data!=R3)
+					ppce->emitMoveRegister(roml_patch_list[i].reg_data,R3);
 			}
 		}
 		else
@@ -1410,9 +1428,11 @@ void apply_roml_patches()
 			//if (roml_patch_list[i].type==0)
 			//	ppce->Emit(op_int3);
 			//save address once
-			ppce->Emit(op_push32,ECX);
+			static u32 tmp;
 			
-			ppce->Emit(op_add32,ECX,4);
+			ppce->emitStore32(&tmp,R3);
+			
+			EMIT_ADDI(ppce,R3,R3,4);
 			u32* target=GetRegPtr(roml_patch_list[i].reg_data);
 
 			for (int j=1;j>=0;j--)
@@ -1420,21 +1440,21 @@ void apply_roml_patches()
 				if (roml_patch_list[i].type==1)
 				{
 					//write , need data on EDX
-					ppce->Emit(op_mov32,EDX,&target[j]);
+					ppce->emitLoad32(R4,&target[j]);
 				}
-				ppce->Emit(op_call,ppc_ptr_imm(function));
+				ppce->emitBranch(function,1);
 				if (roml_patch_list[i].type==0)
 				{
 					//read, save data from eax
-					ppce->Emit(op_mov32,&target[j],EAX);
+					ppce->emitStore32(&target[j],R3);
 				}
 
 				if (j==1)
-					ppce->Emit(op_pop32,ECX);//get the 'low' address
+					ppce->emitLoad32(R3,&tmp);//get the 'low' address
 			}
 
 		}
-		ppce->Emit(op_jmp,roml_patch_list[i].exit_point);
+		ppce->emitBranchToLabel(roml_patch_list[i].exit_point,0);
 		//ppce->MarkLabel(roml_patch_list[i].p4_access);
 		
 		//roml_patch_list[i].reg_data;
@@ -1442,7 +1462,6 @@ void apply_roml_patches()
 	}
 	roml_patch_list.clear();
 }
-#endif
 //save-loadT
 void __fastcall shil_compile_SaveT(shil_opcode* op)
 {
@@ -2535,6 +2554,7 @@ void sclt_Init()
 	SetH(shilop_neg,shil_compile_neg);
 	SetH(shilop_not,shil_compile_not);
 	SetH(shilop_mov,shil_compile_mov);
+	SetH(shilop_readm,shil_compile_readm);
 		
 /* gli86
 	SetH(shilop_fabs,shil_compile_fabs);
@@ -2549,7 +2569,6 @@ void sclt_Init()
 
 	SetH(shilop_rcl,shil_compile_rcl);
 	SetH(shilop_rcr,shil_compile_rcr);
-	SetH(shilop_readm,shil_compile_readm);
 
 	SetH(shilop_swap,shil_compile_swap);
 	SetH(shilop_writem,shil_compile_writem);

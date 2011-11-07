@@ -36,9 +36,6 @@
 #define warn(x) if((x)==true){ printf("Warn Failed  : " #x "\n in %s : %d \n",__FILE__,__LINE__);}
 
 
-#define PAGE_SIZE 4096
-#define PAGE_MASL (PAGE_SIZE-1)
-
 void SetUpdateCallback(void (*callback) (),u32 ms);
 void ExpireUpdate(bool v=true);
 extern emu_info extemu;

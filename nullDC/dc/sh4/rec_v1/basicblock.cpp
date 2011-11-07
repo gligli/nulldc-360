@@ -778,7 +778,7 @@ compile_normaly:
 	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,0);
 
 	//apply roml patches and generate needed code
-//gli86	apply_roml_patches();
+	apply_roml_patches();
 
 	void* codeptr=ppce->Generate();//NOTE, codeptr can be 0 here </NOTE>
 	

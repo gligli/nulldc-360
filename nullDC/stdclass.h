@@ -4,7 +4,8 @@
 #include <vector>
 #include "log/logging_interface.h"
 
-#define PAGE_SIZE 4096
+#define PAGE_SHIFT 12
+#define PAGE_SIZE (1<<PAGE_SHIFT)
 #define PAGE_MASK (PAGE_SIZE-1)
 
 extern u32 Array_T_id_count;
@@ -262,7 +263,7 @@ public:
     }
 };
 
-int ExeptionHandler(u32 dwCode, void* pExceptionPointers);
+void * ExeptionHandler(int pir,void * srr0,void * dar);
 int msgboxf(wchar* text,unsigned int type,...);
 
 

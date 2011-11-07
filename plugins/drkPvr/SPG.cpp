@@ -158,12 +158,11 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 				}
 
 				if(kbhit() && getch()=='x') exit(0);
-				extern u32 pc;
 				
-				printf("%4.2f%% - VPS: %4.2f(%s%s%4.2f) RPS: %4.2f Vert: %4.2f%c Sh4: %4.2f mhz %p\n", 
+				printf("%4.2f%% - VPS: %4.2f(%s%s%4.2f) RPS: %4.2f Vert: %4.2f%c Sh4: %4.2f mhz\n", 
 					spd_cpu*100/200,spd_vbs,
 					mode,res,fullvbs,
-					spd_fps,mv,mv_c, spd_cpu,pc);
+					spd_fps,mv,mv_c, spd_cpu);
 			}
 		}
 	}

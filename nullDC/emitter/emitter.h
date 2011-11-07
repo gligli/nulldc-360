@@ -157,11 +157,14 @@ public:
 	void ensureRTMPValue(u16 value);
 	
 	void emitBranch(void * addr, int lk);
+	void emitLongBranch(void * addr, int lk);
 	void emitReverseBranchConditional(void * addr, int bo, int bi, int lk);
+	void emitLoadDouble(ppc_fpr_reg reg, void * addr);
 	void emitLoadFloat(ppc_fpr_reg reg, void * addr);
 	void emitLoad32(ppc_gpr_reg reg, void * addr);
 	void emitLoad16(ppc_gpr_reg reg, void * addr);
 	void emitLoad8(ppc_gpr_reg reg, void * addr);
+	void emitStoreDouble(void * addr, ppc_fpr_reg reg);
 	void emitStoreFloat(void * addr, ppc_fpr_reg reg);
 	void emitStore32(void * addr, ppc_gpr_reg reg);
 	void emitStore16(void * addr, ppc_gpr_reg reg);
@@ -171,6 +174,7 @@ public:
 	void emitBranchConditionalToLabel(ppc_Label * lab,int lk,int bo,int bi);
 	void emitBranchToLabel(ppc_Label * lab,int lk);
 	void emitDebugValue(u32 value);
+	void emitDebugReg(ppc_gpr_reg reg);
 };
 
 #define EMIT_B(ppce,dst,aa,lk) \

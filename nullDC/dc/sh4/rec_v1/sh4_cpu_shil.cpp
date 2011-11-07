@@ -4,7 +4,7 @@
 #include "dc/sh4/sh4_opcode_list.h"
 #include "dc/sh4/sh4_registers.h"
 #include "dc/sh4/shil/shil.h"
-#include "log\logging_interface.h"
+#include "log/logging_interface.h"
 #include <assert.h>
 
 #undef sh4op
@@ -880,7 +880,7 @@ sh4op(i1111_nnnn_mmmm_0101)
 	}
 }
 //fmov.s @(R0,<REG_M>),<FREG_N>
-sh4op(i1111_nnnn_mmmm_0110)
+rsh4op(i1111_nnnn_mmmm_0110)
 {
 	if (fpscr.SZ == 0)
 	{
@@ -946,7 +946,7 @@ sh4op(i1111_nnnn_mmmm_0111)
 
 
 //fmov.s @<REG_M>,<FREG_N> 
-sh4op(i1111_nnnn_mmmm_1000)
+rsh4op(i1111_nnnn_mmmm_1000)
 {//used
 	if (fpscr.SZ == 0)
 	{
@@ -982,7 +982,7 @@ sh4op(i1111_nnnn_mmmm_1000)
 
 
 //fmov.s @<REG_M>+,<FREG_N>
-sh4op(i1111_nnnn_mmmm_1001)
+rsh4op(i1111_nnnn_mmmm_1001)
 {
 	if (fpscr.SZ == 0)
 	{

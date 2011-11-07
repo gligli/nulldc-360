@@ -20,6 +20,10 @@ _vmem v2.5 :
 #include <byteswap.h>
 #include <malloc.h>
 
+extern "C" {
+#include <ppc/vm.h>
+}
+
 //top registed handler
 _vmem_handler			_vmem_lrp;
 
@@ -43,9 +47,9 @@ bool INLINE _vmem_translate(u32 addr,unat& entry_or_fptr)
 {
 	entry_or_fptr = (unat)_vmem_MemInfo[(u16)((u32)(addr >> 16))]+addr;
 
-	if ((s32)entry_or_fptr > 0)
+	if ((s32)entry_or_fptr < 0)
 	{
-		entry_or_fptr=(entry_or_fptr>>16)-0x0001;
+		entry_or_fptr=(entry_or_fptr>>16)-0x8001;
 		return true;
 	}
 
@@ -107,15 +111,22 @@ void __fastcall _vmem_writet(u32 addr,T data)
 extern u32 pc;
 
 //#define CHECK_ALIGN
+//#define MEM_VERBOSE
 
 u8 INLINE _vmem_ReadMem8(u32 addr) 
 {
+#ifdef MEM_VERBOSE	
+	printf("_vmem_ReadMem8 %08x\n",addr);
+#endif
 	unat data_ptr;
 	return (_vmem_translate(addr,data_ptr)) ? (u8)(*(_vmem_ReadMem8FP**)((u8*)_vmem_RF8+data_ptr))(addr) : *(u8*)(data_ptr^3);
 }
 
 u16 INLINE _vmem_ReadMem16(u32 addr)
 { 
+#ifdef MEM_VERBOSE	
+	printf("_vmem_ReadMem16 %08x\n",addr);
+#endif
 #ifdef CHECK_ALIGN
 	if (addr&1) die("misaligned");
 #endif
@@ -125,6 +136,9 @@ u16 INLINE _vmem_ReadMem16(u32 addr)
 
 u32 INLINE _vmem_ReadMem32(u32 addr)
 { 
+#ifdef MEM_VERBOSE	
+	printf("_vmem_ReadMem32 %08x\n",addr);
+#endif
 #ifdef CHECK_ALIGN
 	if (addr&3) die("misaligned");
 #endif
@@ -134,6 +148,9 @@ u32 INLINE _vmem_ReadMem32(u32 addr)
 
 u64 INLINE _vmem_ReadMem64(u32 addr)
 {
+#ifdef MEM_VERBOSE	
+	printf("_vmem_ReadMem64 %08x\n",addr);
+#endif
 #ifdef CHECK_ALIGN
 	if (addr&7) die("misaligned");
 #endif
@@ -150,6 +167,9 @@ u64 INLINE _vmem_ReadMem64(u32 addr)
 //WriteMem
 void INLINE _vmem_WriteMem8(u32 addr,u8 data)
 {
+#ifdef MEM_VERBOSE	
+	printf("_vmem_WriteMem8 %08x %02x\n",addr,data);
+#endif
 	unat data_ptr;
 
 	if (_vmem_translate(addr,data_ptr))
@@ -163,6 +183,9 @@ void INLINE _vmem_WriteMem8(u32 addr,u8 data)
 
 void INLINE _vmem_WriteMem16(u32 addr,u16 data)
 {
+#ifdef MEM_VERBOSE	
+	printf("_vmem_WriteMem16 %08x %04x\n",addr,data);
+#endif
 #ifdef CHECK_ALIGN
 	if (addr&1) die("misaligned");
 #endif
@@ -179,6 +202,9 @@ void INLINE _vmem_WriteMem16(u32 addr,u16 data)
 
 void INLINE _vmem_WriteMem32(u32 addr,u32 data)
 {
+#ifdef MEM_VERBOSE	
+	printf("_vmem_WriteMem32 %08x %08x\n",addr,data);
+#endif
 #ifdef CHECK_ALIGN
 	if (addr&3) die("misaligned");
 #endif
@@ -195,6 +221,9 @@ void INLINE _vmem_WriteMem32(u32 addr,u32 data)
 
 void INLINE _vmem_WriteMem64(u32 addr,u64 data)
 {
+#ifdef MEM_VERBOSE	
+	printf("_vmem_WriteMem64 %08x %016llx\n",addr,data);
+#endif
 #ifdef CHECK_ALIGN
 	if (addr&7) die("misaligned");
 #endif
@@ -278,7 +307,7 @@ void _vmem_map_handler(_vmem_handler Handler,u32 start,u32 end)
 	verify(start<=end);
 	for (u32 i=start;i<=end;i++)
 	{
-		_vmem_MemInfo[i]=((u8*)0 + 0x00010000 + Handler*0x40000)-(i*0x10000);
+		_vmem_MemInfo[i]=((u8*)0 + 0x80010000 + Handler*0x40000)-(i*0x10000);
 	}
 }
 //map a memory block to a mem region :)
@@ -348,32 +377,28 @@ void _vmem_term()
 
 //i'm not sure not defining this works anymore
 //file mapping is used to create read-only mirrors, to increase speedeh!
-//#define _VMEM_FILE_MAPPING
+#define _VMEM_FILE_MAPPING
 #ifdef _VMEM_FILE_MAPPING
-gli HANDLE mem_handle;
-
 #define MAP_RAM_START_OFFSET  0
 #define MAP_VRAM_START_OFFSET (MAP_RAM_START_OFFSET+RAM_SIZE)
 #define MAP_ARAM_START_OFFSET (MAP_VRAM_START_OFFSET+VRAM_SIZE)
 
 void* _nvmem_map_buffer(u32 dst,u32 addrsz,u32 offset,u32 size)
 {
-	void* ptr;
-	void* rv;
-
+	void * rv=&sh4_reserved_mem[dst];
+	
 	u32 map_times=addrsz/size;
 	verify((addrsz%size)==0);
 	verify(map_times>=1);
 
-	rv= MapViewOfFileEx(mem_handle,FILE_MAP_READ |FILE_MAP_WRITE,0,offset,size,&sh4_reserved_mem[dst]);
-	if (!rv)
-		return 0;
-
+	u64 mem=((u64)memalign(VM_USER_PAGE_SIZE,size))&0x7fffffff;
+	
+	vm_create_user_mapping((u32)&sh4_reserved_mem[dst],mem,size,VM_WIMG_CACHED); //FILE_MAP_READ |FILE_MAP_WRITE
+	
 	for (u32 i=1;i<map_times;i++)
 	{
 		dst+=size;
-		ptr=MapViewOfFileEx(mem_handle,FILE_MAP_READ,0,offset,size,&sh4_reserved_mem[dst]);
-		if (!ptr) return 0;
+		vm_create_user_mapping((u32)&sh4_reserved_mem[dst],mem,size,VM_WIMG_CACHED|3); //FILE_MAP_READ
 	}
 
 	return rv;
@@ -382,10 +407,8 @@ void* _nvmem_map_buffer(u32 dst,u32 addrsz,u32 offset,u32 size)
 
 void* _nvmem_unused_buffer(u32 start,u32 end)
 {
-	void* ptr=VirtualAlloc(&sh4_reserved_mem[start],end-start,MEM_RESERVE,PAGE_NOACCESS);
-	if (ptr==0)
-		return 0;
-	return ptr;
+	vm_destroy_user_mapping((u32)&sh4_reserved_mem[start],end-start); //MEM_RESERVE,PAGE_NOACCESS
+	return &sh4_reserved_mem[start];
 }
 
 #define map_buffer(dsts,dste,offset,sz) {ptr=_nvmem_map_buffer(dsts,dste-dsts,offset,sz);if (!ptr) return false;}
@@ -394,13 +417,12 @@ void* _nvmem_unused_buffer(u32 start,u32 end)
 
 bool _vmem_reserve()
 {
-	mem_handle=CreateFileMapping(INVALID_HANDLE_VALUE,0,PAGE_READWRITE ,0,RAM_SIZE + VRAM_SIZE +ARAM_SIZE,0);
-
+	vm_set_user_mapping_segfault_handler(ExeptionHandler);
+	
 	void* ptr=0;
-	sh4_reserved_mem=(u8*)VirtualAlloc(0,512*1024*1024,MEM_RESERVE,PAGE_NOACCESS);
+	sh4_reserved_mem=(u8*)0x40000000; //512*1024*1024,MEM_RESERVE,PAGE_NOACCESS
 	if (sh4_reserved_mem==0)
 		return false;
-	VirtualFree(sh4_reserved_mem,0,MEM_RELEASE);
 	
 	//Area 0
 	//[0x00000000 ,0x00800000) -> unused
@@ -454,21 +476,26 @@ bool _vmem_reserve()
 	//[0x10000000,0x20000000) -> unused
 	unused_buffer(0x10000000,0x20000000);
 
-	sh4_ram_alt= (u8*)MapViewOfFile(mem_handle,FILE_MAP_READ |FILE_MAP_WRITE,0,0,RAM_SIZE);	//alternative ram map location, BE CAREFULL THIS BYPASSES DYNAREC PROTECTION LOGIC
+/*	sh4_ram_alt= (u8*)MapViewOfFile(mem_handle,FILE_MAP_READ |FILE_MAP_WRITE,0,0,RAM_SIZE);	//alternative ram map location, BE CAREFULL THIS BYPASSES DYNAREC PROTECTION LOGIC
 	if (sh4_ram_alt==0)
-		return false;
+		return false;*/
 
-	sh4_mem_marks=(u8*)VirtualAlloc(0,PAGE_SIZE*64*2,MEM_RESERVE,PAGE_NOACCESS);
+	sh4_mem_marks=(u8*)0x60000000;//PAGE_SIZE*64*2,MEM_RESERVE,PAGE_NOACCESS
 	verify(sh4_mem_marks!=0);
 	
 
 	//Mark all except P4 as direct mapped
-	u8* test = (u8*)VirtualAlloc(sh4_mem_marks+0,38*PAGE_SIZE,MEM_COMMIT,PAGE_READWRITE);
+	
+	
+	
+	u8* test = (u8*)memalign(VM_USER_PAGE_SIZE,38*VM_USER_PAGE_SIZE);
 	verify(0!=test);
+	vm_create_user_mapping((u32)sh4_mem_marks,(u64)test&0x7fffffff,38*VM_USER_PAGE_SIZE,VM_WIMG_CACHED); //38*PAGE_SIZE,MEM_COMMIT,PAGE_READWRITE
 
 	//Mark SQ as sq mapped
-	test = (u8*)VirtualAlloc(&sh4_mem_marks[(38+64)*PAGE_SIZE],PAGE_SIZE,MEM_COMMIT,PAGE_READWRITE);
+	test = (u8*)memalign(VM_USER_PAGE_SIZE,VM_USER_PAGE_SIZE);
 	verify(0!=test);
+	vm_create_user_mapping((u32)&sh4_mem_marks[(38+64)*VM_USER_PAGE_SIZE],(u64)test&0x7fffffff,VM_USER_PAGE_SIZE,VM_WIMG_CACHED); //PAGE_SIZE,MEM_COMMIT,PAGE_READWRITE
 
 	return sh4_reserved_mem!=0;
 }
@@ -572,9 +599,11 @@ void _vmem_release()
 {
 //gli	VirtualFree(sh4_reserved_mem,0,MEM_RELEASE);
 	
+#ifndef _VMEM_FILE_MAPPING
 	free(aica_ram.data);
 	free(vram.data);
 	free(mem_b.data);
+#endif
 		
 	//This might be leaking, but its done at the destruction of the process anyway ... so it matters litle
 }

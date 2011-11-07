@@ -1,6 +1,6 @@
 #pragma once
 #include "types.h"
-#include "BasicBlock.h"
+#include "basicblock.h"
 
 #undef sh4op
 #define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)

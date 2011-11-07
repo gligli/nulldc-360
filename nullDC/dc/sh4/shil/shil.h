@@ -1,6 +1,6 @@
 #pragma once
 #include "types.h"
-#include "dc\sh4\sh4_if.h"
+#include "dc/sh4/sh4_if.h"
 //shil is a combination of sh4 and x86 opcodes , in a decoded form so that various optimisations
 //are possible (inlcuding cost removal , dead code elimination , flag elimination , more)
 //

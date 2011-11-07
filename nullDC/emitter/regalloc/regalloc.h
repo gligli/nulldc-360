@@ -1,6 +1,6 @@
 #pragma once
 #include "emitter/emitter.h"
-#include "dc/sh4/rec_v1/BasicBlock.h"
+#include "dc/sh4/rec_v1/basicblock.h"
 
 #define RALLOC_R  1
 #define RALLOC_W  2

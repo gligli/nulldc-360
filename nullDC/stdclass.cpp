@@ -4,6 +4,11 @@
 #include "plugins/plugin_manager.h"
 #include <stdarg.h>
 #include "fake_pluginsystem.h"
+#include <emitter/emitter.h>
+
+extern "C"{
+#include <ppc/cache.h>
+}
 
 //comonly used classes across the project
 
@@ -281,6 +286,7 @@ void VArray2::LockRegion(u32 offset,u32 size)
 {
 /*gli	DWORD old;
 	VirtualProtect(((u8*)data)+offset , size, PAGE_READONLY,&old);*/
+	memicbi(((u8*)data)+offset , size);
 }
 void VArray2::UnLockRegion(u32 offset,u32 size)
 {
@@ -296,63 +302,65 @@ bool RamLockedWrite(u8* address,u32* sp);
 extern u8* sh4_mem_marks;
 extern u8* DynarecCache;
 extern u32 DynarecCacheSize;
-int ExeptionHandler(u32 dwCode, void* pExceptionPointers)
+void * ExeptionHandler(int pir,void * srr0,void * dar)
 {
-/*gli
-	EXCEPTION_POINTERS* ep=(EXCEPTION_POINTERS*)pExceptionPointers;
-	
-	EXCEPTION_RECORD* pExceptionRecord=ep->ExceptionRecord;
-
-	if (dwCode != EXCEPTION_ACCESS_VIOLATION)
-		return EXCEPTION_CONTINUE_SEARCH;
-	
-	u8* address=(u8*)pExceptionRecord->ExceptionInformation[1];
+	u8* address=(u8*)dar;
 
 	if (VramLockedWrite(address))
-		return EXCEPTION_CONTINUE_EXECUTION;
-	else if (RamLockedWrite(address,(u32*)ep->ContextRecord->Esp))
-		return EXCEPTION_CONTINUE_EXECUTION;
+	{
+		printf("VramLockedWrite %x\n",address);
+		return NULL;// EXCEPTION_CONTINUE_EXECUTION;
+	}
+	else if (RamLockedWrite(address,NULL))
+	{
+		printf("RamLockedWrite %x\n",address);
+		return NULL;// EXCEPTION_CONTINUE_EXECUTION;
+	}
 	else if (((u32)(address-sh4_reserved_mem))<(512*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
 	{
+		printf("Rewrite %p %x %x\n",srr0,address,pir);
 		//k
 		//
 		//cmp ecx,mask1
 		//jae full_lookup
 		//and ecx,mask2
 		//the write 
-		u32 pos=ep->ContextRecord->Eip; //<- the write
+		u32 pos=(u32)srr0; //<- the write
 		CompiledBlockInfo* cbi=bm_ReverseLookup((void*)pos);
 
 		if (!cbi)
 		{
 			log("**DYNAREC_BUG: bm_ReverseLookup failed to resolve %08X, will blindly patch due to %08X**\n",pos,address);
 			log("**PLEASE REPORT THIS IF NOT ON THE ISSUE TRACKER ALREADY --raz**\n");
-			return EXCEPTION_CONTINUE_SEARCH;
+			return NULL;// EXCEPTION_CONTINUE_SEARCH;
 		}
 
 #ifdef DEBUG
 		else
 			log("Except in block %X | %X\n",cbi->Code,cbi);
 #endif
-
 		//cbb->Rewrite
-		u32* ptr_jae_offset=(u32*)(pos-4-6);
-		u8* offset_2=(u8*)(*ptr_jae_offset + pos -6-2);
-		u8* ptr_cmp=(u8*)(pos-6-6-6);
-		*ptr_cmp=0xE9;
-		*(u32*) (ptr_cmp+1)=*ptr_jae_offset+7 + offset_2[0];
-		ep->ContextRecord->Eip=(pos-6-6-6- offset_2[1]);
-		//log("Patched %08X,%08X<-%08X %d %d\n",ep->ContextRecord->Eip,ep->ContextRecord->Ecx,offset_2[0],offset_2[1]);
-		//		ep->ContextRecord->Ecx=ep->ContextRecord->Eax;
-		return EXCEPTION_CONTINUE_EXECUTION;
+		// find last branch and make it always branch (never load directly)
+		PowerPC_instr * branch=(PowerPC_instr*)pos;
+		PowerPC_instr branch_op;
+		disassemble((u32)branch,* branch);
+		do{
+			--branch;
+			branch_op=*branch;
+		}while(branch_op>>PPC_OPCODE_SHIFT!=PPC_OPCODE_BC);
+		
+		branch_op&=~(0x1f<<21);
+		branch_op|=PPC_CC_A<<21;
+		disassemble((u32)branch,branch_op);
+		*branch=branch_op;
+		memicbi(branch,4);
+		return branch+((branch_op>>2)&0x3fff);// EXCEPTION_CONTINUE_EXECUTION;
 	}
 	else
 	{
 		log("[GPF]Unhandled access to : 0x%X\n",address);
 	}
-	return EXCEPTION_CONTINUE_SEARCH;
-*/
-	return -1;
+	return NULL;// EXCEPTION_CONTINUE_SEARCH;
 }
 
 int msgboxf(char* text,unsigned int type,...)

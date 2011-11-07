@@ -2432,9 +2432,11 @@ nl:
 	{
 		SetCurrentPVRRC(PARAM_BASE);
 		VertexCount+= pvrrc.verts.used;
+#if 1 // test dynarec
 		render_end_pending_cycles= pvrrc.verts.used*45;
 		//if (render_end_pending_cycles<500000)
 			render_end_pending_cycles+=500000;
+#endif
 
 		if (old_pal_mode!=drkpvr_settings.Emulation.PaletteMode)
 		{
