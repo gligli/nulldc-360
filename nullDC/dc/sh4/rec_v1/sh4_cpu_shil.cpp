@@ -718,7 +718,7 @@ sh4op(gdrom_hle_op)
 //all fpu emulation ops :)
 
 //fadd <FREG_M>,<FREG_N>
-sh4op(i1111_nnnn_mmmm_0000)
+rsh4op(i1111_nnnn_mmmm_0000)
 {//TODO : CHECK THIS PR FP
 	
 	if (fpscr.PR == 0)
@@ -749,7 +749,7 @@ sh4op(i1111_nnnn_mmmm_0000)
 }
 
 //fsub <FREG_M>,<FREG_N>   
-sh4op(i1111_nnnn_mmmm_0001)
+rsh4op(i1111_nnnn_mmmm_0001)
 {
 	if (fpscr.PR == 0)
 	{
@@ -777,7 +777,7 @@ sh4op(i1111_nnnn_mmmm_0001)
 	}
 }																								
 //fmul <FREG_M>,<FREG_N>   
-sh4op(i1111_nnnn_mmmm_0010)
+rsh4op(i1111_nnnn_mmmm_0010)
 {
 	if (fpscr.PR == 0)
 	{
@@ -801,7 +801,7 @@ sh4op(i1111_nnnn_mmmm_0010)
 	}
 }
 //fdiv <FREG_M>,<FREG_N>   
-sh4op(i1111_nnnn_mmmm_0011)
+rsh4op(i1111_nnnn_mmmm_0011)
 {
 	if (fpscr.PR == 0)
 	{

@@ -6,9 +6,9 @@
 
 #define REG_ALLOC_COUNT (0)
 //FR0 is reserved for math/temp
-ppc_fpr_reg reg_to_alloc_fpr[13]=
+ppc_fpr_reg reg_to_alloc_fpr[16]=
 {
-	FR1,FR2,FR3,FR4,FR5,FR6,FR7,FR8,FR9,FR10,FR11,FR12,FR13
+	FR16,FR17,FR18,FR19,FR20,FR21,FR22,FR23,FR24,FR25,FR26,FR27,FR28,FR29,FR30,FR31
 };
 u32 alb=0;
 u32 nalb=0;
