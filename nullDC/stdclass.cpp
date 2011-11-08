@@ -87,7 +87,7 @@ void GetFileNameFromPath(wchar* path,wchar* outp)
 	strcpy(outp,path);
 }
 
-wchar AppPath[1024] = "uda:/nulldc-360/";
+wchar AppPath[1024] = "sda:/nulldc-360/";
 void GetApplicationPath(wchar* path,u32 size)
 {
 	strcpy(path,AppPath);
@@ -318,7 +318,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar)
 	}
 	else if (((u32)(address-sh4_reserved_mem))<(512*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
 	{
-		printf("Rewrite %p %x %x\n",srr0,address,pir);
+		printf("Rewrite %p %x\n",srr0,address);
 		//k
 		//
 		//cmp ecx,mask1
@@ -351,7 +351,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar)
 		
 		branch_op&=~(0x1f<<21);
 		branch_op|=PPC_CC_A<<21;
-		disassemble((u32)branch,branch_op);
+//		disassemble((u32)branch,branch_op);
 		*branch=branch_op;
 		memicbi(branch,4);
 		return branch+((branch_op>>2)&0x3fff);// EXCEPTION_CONTINUE_EXECUTION;

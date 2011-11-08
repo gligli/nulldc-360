@@ -108,7 +108,7 @@ sh4op(i0000_nnnn_1011_0011)
 } 
 
 //pref @<REG_N>                 
-sh4op(i0000_nnnn_1000_0011)
+rsh4op(i0000_nnnn_1000_0011)
 {
 	u32 n = GetN(op);
 	ilst->pref(r[n]);
@@ -481,7 +481,7 @@ sh4op(i0011_nnnn_mmmm_1011)
 }
 
 //dt <REG_N>                    
-sh4op(i0100_nnnn_0001_0000)
+rsh4op(i0100_nnnn_0001_0000)
 {
 	u32 n = GetN(op);
 
@@ -913,7 +913,7 @@ rsh4op(i1111_nnnn_mmmm_0110)
 
 
 //fmov.s <FREG_M>,@(R0,<REG_N>)
-sh4op(i1111_nnnn_mmmm_0111)
+rsh4op(i1111_nnnn_mmmm_0111)
 {//used
 	if (fpscr.SZ == 0)
 	{
@@ -1024,7 +1024,7 @@ rsh4op(i1111_nnnn_mmmm_1001)
 
 
 //fmov.s <FREG_M>,@<REG_N>
-sh4op(i1111_nnnn_mmmm_1010)
+rsh4op(i1111_nnnn_mmmm_1010)
 {
 	if (fpscr.SZ == 0)
 	{
@@ -1057,7 +1057,7 @@ sh4op(i1111_nnnn_mmmm_1010)
 }
 
 //fmov.s <FREG_M>,@-<REG_N>
-sh4op(i1111_nnnn_mmmm_1011)
+rsh4op(i1111_nnnn_mmmm_1011)
 {//used
 	if (fpscr.SZ == 0)
 	{
@@ -1622,7 +1622,7 @@ rsh4op(i0000_nnnn_0010_0011)
 
 
 // bra <bdisp12>
-sh4op(i1010_iiii_iiii_iiii)
+rsh4op(i1010_iiii_iiii_iiii)
 {//ToDo : Check Me [26/4/05] | Check ExecuteDelayslot [28/1/06] 
 	//delay 1 jump imm12
 	/*

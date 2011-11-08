@@ -34,7 +34,7 @@ rsh4op(i0000_nnnn_mmmm_1110)
 } 
 
 //mov.b <REG_M>,@(R0,<REG_N>)   
-sh4op(i0000_nnnn_mmmm_0100)
+rsh4op(i0000_nnnn_mmmm_0100)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -43,7 +43,7 @@ sh4op(i0000_nnnn_mmmm_0100)
 }
 
 //mov.w <REG_M>,@(R0,<REG_N>)   
-sh4op(i0000_nnnn_mmmm_0101)
+rsh4op(i0000_nnnn_mmmm_0101)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -52,7 +52,7 @@ sh4op(i0000_nnnn_mmmm_0101)
 }
 
 //mov.l <REG_M>,@(R0,<REG_N>)   
-sh4op(i0000_nnnn_mmmm_0110)
+rsh4op(i0000_nnnn_mmmm_0110)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -64,7 +64,7 @@ sh4op(i0000_nnnn_mmmm_0110)
 // 1xxx
 
 //mov.l <REG_M>,@(<disp>,<REG_N>)
-sh4op(i0001_nnnn_mmmm_iiii)
+rsh4op(i0001_nnnn_mmmm_iiii)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -77,7 +77,7 @@ sh4op(i0001_nnnn_mmmm_iiii)
 //	2xxx
 
 //mov.b <REG_M>,@<REG_N>        
-sh4op(i0010_nnnn_mmmm_0000)
+rsh4op(i0010_nnnn_mmmm_0000)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -86,7 +86,7 @@ sh4op(i0010_nnnn_mmmm_0000)
 }
 
 // mov.w <REG_M>,@<REG_N>        
-sh4op(i0010_nnnn_mmmm_0001)
+rsh4op(i0010_nnnn_mmmm_0001)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -95,7 +95,7 @@ sh4op(i0010_nnnn_mmmm_0001)
 }
 
 // mov.l <REG_M>,@<REG_N>        
-sh4op(i0010_nnnn_mmmm_0010)
+rsh4op(i0010_nnnn_mmmm_0010)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -104,7 +104,7 @@ sh4op(i0010_nnnn_mmmm_0010)
 }
 
 // mov.b <REG_M>,@-<REG_N>       
-sh4op(i0010_nnnn_mmmm_0100)
+rsh4op(i0010_nnnn_mmmm_0100)
 {
 	//iNimp("mov.b <REG_M>,@-<REG_N>");
 	u32 n = GetN(op);
@@ -115,7 +115,7 @@ sh4op(i0010_nnnn_mmmm_0100)
 }
 
 //mov.w <REG_M>,@-<REG_N>       
-sh4op(i0010_nnnn_mmmm_0101)
+rsh4op(i0010_nnnn_mmmm_0101)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -125,7 +125,7 @@ sh4op(i0010_nnnn_mmmm_0101)
 }
 
 //mov.l <REG_M>,@-<REG_N>       
-sh4op(i0010_nnnn_mmmm_0110)
+rsh4op(i0010_nnnn_mmmm_0110)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -138,7 +138,7 @@ sh4op(i0010_nnnn_mmmm_0110)
 // 4xxx
 
 //sts.l FPUL,@-<REG_N>          
-sh4op(i0100_nnnn_0101_0010)
+rsh4op(i0100_nnnn_0101_0010)
 {
 	u32 n = GetN(op);
 	
@@ -147,7 +147,7 @@ sh4op(i0100_nnnn_0101_0010)
 }
 
 //sts.l MACH,@-<REG_N>          
-sh4op(i0100_nnnn_0000_0010)
+rsh4op(i0100_nnnn_0000_0010)
 {
 	u32 n = GetN(op);
 	
@@ -156,7 +156,7 @@ sh4op(i0100_nnnn_0000_0010)
 }
 
 //sts.l MACL,@-<REG_N>          
-sh4op(i0100_nnnn_0001_0010)
+rsh4op(i0100_nnnn_0001_0010)
 {
 	u32 n = GetN(op);
 	
@@ -165,7 +165,7 @@ sh4op(i0100_nnnn_0001_0010)
 }
 
 //sts.l PR,@-<REG_N>            
-sh4op(i0100_nnnn_0010_0010)
+rsh4op(i0100_nnnn_0010_0010)
 {
 	u32 n = GetN(op);
 	
@@ -174,7 +174,7 @@ sh4op(i0100_nnnn_0010_0010)
 }
 
 //sts.l DBR,@-<REG_N>            
-sh4op(i0100_nnnn_1111_0010)
+rsh4op(i0100_nnnn_1111_0010)
 {
 	u32 n = GetN(op);
 	
@@ -183,7 +183,7 @@ sh4op(i0100_nnnn_1111_0010)
 }
 
 //stc.l GBR,@-<REG_N>           
-sh4op(i0100_nnnn_0001_0011)
+rsh4op(i0100_nnnn_0001_0011)
 {
 	u32 n = GetN(op);
 	
@@ -192,7 +192,7 @@ sh4op(i0100_nnnn_0001_0011)
 }
 
 //stc.l VBR,@-<REG_N>           
-sh4op(i0100_nnnn_0010_0011)
+rsh4op(i0100_nnnn_0010_0011)
 {
 	u32 n = GetN(op);
 	
@@ -201,7 +201,7 @@ sh4op(i0100_nnnn_0010_0011)
 }
 
 //stc.l SSR,@-<REG_N>           
-sh4op(i0100_nnnn_0011_0011)
+rsh4op(i0100_nnnn_0011_0011)
 {
 	u32 n = GetN(op);
 	
@@ -210,7 +210,7 @@ sh4op(i0100_nnnn_0011_0011)
 }
 
 //stc.l SGR,@-<REG_N>           
-sh4op(i0100_nnnn_0011_0010)
+rsh4op(i0100_nnnn_0011_0010)
 {
 	u32 n = GetN(op);
 	
@@ -219,7 +219,7 @@ sh4op(i0100_nnnn_0011_0010)
 }
 
 //stc.l SPC,@-<REG_N>           
-sh4op(i0100_nnnn_0100_0011)
+rsh4op(i0100_nnnn_0100_0011)
 {
 	u32 n = GetN(op);
 	
@@ -228,7 +228,7 @@ sh4op(i0100_nnnn_0100_0011)
 }
 
 //stc RM_BANK,@-<REG_N>         
-sh4op(i0100_nnnn_1mmm_0011)
+rsh4op(i0100_nnnn_1mmm_0011)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op) & 0x07;
@@ -422,7 +422,7 @@ rsh4op(i0110_nnnn_mmmm_0110)
 //8xxx
 
 //mov.b R0,@(<disp>,<REG_M>)    
-sh4op(i1000_0000_mmmm_iiii)
+rsh4op(i1000_0000_mmmm_iiii)
 {
 	u32 n = GetM(op);
 	u32 disp = GetImm4(op);
@@ -431,7 +431,7 @@ sh4op(i1000_0000_mmmm_iiii)
 }
 
 // mov.w R0,@(<disp>,<REG_M>)    
-sh4op(i1000_0001_mmmm_iiii)
+rsh4op(i1000_0001_mmmm_iiii)
 {
 	u32 disp = GetImm4(op);
 	u32 m = GetM(op);
@@ -472,7 +472,7 @@ sh4op(i1000_0001_mmmm_iiii)
 //
 // Cxxx
 // mov.b R0,@(<disp>,GBR)        
-sh4op(i1100_0000_iiii_iiii)
+rsh4op(i1100_0000_iiii_iiii)
 {
 	u32 disp = GetImm8(op); 
 
@@ -480,7 +480,7 @@ sh4op(i1100_0000_iiii_iiii)
 }
 
 // mov.w R0,@(<disp>,GBR)        
-sh4op(i1100_0001_iiii_iiii)
+rsh4op(i1100_0001_iiii_iiii)
 {
 	u32 disp = GetImm8(op);
 
@@ -488,7 +488,7 @@ sh4op(i1100_0001_iiii_iiii)
 }
 
 // mov.l R0,@(<disp>,GBR)        
-sh4op(i1100_0010_iiii_iiii)
+rsh4op(i1100_0010_iiii_iiii)
 {
 	u32 disp = (GetImm8(op));
 
@@ -535,7 +535,7 @@ rsh4op(i1101_nnnn_iiii_iiii)
 // Exxx
 
 //movca.l R0, @<REG_N>          
-sh4op(i0000_nnnn_1100_0011)
+rsh4op(i0000_nnnn_1100_0011)
 {
 	u32 n = GetN(op);
 

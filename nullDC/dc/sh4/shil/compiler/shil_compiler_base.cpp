@@ -880,7 +880,8 @@ void __fastcall shil_compile_and(shil_opcode* op)
 //Address calculation helpers
 void readwrteparams1(u8 reg1,u32 imm,ppc_reg* fast_nimm)
 {
-	verify((imm&0xffff)==imm);
+	//verify((imm&0xffff)==imm);
+	verify((s32)imm>=-32768 && (s32)imm<=32767);
 		
 	if (ira->IsRegAllocated(reg1))
 	{
@@ -939,7 +940,8 @@ void readwrteparams2(u8 reg1,u8 reg2)
 }
 void readwrteparams3(u8 reg1,u8 reg2,u32 imm)
 {
-	verify((imm&0xffff)==imm);
+	//verify((imm&0xffff)==imm);
+	verify((s32)imm>=-32768 && (s32)imm<=32767);
 		
 	if (ira->IsRegAllocated(reg1))
 	{
@@ -1098,7 +1100,7 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,u32* fast_offset)
 
 const u32 m_unpack_sz[4]={1,2,4,8};
 //Ram Only Mem Lookup
-void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size)
+void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 {
 	//mov ecx,reg_addr
 	if (reg!=R3)
@@ -1109,7 +1111,9 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size)
 		*offset_Edit+=old;
 	}
 
+	//if(rw && size==FLAG_8) ppce->emitDebugReg(R3);
 	// endianess
+	//if(!rw)
 	switch(size)
 	{
 		case FLAG_8:  EMIT_XORI(ppce,R3,R3,3); break;
@@ -1117,7 +1121,7 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size)
 	}
 	
 	ppce->emitLoadImmediate32(R5,0xE0000000);
-	EMIT_CMPL(ppce,reg,R5,0);
+	EMIT_CMPL(ppce,R3,R5,0);
 
 	//jae full_lookup
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
@@ -1153,7 +1157,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
 
 	//Ram Only Mem Lookup
-	roml(reg_addr,p4_handler,&old_offset,size);
+	roml(reg_addr,p4_handler,&old_offset,size,0);
 
 	//mov to dest or temp
 	u32 is_float=IsInFReg(op->reg1);
@@ -1226,8 +1230,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	//emit_vmem_read(reg_addr,op->reg1,m_unpack_sz[size]);
 	roml_patch_list.push_back(t);
 }
-#if 0 //gli86
-const ppc_opcode_class wm_table[4]={op_mov8,op_mov16,op_mov32,op_movlps};
+//const ppc_opcode_class wm_table[4]={op_mov8,op_mov16,op_mov32,op_movlps};
 void __fastcall shil_compile_writem(shil_opcode* op)
 {
 	//sse_WBF(op->reg1);//Write back possibly readed reg
@@ -1239,33 +1242,25 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	if (size==FLAG_64)
 	{
 		u8 f32reg=GetSingleFromDouble((u8)op->reg1);
-		ppce->Emit(op_movlps,XMM0,GetRegPtr(f32reg));
-		rsrc=XMM0;
+		ppce->emitLoadDouble(FR0,GetRegPtr(f32reg));
+		rsrc=FR0;
 	}
 	else
 	{
 		if (!is_float)
 		{
-			rsrc=LoadReg(EDX,op->reg1);
-			if (size==0)
-			{
-				if (rsrc>BL)
-				{
-					ppce->Emit(op_mov32,EDX,rsrc);
-					rsrc=EDX;
-				}
-			}
+			rsrc=LoadReg(R4,op->reg1);
 		}
 		else
 		{
 			if (fra->IsRegAllocated(op->reg1))
 			{
-				rsrc=fra->GetRegister(XMM0,op->reg1,RA_DEFAULT);
+				rsrc=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
 			}
 			else
 			{
-				rsrc=EDX;
-				ppce->Emit(op_mov32,EDX,GetRegPtr(op->reg1));
+				rsrc=R4;
+				ppce->emitLoad32(R4,GetRegPtr(op->reg1));
 				was_float=0;
 			}
 		}
@@ -1303,14 +1298,25 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	//ppc_Label* patch_point= ppce->CreateLabel(true,0);
 	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
 	//Ram Only Mem Lookup
-	roml(reg_addr,p4_handler,&old_offset,fast_reg,fast_reg_offset);
+	roml(reg_addr,p4_handler,&old_offset,size,1);
 	//mov [ecx],src
+	EMIT_ADDIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 	if (was_float)
-		ppce->Emit(op_movss,ppc_mrm(ECX,sh4_reserved_mem),rsrc);
+	{
+		EMIT_STFS(ppce,rsrc,0,R5);
+	}
 	else
 	{
-		ppce->Emit(wm_table[size],ppc_mrm(ECX,sh4_reserved_mem),rsrc);
+		switch(size)
+		{
+			case FLAG_8:  EMIT_STB(ppce,rsrc,0,R5); break;
+			case FLAG_16: EMIT_STH(ppce,rsrc,0,R5); break;
+			case FLAG_32: EMIT_STW(ppce,rsrc,0,R5); break;
+			case FLAG_64: EMIT_STFD(ppce,rsrc,0,R5); break;
+		}
 	}
+
+	
 	//if  (is_float)
 	//ppce->Emit(op_jmp,p4_handler);
 
@@ -1321,7 +1327,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	t.asz=size;
 	t.type=1;
 	t.is_float=was_float != 0;
-	t.reg_addr=reg_addr;
+	t.reg_addr=R3;//reg_addr;
 	if (size!=FLAG_64)
 	{
 		t.reg_data=rsrc;
@@ -1333,7 +1339,6 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	
 	//emit_vmem_write(reg_addr,op->reg1,m_unpack_sz[size]);
 }
-#endif
 void* nvw_lut[4]={(void*)WriteMem8,(void*)WriteMem16,(void*)WriteMem32,(void*)WriteMem32};
 void* nvr_lut[4]={(void*)ReadMem8,(void*)ReadMem16,(void*)ReadMem32,(void*)ReadMem32};
 #include "dc/mem/sh4_internal_reg.h"
@@ -1354,14 +1359,14 @@ void apply_roml_patches()
 		if (roml_patch_list[i].type==1 && (roml_patch_list[i].asz>=FLAG_32))
 		{
 			//check for SQ write
-			ppce->emitLoadImmediate32(R3,0xE3FFFFFF);
-			EMIT_CMPL(ppce,roml_patch_list[i].reg_addr,R3,0);
+			ppce->emitLoadImmediate32(R5,0xE3FFFFFF);
+			EMIT_CMPL(ppce,roml_patch_list[i].reg_addr,R5,0);
 			
 			if (roml_patch_list[i].reg_addr!=R3)
 				ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
 
 			ppc_Label* normal_write=ppce->CreateLabel(false,8);
-			ppce->emitBranchConditionalToLabel(normal_write,0,PPC_CC_T, PPC_CC_POS);
+			ppce->emitBranchConditionalToLabel(normal_write,0,PPC_CC_A, PPC_CC_POS);
 			//ppce->Emit(op_int3);
 			EMIT_ANDI(ppce,R3,R3,0x3c);
 			if (FLAG_32==roml_patch_list[i].asz)
@@ -1380,13 +1385,23 @@ void apply_roml_patches()
 			}
 			ppce->emitBranchToLabel(roml_patch_list[i].exit_point,0);
 			ppce->MarkLabel(normal_write);
-			*(u8*)&ppce->ppc_buff[offset]=(u8)( (u32)(ppce->ppc_indx-offset-2) );
-			log("patch offset: %d\n",ppce->ppc_indx-offset-2);
+			//*(u8*)&ppce->ppc_buff[offset]=(u8)( (u32)(ppce->ppc_indx-offset-2) );
+			//log("patch offset: %d\n",ppce->ppc_indx-offset-2);
 		}
 		else
 		{
 			if (roml_patch_list[i].reg_addr!=R3)
 				ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
+		}
+
+		// endianess
+		if (roml_patch_list[i].asz==0)
+		{
+			EMIT_XORI(ppce,R3,R3,3);
+		}
+		else if (roml_patch_list[i].asz==1)
+		{
+			EMIT_XORI(ppce,R3,R3,2);
 		}
 
 		if (roml_patch_list[i].asz!=FLAG_64)
@@ -1398,16 +1413,6 @@ void apply_roml_patches()
 			}
 			else
 			{
-				// endianess
-				if (roml_patch_list[i].asz==0)
-				{
-					EMIT_XORI(ppce,R3,R3,3);
-				}
-				else if (roml_patch_list[i].asz==1)
-				{
-					EMIT_XORI(ppce,R3,R3,2);
-				}
-				
 				if (roml_patch_list[i].type==1)
 				{
 					//if write make sure data is on edx
@@ -1624,6 +1629,7 @@ void __fastcall shil_compile_sub(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_SUBF(ppc,0,0,0);
+	ppc|=1; // record bit
 	op_reg_to_reg(op,ppc,0,false);
 }
 
@@ -2046,6 +2052,7 @@ void __fastcall shil_compile_fabs(shil_opcode* op)
 		ppce->Emit(op_and32,GetRegPtr(reg),0x7FFFFFFF);
 	}
 }
+#endif
 
 //pref !
 void __fastcall do_pref(u32 Dest);
@@ -2060,26 +2067,33 @@ void __fastcall shil_compile_pref(shil_opcode* op)
 
 	if (op->flags&FLAG_REG1)
 	{
-		ppc_reg raddr=LoadReg_force(ECX,op->reg1);
-		ppce->Emit(op_mov32,EDX,ECX);
-		ppce->Emit(op_and32,EDX,0xFC000000);
-		ppce->Emit(op_cmp32,EDX,0xE0000000);
+		LoadReg_force(R3,op->reg1);
+		
+/*		
+		ppce->Emit(op_mov32,R4,R3);
+		ppce->Emit(op_and32,R4,0xFC000000);
+		ppce->Emit(op_cmp32,R4,0xE0000000);
+*/
+		EMIT_RLWINM(ppce,R4,R3,6,26,31);
+		EMIT_CMPLI(ppce,R4,0xe0>>2,0);
 
+		
 		ppc_Label* after=ppce->CreateLabel(false,8);
-		ppce->Emit(op_jne,after);
-		ppce->Emit(op_call,ppc_ptr_imm(do_pref));
+		ppce->emitBranchConditionalToLabel(after,0,PPC_CC_F,PPC_CC_ZER);
+		ppce->emitBranch((void*)do_pref,1);
 		ppce->MarkLabel(after);
 	}
 	else if (op->flags&FLAG_IMM1)
 	{
 		if((op->imm1&0xFC000000)==0xE0000000)
 		{
-			ppce->Emit(op_mov32,ECX,op->imm1);
-			ppce->Emit(op_call,ppc_ptr_imm(do_pref));
+			ppce->emitLoadImmediate32(R3,op->imm1);
+			ppce->emitBranch((void*)do_pref,1);
 		}
 	}
 }
 
+#if 0
 //complex opcodes
 void __fastcall shil_compile_fcmp(shil_opcode* op)
 {
@@ -2483,6 +2497,9 @@ void __fastcall shil_compile_nimp(shil_opcode* op)
 	asm volatile("sc");
 }
 
+#define PROF_IFB
+u32 op_usage[0x10000]={0};
+
 //shil_ifb opcode
 //calls interpreter to emulate the opcode
 void __fastcall shil_compile_shil_ifb(shil_opcode* op)
@@ -2494,6 +2511,12 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	
 	ira->FlushRegCache();
 	fra->FlushRegCache();
+
+#ifdef PROF_IFB
+	ppce->emitLoad32(R3,&op_usage[op->imm1]);
+	EMIT_ADDI(ppce,R3,R3,1);
+	ppce->emitStore32(&op_usage[op->imm1],R3);
+#endif
 	
 	ppce->emitLoadImmediate32(R3,op->imm1);
 	ppce->emitBranch((void*)OpPtr[op->imm1],1);
@@ -2555,6 +2578,8 @@ void sclt_Init()
 	SetH(shilop_not,shil_compile_not);
 	SetH(shilop_mov,shil_compile_mov);
 	SetH(shilop_readm,shil_compile_readm);
+	SetH(shilop_writem,shil_compile_writem);
+	SetH(shilop_pref,shil_compile_pref);
 		
 /* gli86
 	SetH(shilop_fabs,shil_compile_fabs);
@@ -2571,9 +2596,6 @@ void sclt_Init()
 	SetH(shilop_rcr,shil_compile_rcr);
 
 	SetH(shilop_swap,shil_compile_swap);
-	SetH(shilop_writem,shil_compile_writem);
-	SetH(shilop_jcond,shil_compile_jcond);
-	SetH(shilop_jmp,shil_compile_jmp);
 	SetH(shilop_mul,shil_compile_mul);
 
 	SetH(shilop_ftrv,shil_compile_ftrv);
@@ -2586,7 +2608,6 @@ void sclt_Init()
 	SetH(shilop_div32,shil_compile_div32);
 	SetH(shilop_fcmp,shil_compile_fcmp);
 
-	SetH(shilop_pref,shil_compile_pref);
 */
 	/*
 	u32 shil_nimp=shilop_count;

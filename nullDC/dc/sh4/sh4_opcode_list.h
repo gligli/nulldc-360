@@ -80,6 +80,7 @@ struct sh4_opcodelistentry
 };
 
 extern sh4_opcodelistentry* OpDesc[0x10000];
+extern sh4_opcodelistentry opcodes[214];
 #define ExecuteOpcode(op) {OpPtr[op](op);}
 
 void BuildOpcodeTables();

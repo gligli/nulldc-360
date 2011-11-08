@@ -2,6 +2,8 @@
 #include "Renderer_if.h"
 #include "regs.h"
 
+#include <dc/sh4/sh4_opcode_list.h>
+
 //SPG emulation; Scanline/Raster beam registers & interrupts
 //Time to emulate that stuff correctly ;)
 
@@ -72,6 +74,9 @@ void CalculateSync()
 
 bool render_end_pending=false;
 u32 render_end_pending_cycles;
+
+extern u32 op_usage[0x10000];
+
 //called from sh4 context , should update pvr/ta state and everything else
 void FASTCALL spgUpdatePvr(u32 cycles)
 {
@@ -157,7 +162,52 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 					mode="VGA";
 				}
 
-				if(kbhit() && getch()=='x') exit(0);
+				if(kbhit())
+				{
+					int i,j;
+					u32 cumulcnt[0x200]={0};
+					switch(getch())
+					{
+						case 'x':
+							exit(0);
+							break;
+						case 'o': 
+							printf("---- IFB op usage\n");
+							
+							for(i=0;i<0x10000;++i)
+							{
+								if (op_usage[i])
+								{
+									sh4_opcodelistentry* opentry=OpDesc[i];
+										
+									for(j=0;j<sizeof(opcodes)/sizeof(sh4_opcodelistentry);++j)
+									{
+										if (opentry==&opcodes[j])
+										{
+											cumulcnt[j]+=op_usage[i];
+										}
+									}
+								}
+							}
+
+							for(i=0;i<sizeof(opcodes)/sizeof(sh4_opcodelistentry);++i)
+							{
+								if (cumulcnt[i])
+								{
+									printf("%12d\t%04x\t%s\n",cumulcnt[i],opcodes[i].rez,opcodes[i].disasm1);
+								}
+							}
+							break;
+						case 'z':
+							printf("---- IFB op usage reset\n");
+							
+							for(i=0;i<0x10000;++i)
+							{
+								op_usage[i]=0;
+							}
+							break;
+					}
+				}
 				
 				printf("%4.2f%% - VPS: %4.2f(%s%s%4.2f) RPS: %4.2f Vert: %4.2f%c Sh4: %4.2f mhz\n", 
 					spd_cpu*100/200,spd_vbs,
