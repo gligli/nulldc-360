@@ -679,8 +679,7 @@ compile_normaly:
 			
 			if (exit_cond_direct==16)
 			{
-				ppce->emitLoad32(R3,&T_jcond_value);
-				EMIT_CMPI(ppce,R3,1,0);
+				EMIT_CROR(ppce,PPC_CC_ZER,CR_T_FLAG,CR_T_FLAG);
 				exit_cond_direct=CC_E;
 			}
 

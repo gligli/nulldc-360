@@ -517,6 +517,9 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		#define mov_flag_M32_2 0
 		#define mov_flag_imm_2 16
 
+		#define mov_flag_T_1   32
+		#define mov_flag_T_2   64
+
 		u32 flags = 0;
 
 		if (op->flags & FLAG_IMM1)
@@ -534,6 +537,18 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		if (((op->flags & FLAG_IMM1)==0) && IsSSEAllocReg(op->reg2)==false && ira->IsRegAllocated(op->reg2))
 			flags|=mov_flag_GRP_2;
 
+		if (op->reg1==reg_sr_T)
+		{
+			flags&=~mov_flag_GRP_1;
+			flags|=mov_flag_T_1;
+		}
+
+		if (op->reg2==reg_sr_T)
+		{
+			flags&=~mov_flag_GRP_2;
+			flags|=mov_flag_T_2;
+		}
+		
 		#define XMMtoXMM (mov_flag_XMM_1 | mov_flag_XMM_2)
 		#define XMMtoGPR (mov_flag_GRP_1 | mov_flag_XMM_2)
 		#define XMMtoM32 (mov_flag_M32_1 | mov_flag_XMM_2)
@@ -549,6 +564,10 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		#define IMMtoXMM (mov_flag_XMM_1 | mov_flag_imm_2)
 		#define IMMtoGPR (mov_flag_GRP_1 | mov_flag_imm_2)
 		#define IMMtoM32 (mov_flag_M32_1 | mov_flag_imm_2)
+
+		#define IMMtoT   (mov_flag_T_1   | mov_flag_imm_2)
+		#define TtoGPR   (mov_flag_GRP_1 | mov_flag_T_2  )
+		#define TtoM32   (mov_flag_M32_1 | mov_flag_T_2  )
 		
 		ppc_fpr_reg fpr1=ERROR_REG;
 		ppc_fpr_reg fpr2=ERROR_REG;
@@ -662,6 +681,28 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		case IMMtoM32:
 			{
 				ppce->emitLoadImmediate32(R4,op->imm1);
+				ppce->emitStore32(GetRegPtr(op->reg1),R4);
+			}
+			break;
+		
+		case IMMtoT:
+			{
+				ppce->emitLoadImmediate32(R4,op->imm1);
+				EMIT_CMPLI(ppce,R4,0,0);
+				EMIT_CRNOR(ppce,CR_T_FLAG,PPC_CC_ZER,PPC_CC_ZER);
+			}
+			break;
+
+		case TtoGPR:
+			{
+				EMIT_MFCR(ppce,R4);
+				EMIT_RLWINM(ppce,R4,R4,CR_T_FLAG+1,31,31);
+				ira->SaveRegister(op->reg1,R4);
+			}
+		case TtoM32:
+			{
+				EMIT_MFCR(ppce,R4);
+				EMIT_RLWINM(ppce,R4,R4,CR_T_FLAG+1,31,31);
 				ppce->emitStore32(GetRegPtr(op->reg1),R4);
 			}
 			break;
@@ -1471,16 +1512,24 @@ void apply_roml_patches()
 	}
 	roml_patch_list.clear();
 }
+
 //save-loadT
 void __fastcall shil_compile_SaveT(shil_opcode* op)
 {
 	assert(op->flags & FLAG_IMM1);//imm1
 	assert(0==(op->flags & (FLAG_IMM2|FLAG_REG1|FLAG_REG2)));//no imm2/r1/r2
-
-	EMIT_LI(ppce,R3,1);
-	EMIT_BC(ppce,2,0,0,ppc_condition_flags[op->imm1][0],ppc_condition_flags[op->imm1][1]);
-	EMIT_LI(ppce,R3,0);
-	ppce->emitStore32(GetRegPtr(reg_sr_T),R3);
+//	printf("shil_compile_SaveT %x\n",op->imm1);
+	switch(ppc_condition_flags[op->imm1][0])
+	{
+		case PPC_CC_T:
+			EMIT_CROR(ppce,CR_T_FLAG,ppc_condition_flags[op->imm1][1],ppc_condition_flags[op->imm1][1]);
+			break;
+		case PPC_CC_F:
+			EMIT_CRNOR(ppce,CR_T_FLAG,ppc_condition_flags[op->imm1][1],ppc_condition_flags[op->imm1][1]);
+			break;
+		default:
+			verify(false);
+	}
 }
 
 void __fastcall shil_compile_LoadT(shil_opcode* op)
@@ -1491,17 +1540,9 @@ void __fastcall shil_compile_LoadT(shil_opcode* op)
 
 	assert( (op->imm1==CF) || (op->imm1==jcond_flag) );
 
-	if (op->imm1==jcond_flag)
+	if (op->imm1!=jcond_flag)
 	{
-		LoadReg_force(R3,reg_sr_T);
-		ppce->emitStore32(&T_jcond_value,R3);
-	}
-	else
-	{
-		//LoadReg_force(EAX,reg_sr_T);
-		//ppce->Emit(op_shr32,EAX,1);//heh T bit is there now :P CF
-		ppce->emitLoad32(R3,GetRegPtr(reg_sr_T));
-		EMIT_CMPLI(ppce,R3,1,0);
+		EMIT_CROR(ppce,PPC_CC_ZER,CR_T_FLAG,CR_T_FLAG);
 	}
 }
 //cmp-test
@@ -2534,9 +2575,20 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	EMIT_ADDI(ppce,R3,R3,1);
 	ppce->emitStore32(&op_usage[op->imm1],R3);
 #endif
+
+	// get T flag for interp
+	EMIT_MFCR(ppce,R3);
+	EMIT_RLWINM(ppce,R3,R3,CR_T_FLAG+1,31,31);
+	ppce->emitStore32(GetRegPtr(reg_sr_T),R3);
+	
 	
 	ppce->emitLoadImmediate32(R3,op->imm1);
 	ppce->emitBranch((void*)OpPtr[op->imm1],1);
+
+	// store interp T flag for dynarec
+	ppce->emitLoad32(R3,GetRegPtr(reg_sr_T));
+	EMIT_CMPLI(ppce,R3,0,0);
+	EMIT_CRNOR(ppce,CR_T_FLAG,PPC_CC_ZER,PPC_CC_ZER);
 }
 
 

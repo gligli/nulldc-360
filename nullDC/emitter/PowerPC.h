@@ -1103,4 +1103,18 @@ PowerPC_instr Instruction(int opcode, ...);
 	  PPC_SET_RA    (ppc, (ca)); \
 	  PPC_SET_RB    (ppc, (cb)); }
 
+#define GEN_CRNOR(ppc,cd,ca,cb) \
+	{ ppc = NEW_PPC_INSTR(); \
+	  PPC_SET_OPCODE(ppc, PPC_OPCODE_XL); \
+	  PPC_SET_FUNC  (ppc, PPC_FUNC_CRNOR); \
+	  PPC_SET_RD    (ppc, (cd)); \
+	  PPC_SET_RA    (ppc, (ca)); \
+	  PPC_SET_RB    (ppc, (cb)); }
+
+#define GEN_MFCR(ppc,rt) \
+	{ ppc = NEW_PPC_INSTR(); \
+	  PPC_SET_OPCODE(ppc, PPC_OPCODE_X); \
+	  PPC_SET_FUNC  (ppc, PPC_FUNC_MFCR); \
+	  PPC_SET_RD    (ppc, (rt)); }
+
 #endif

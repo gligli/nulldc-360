@@ -33,6 +33,9 @@ extern int ppc_condition_flags[][3];
 #define ppc_fpr_reg ppc_reg
 #define ppc_gpr_reg ppc_reg
 
+// CR2 bit 2
+#define CR_T_FLAG 10
+
 #define RTMP R15
 
 #include "PowerPC.h"
@@ -361,7 +364,10 @@ public:
 {PowerPC_instr ppc;GEN_ORIS(ppc,rd,rs,immed);ppce->write32(ppc);}
 #define EMIT_CROR(ppce,cd,ca,cb) \
 {PowerPC_instr ppc;GEN_CROR(ppc,cd,ca,cb);ppce->write32(ppc);}
-
+#define EMIT_CRNOR(ppce,cd,ca,cb) \
+{PowerPC_instr ppc;GEN_CRNOR(ppc,cd,ca,cb);ppce->write32(ppc);}
+#define EMIT_MFCR(ppce,rt) \
+{PowerPC_instr ppc;GEN_MFCR(ppc,rt);ppce->write32(ppc);}
 
 // debug
 
