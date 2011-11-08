@@ -12,7 +12,7 @@ union mac_type
 	u64 full;
 };
 
-__attribute__((aligned(32))) extern f32 sin_table[0x10000+0x4000];
+__attribute__((aligned(128))) extern f32 sin_table[0x10000+0x4000];
 struct Sh4RegContext
 {
 	u32 r[16];
@@ -35,11 +35,12 @@ struct Sh4RegContext
 	fpscr_type old_fpscr;
 };
 void GenerateSinCos();
-__attribute__((aligned(64))) extern u32 r[16];
-__attribute__((aligned(64))) extern u32 r_bank[8];
+__attribute__((aligned(128))) extern u32 r[16];
+__attribute__((aligned(128))) extern u32 r_bank[8];
 
 extern u32 gbr,ssr,spc,sgr,dbr,vbr;
-extern u32 pr,fpul;
+extern u32 pr;
+extern u32 fpul;
 extern mac_type mac;
 extern u32 pc;
 
@@ -47,8 +48,8 @@ extern StatusReg sr;
 
 extern fpscr_type fpscr;
 
-extern __attribute__((aligned(64))) f32 xf[16];
-extern __attribute__((aligned(64))) f32 fr[16];
+extern __attribute__((aligned(128))) f32 xf[16];
+extern __attribute__((aligned(128))) f32 fr[16];
 
 
 extern u32*  xf_hex,*fr_hex;

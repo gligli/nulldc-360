@@ -346,12 +346,16 @@ public:
 {PowerPC_instr ppc;GEN_FCMPU(ppc,fa,fb,cr);ppce->write32(ppc);}
 #define EMIT_FRSQRTE(ppce,fd,fs) \
 {PowerPC_instr ppc;GEN_FRSQRTE(ppc,fd,fs);ppce->write32(ppc);}
+#define EMIT_FSQRT(ppce,fd,fs) \
+{PowerPC_instr ppc;GEN_FSQRT(ppc,fd,fs);ppce->write32(ppc);}
 #define EMIT_FSEL(ppce,fd,fa,fb,fc) \
 {PowerPC_instr ppc;GEN_FSEL(ppc,fd,fa,fb,fc);ppce->write32(ppc);}
 #define EMIT_FRES(ppce,fd,fs) \
 {PowerPC_instr ppc;GEN_FRES(ppc,fd,fs);ppce->write32(ppc);}
 #define EMIT_FNMSUB(ppce,fd,fa,fb,fc) \
 {PowerPC_instr ppc;GEN_FNMSUB(ppc,fd,fa,fb,fc);ppce->write32(ppc);}
+#define EMIT_FMADD(ppce,fd,fa,fb,fc) \
+{PowerPC_instr ppc;GEN_FMADD(ppc,fd,fa,fb,fc);ppce->write32(ppc);}
 #define EMIT_BCLR(ppce,lk,bo,bi) \
 {PowerPC_instr ppc;GEN_BCLR(ppc,lk,bo,bi);ppce->write32(ppc);}
 #define EMIT_BNELR(ppce,cr,lk) \

@@ -1036,6 +1036,13 @@ PowerPC_instr Instruction(int opcode, ...);
 	  PPC_SET_RD    (ppc, (fd)); \
 	  PPC_SET_RB    (ppc, (fs)); }
 
+#define GEN_FSQRT(ppc,fd,fs) \
+	{ ppc = NEW_PPC_INSTR(); \
+	  PPC_SET_OPCODE(ppc, PPC_OPCODE_FPD); \
+	  PPC_SET_FUNC  (ppc, PPC_FUNC_FSQRT); \
+	  PPC_SET_RD    (ppc, (fd)); \
+	  PPC_SET_RB    (ppc, (fs)); }
+
 #define GEN_FSEL(ppc,fd,fa,fb,fc) \
 	{ ppc = NEW_PPC_INSTR(); \
 	  PPC_SET_OPCODE(ppc, PPC_OPCODE_FPD); \
@@ -1052,14 +1059,23 @@ PowerPC_instr Instruction(int opcode, ...);
 	  PPC_SET_RD    (ppc, (fd)); \
 	  PPC_SET_RB    (ppc, (fs)); }
 
-#define GEN_FNMSUB(ppc,fd,fa,fb,fc) \
+#define GEN_FNMSUB(ppc,fd,fa,fc,fb) \
 	{ ppc = NEW_PPC_INSTR(); \
 	  PPC_SET_OPCODE(ppc, PPC_OPCODE_FPD); \
 	  PPC_SET_FUNC  (ppc, PPC_FUNC_FNMSUB); \
 	  PPC_SET_RD    (ppc, (fd)); \
 	  PPC_SET_RA    (ppc, (fa)); \
-	  PPC_SET_RB    (ppc, (fc)); \
-	  PPC_SET_RC    (ppc, (fb)); }
+	  PPC_SET_RB    (ppc, (fb)); \
+	  PPC_SET_RC    (ppc, (fc)); }
+
+#define GEN_FMADD(ppc,fd,fa,fc,fb) \
+	{ ppc = NEW_PPC_INSTR(); \
+	  PPC_SET_OPCODE(ppc, PPC_OPCODE_FPD); \
+	  PPC_SET_FUNC  (ppc, PPC_FUNC_FMADD); \
+	  PPC_SET_RD    (ppc, (fd)); \
+	  PPC_SET_RA    (ppc, (fa)); \
+	  PPC_SET_RB    (ppc, (fb)); \
+	  PPC_SET_RC    (ppc, (fc)); }
 
 #define GEN_BCLR(ppc,lk,bo,bi) \
 	{ ppc = NEW_PPC_INSTR(); \

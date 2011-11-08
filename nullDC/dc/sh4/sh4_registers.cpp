@@ -4,14 +4,15 @@
 #include "sh4_registers.h"
 #include "intc.h"
 
-__attribute__((aligned(64))) u32 r[16];		//64 bytes : 1 cache line
-__attribute__((aligned(64))) f32 fr[16];		//64 bytes : 1 cache line
-__attribute__((aligned(64))) f32 xf[16];		//64 bytes : 1 cache line
+__attribute__((aligned(128))) u32 r[16];		//64 bytes : 1 cache line
+__attribute__((aligned(128))) f32 fr[16];		//64 bytes : 1 cache line
+__attribute__((aligned(128))) f32 xf[16];		//64 bytes : 1 cache line
 
-__attribute__((aligned(64))) u32 r_bank[8];
+__attribute__((aligned(128))) u32 r_bank[8];
 
 u32 gbr,ssr,spc,sgr,dbr,vbr;
-u32 pr,fpul;
+u32 pr;
+u32 dummy0,dummy1,dummy2,fpul; //HACK: fpul will be written as a double, so make sure there is room before it
 mac_type mac;
 u32 pc;
 
@@ -21,7 +22,7 @@ fpscr_type fpscr;
 
 
 
-__attribute__((aligned(64))) f32 sin_table[0x10000+0x4000];	//+0x4000 to avoid having to warp around twice on cos
+__attribute__((aligned(128))) f32 sin_table[0x10000+0x4000];	//+0x4000 to avoid having to warp around twice on cos
 
 u32*  xf_hex=(u32*)xf,*fr_hex=(u32*)fr;
 

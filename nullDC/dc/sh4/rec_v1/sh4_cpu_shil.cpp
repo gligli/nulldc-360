@@ -84,25 +84,25 @@ void rec_shil_iNimp(u32 pc,u32 op ,char * text)
 }
 //************************ TLB/Cache ************************
 //ldtlb                         
-sh4op(i0000_0000_0011_1000)
+rsh4op(i0000_0000_0011_1000)
 {
 	shil_interpret(op);
 }
 
 //ocbi @<REG_N>                 
-sh4op(i0000_nnnn_1001_0011)
+rsh4op(i0000_nnnn_1001_0011)
 {
 	shil_interpret(op);
 } 
 
 //ocbp @<REG_N>                 
-sh4op(i0000_nnnn_1010_0011)
+rsh4op(i0000_nnnn_1010_0011)
 {
 	shil_interpret(op);
 } 
 
 //ocbwb @<REG_N>                
-sh4op(i0000_nnnn_1011_0011)
+rsh4op(i0000_nnnn_1011_0011)
 {
 	shil_interpret(op);
 } 
@@ -116,13 +116,13 @@ rsh4op(i0000_nnnn_1000_0011)
 
 //************************ Set/Get T/S ************************
 //sets                          
-sh4op(i0000_0000_0101_1000)
+rsh4op(i0000_0000_0101_1000)
 {
 	shil_interpret(op);
 } 
 
 //clrs                          
-sh4op(i0000_0000_0100_1000)
+rsh4op(i0000_0000_0100_1000)
 {
 	shil_interpret(op);
 } 
@@ -223,7 +223,7 @@ rsh4op(i0011_nnnn_mmmm_0111)
 }
 
 //cmp/str <REG_M>,<REG_N>       
-sh4op(i0010_nnnn_mmmm_1100)
+rsh4op(i0010_nnnn_mmmm_1100)
 {
 	shil_interpret(op);
 }
@@ -434,7 +434,7 @@ sh4op(i0010_nnnn_mmmm_0111)
 }
 
 //div1 <REG_M>,<REG_N>          
-sh4op(i0011_nnnn_mmmm_0100)
+rsh4op(i0011_nnnn_mmmm_0100)
 {
 	//u32 n=GetN(op);
 	//u32 m=GetM(op);
@@ -455,13 +455,13 @@ rsh4op(i0011_nnnn_mmmm_1110)
 }
 
 // addv <REG_M>,<REG_N>          
-sh4op(i0011_nnnn_mmmm_1111)
+rsh4op(i0011_nnnn_mmmm_1111)
 {
 	shil_interpret(op);
 }
 
 //subc <REG_M>,<REG_N>          
-sh4op(i0011_nnnn_mmmm_1010)
+rsh4op(i0011_nnnn_mmmm_1010)
 {
 	//u32 n = GetN(op);
 	//u32 m = GetM(op);
@@ -475,7 +475,7 @@ sh4op(i0011_nnnn_mmmm_1010)
 }
 
 //subv <REG_M>,<REG_N>          
-sh4op(i0011_nnnn_mmmm_1011)
+rsh4op(i0011_nnnn_mmmm_1011)
 {
 	shil_interpret(op);
 }
@@ -490,7 +490,7 @@ rsh4op(i0100_nnnn_0001_0000)
 }
 
 //negc <REG_M>,<REG_N>          
-sh4op(i0110_nnnn_mmmm_1010)
+rsh4op(i0110_nnnn_mmmm_1010)
 {
 	//u32 n = GetN(op);
 	//u32 m = GetM(op);
@@ -556,13 +556,13 @@ rsh4op(i0100_nnnn_0010_0001)
 }
 
 //shad <REG_M>,<REG_N>          
-sh4op(i0100_nnnn_mmmm_1100)
+rsh4op(i0100_nnnn_mmmm_1100)
 {
 	shil_interpret(op);
 }
 
 //shld <REG_M>,<REG_N>          
-sh4op(i0100_nnnn_mmmm_1101)
+rsh4op(i0100_nnnn_mmmm_1101)
 {
 	shil_interpret(op);
 }
@@ -626,7 +626,7 @@ sh4op(i0110_nnnn_mmmm_1001)
 } 
 
 //extu.b <REG_M>,<REG_N>        
-sh4op(i0110_nnnn_mmmm_1100)
+rsh4op(i0110_nnnn_mmmm_1100)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -635,7 +635,7 @@ sh4op(i0110_nnnn_mmmm_1100)
 } 
 
 //extu.w <REG_M>,<REG_N>        
-sh4op(i0110_nnnn_mmmm_1101)
+rsh4op(i0110_nnnn_mmmm_1101)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -644,7 +644,7 @@ sh4op(i0110_nnnn_mmmm_1101)
 } 
 
 //exts.b <REG_M>,<REG_N>        
-sh4op(i0110_nnnn_mmmm_1110)
+rsh4op(i0110_nnnn_mmmm_1110)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -654,7 +654,7 @@ sh4op(i0110_nnnn_mmmm_1110)
 
 
 //exts.w <REG_M>,<REG_N>        
-sh4op(i0110_nnnn_mmmm_1111)
+rsh4op(i0110_nnnn_mmmm_1111)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -664,7 +664,7 @@ sh4op(i0110_nnnn_mmmm_1111)
 
 
 //xtrct <REG_M>,<REG_N>         
-sh4op(i0010_nnnn_mmmm_1101)
+rsh4op(i0010_nnnn_mmmm_1101)
 {
 	//u32 n = GetN(op);
 	//u32 m = GetM(op);
@@ -674,43 +674,43 @@ sh4op(i0010_nnnn_mmmm_1101)
 
 //************************ xxx.b #<imm>,@(R0,GBR) ************************
 //tst.b #<imm>,@(R0,GBR)        
-sh4op(i1100_1100_iiii_iiii)
+rsh4op(i1100_1100_iiii_iiii)
 {
 	shil_interpret(op);
 }
 
 //and.b #<imm>,@(R0,GBR)        
-sh4op(i1100_1101_iiii_iiii)
+rsh4op(i1100_1101_iiii_iiii)
 {
 	shil_interpret(op);
 }
 
 //xor.b #<imm>,@(R0,GBR)        
-sh4op(i1100_1110_iiii_iiii)
+rsh4op(i1100_1110_iiii_iiii)
 {
 	shil_interpret(op);
 }
 
 //or.b #<imm>,@(R0,GBR)         
-sh4op(i1100_1111_iiii_iiii)
+rsh4op(i1100_1111_iiii_iiii)
 {
 	shil_interpret(op);
 }
 
 //tas.b @<REG_N>                
-sh4op(i0100_nnnn_0001_1011)
+rsh4op(i0100_nnnn_0001_1011)
 {
 	shil_interpret(op);
 }
 
 //bah
 //Not implt
-sh4op(iNotImplemented)
+rsh4op(iNotImplemented)
 {
 	shil_interpret(op);
 }
 
-sh4op(gdrom_hle_op)
+rsh4op(gdrom_hle_op)
 {
 	EMUERROR("GDROM HLE NOT SUPPORTED");
 }
@@ -824,7 +824,7 @@ rsh4op(i1111_nnnn_mmmm_0011)
 	}
 }
 //fcmp/eq <FREG_M>,<FREG_N>
-sh4op(i1111_nnnn_mmmm_0100)
+rsh4op(i1111_nnnn_mmmm_0100)
 {
 	if (fpscr.PR == 0)
 	{
@@ -848,7 +848,7 @@ sh4op(i1111_nnnn_mmmm_0100)
 	}
 }
 //fcmp/gt <FREG_M>,<FREG_N>
-sh4op(i1111_nnnn_mmmm_0101)
+rsh4op(i1111_nnnn_mmmm_0101)
 {
 	if (fpscr.PR == 0)
 	{
@@ -1145,7 +1145,7 @@ rsh4op(i1111_nnnn_mmmm_1100)
 
 
 //fabs <FREG_N>            
-sh4op(i1111_nnnn_0101_1101)
+rsh4op(i1111_nnnn_0101_1101)
 {
 	int n=GetN(op);
 	
@@ -1157,7 +1157,9 @@ sh4op(i1111_nnnn_0101_1101)
 	else
 	{
 		//fr_hex[(n&0xE)+1]&=0x7FFFFFFF;
-		ilst->fabs(dr[n>>1]);
+
+		shil_interpret(op);
+//gli		ilst->fabs(dr[n>>1]);
 	}
 
 }
@@ -1193,7 +1195,7 @@ sh4op(i1111_nnnn_0111_1101)
 }
 
 //fcnvds <DR_N>,FPUL       
-sh4op(i1111_nnnn_1011_1101)
+rsh4op(i1111_nnnn_1011_1101)
 {
 	if (fpscr.PR == 1)
 	{
@@ -1208,7 +1210,7 @@ sh4op(i1111_nnnn_1011_1101)
 
 
 //fcnvsd FPUL,<DR_N>       
-sh4op(i1111_nnnn_1010_1101)
+rsh4op(i1111_nnnn_1010_1101)
 {
 
 	if (fpscr.PR == 1)
@@ -1297,7 +1299,7 @@ sh4op(i1111_nnnn_0010_1101)
 }
 
 //ftrc <FREG_N>, FPUL      
-sh4op(i1111_nnnn_0011_1101)
+rsh4op(i1111_nnnn_0011_1101)
 {
 	if (fpscr.PR == 0)
 	{
@@ -1314,7 +1316,7 @@ sh4op(i1111_nnnn_0011_1101)
 
 
 //fneg <FREG_N>            
-sh4op(i1111_nnnn_0100_1101)
+rsh4op(i1111_nnnn_0100_1101)
 {
 	u32 n = GetN(op);
 
@@ -1324,13 +1326,14 @@ sh4op(i1111_nnnn_0100_1101)
 	}
 	else
 	{
-		ilst->fneg(dr[n>>1]);
+		shil_interpret(op);
+//gli		ilst->fneg(dr[n>>1]);
 	}
 }
 
 
 //frchg                    
-sh4op(i1111_1011_1111_1101)
+rsh4op(i1111_1011_1111_1101)
 {
 	shil_interpret(op);
 	return;
@@ -1343,7 +1346,7 @@ sh4op(i1111_1011_1111_1101)
 
 
 //fschg                    
-sh4op(i1111_0011_1111_1101)
+rsh4op(i1111_0011_1111_1101)
 {
 
 	shil_interpret(op);
@@ -1355,7 +1358,7 @@ sh4op(i1111_0011_1111_1101)
 }
 
 //fsqrt <FREG_N>                
-sh4op(i1111_nnnn_0110_1101)
+rsh4op(i1111_nnnn_0110_1101)
 {
 	if (fpscr.PR == 0)
 	{
@@ -1373,7 +1376,7 @@ sh4op(i1111_nnnn_0110_1101)
 }
 
 //fsts FPUL,<FREG_N>       
-sh4op(i1111_nnnn_0000_1101)
+rsh4op(i1111_nnnn_0000_1101)
 {
 	//this seems to be a valid opcode even if double precicion is activated 
 	//carrier requires it
@@ -1383,7 +1386,7 @@ sh4op(i1111_nnnn_0000_1101)
 }
 
 //fmac <FREG_0>,<FREG_M>,<FREG_N> 
-sh4op(i1111_nnnn_mmmm_1110)
+rsh4op(i1111_nnnn_mmmm_1110)
 {
 	//iNimp("fmac <FREG_0>,<FREG_M>,<FREG_N>");
 	if (fpscr.PR==0)
@@ -1411,7 +1414,7 @@ sh4op(i1111_nn01_1111_1101)
 }																				  
 
 
-sh4op(icpu_nimp)
+rsh4op(icpu_nimp)
 {
 	shil_interpret(op);
 }
@@ -1711,7 +1714,7 @@ rsh4op(i1100_0011_iiii_iiii)
 
 
 //sh4_bpt_op => breakpoint opcode
-sh4op(sh4_bpt_op)
+rsh4op(sh4_bpt_op)
 {
 	shil_interpret(op);
 }

@@ -2657,10 +2657,10 @@ nl:
 		}
 	}
 
-	__attribute__((aligned(16))) static f32 FaceBaseColor[4];
-	__attribute__((aligned(16))) static f32 FaceOffsColor[4];
-	__attribute__((aligned(16))) static f32 SFaceBaseColor[4];
-	__attribute__((aligned(16))) static f32 SFaceOffsColor[4];
+	__attribute__((aligned(128))) static f32 FaceBaseColor[4];
+	__attribute__((aligned(128))) static f32 FaceOffsColor[4];
+	__attribute__((aligned(128))) static f32 SFaceBaseColor[4];
+	__attribute__((aligned(128))) static f32 SFaceOffsColor[4];
 
 #ifdef MODVOL
 	ModTriangle* lmr=0;
