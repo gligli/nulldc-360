@@ -318,7 +318,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar)
 	}
 	else if (((u32)(address-sh4_reserved_mem))<(512*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
 	{
-		printf("Rewrite %p %x\n",srr0,address);
+//		printf("Rewrite %p %x\n",srr0,address);
 		//k
 		//
 		//cmp ecx,mask1

@@ -642,9 +642,7 @@ compile_normaly:
 			EMIT_CMP(ppce,R3,R4,0);
 			//je ok
 #ifndef RET_CACHE_PROF
-			ppce->emitLoadImmediate32(R3,(u32)Dynarec_Mainloop_no_update);
-			EMIT_MTCTR(ppce,R3);
-			EMIT_BCCTR(ppce,PPC_CC_F,PPC_CC_ZER,0);
+			ppce->emitBranchConditional(Dynarec_Mainloop_no_update,PPC_CC_F,PPC_CC_ZER,0);
 #else
 			ppce->Emit(op_jne ,ppc_ptr_imm(ret_cache_misscall));
 #endif

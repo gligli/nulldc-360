@@ -76,7 +76,8 @@ bool render_end_pending=false;
 u32 render_end_pending_cycles;
 
 extern u32 op_usage[0x10000];
-
+#define DYNA_MEM_POOL_SIZE 32*1024*1024
+extern u8 dyna_mem_pool[DYNA_MEM_POOL_SIZE];
 //called from sh4 context , should update pvr/ta state and everything else
 void FASTCALL spgUpdatePvr(u32 cycles)
 {
@@ -206,6 +207,16 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 								op_usage[i]=0;
 							}
 							break;
+						case 'd':
+						{
+							printf("---- dumping dynarec mem pool @%08x\n",dyna_mem_pool);
+							FILE * f=fopen("uda:/nulldc-mempool.bin","wb");
+							if(f){
+								fwrite(dyna_mem_pool,1,DYNA_MEM_POOL_SIZE,f);
+								fclose(f);
+							}
+							break;
+						}
 					}
 				}
 				

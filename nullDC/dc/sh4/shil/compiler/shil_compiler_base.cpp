@@ -82,7 +82,7 @@ u32* GetRegPtr(Sh4RegType reg)
 }
 bool IsSSEAllocReg(u32 reg) //TODO: remove me
 {
-	return (reg >=fr_0 && reg<=fr_15);
+	return (reg >=fr_0 && reg<=xf_15);
 }
 bool IsFpuReg(u32 reg)
 {
@@ -695,14 +695,18 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 
 		case TtoGPR:
 			{
-				EMIT_MFCR(ppce,R4);
-				EMIT_RLWINM(ppce,R4,R4,CR_T_FLAG+1,31,31);
+				EMIT_CROR(ppce,PPC_CC_ZER,CR_T_FLAG,CR_T_FLAG);
+				EMIT_LI(ppce,R4,1);
+				EMIT_BC(ppce,2,0,0,PPC_CC_T,PPC_CC_ZER);
+				EMIT_LI(ppce,R4,0);
 				ira->SaveRegister(op->reg1,R4);
 			}
 		case TtoM32:
 			{
-				EMIT_MFCR(ppce,R4);
-				EMIT_RLWINM(ppce,R4,R4,CR_T_FLAG+1,31,31);
+				EMIT_CROR(ppce,PPC_CC_ZER,CR_T_FLAG,CR_T_FLAG);
+				EMIT_LI(ppce,R4,1);
+				EMIT_BC(ppce,2,0,0,PPC_CC_T,PPC_CC_ZER);
+				EMIT_LI(ppce,R4,0);
 				ppce->emitStore32(GetRegPtr(op->reg1),R4);
 			}
 			break;
@@ -1221,7 +1225,15 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		}
 		else
 		{
-			destreg=LoadReg_nodata(R4,op->reg1);
+			if (ira->IsRegAllocated(op->reg1))
+			{
+				destreg=LoadReg(R4,op->reg1);
+				verify(destreg!=R4);
+			}
+			else
+			{
+				destreg=LoadReg_nodata(R4,op->reg1);
+			}
 		}
 	}
 
@@ -2547,7 +2559,7 @@ void __fastcall shil_compile_nimp(shil_opcode* op)
 	asm volatile("sc");
 }
 
-#define PROF_IFB
+//#define PROF_IFB
 u32 op_usage[0x10000]={0};
 
 //shil_ifb opcode
@@ -2569,8 +2581,10 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 #endif
 
 	// get T flag for interp
-	EMIT_MFCR(ppce,R3);
-	EMIT_RLWINM(ppce,R3,R3,CR_T_FLAG+1,31,31);
+	EMIT_CROR(ppce,PPC_CC_ZER,CR_T_FLAG,CR_T_FLAG);
+	EMIT_LI(ppce,R3,1);
+	EMIT_BC(ppce,2,0,0,PPC_CC_T,PPC_CC_ZER);
+	EMIT_LI(ppce,R3,0);
 	ppce->emitStore32(GetRegPtr(reg_sr_T),R3);
 	
 	
