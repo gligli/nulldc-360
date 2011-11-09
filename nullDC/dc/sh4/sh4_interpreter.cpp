@@ -663,8 +663,9 @@ void __fastcall MediumUpdate()
 
 	maple_periodical(3584);
 
+/*gli useless
 	libExtDevice.UpdateExtDevice(3584);
-	UpdateDMA();
+	UpdateDMA();*/
 
 	if (!(update_cnt&0x8))
 		SlowUpdate();

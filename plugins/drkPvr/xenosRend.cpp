@@ -2053,7 +2053,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 			rtt_index^=1;
 		}
 
-		/*if(hadTriangles)*/{
+		if(hadTriangles){
 			// Present the information rendered to the back buffer to the front buffer (the screen)
 			//(xe,Xe_GetFramebufferSurface(xe),XE_SOURCE_COLOR,0);
 			Xe_Execute(xe); // render everything in background !
@@ -2432,7 +2432,7 @@ nl:
 	{
 		SetCurrentPVRRC(PARAM_BASE);
 		VertexCount+= pvrrc.verts.used;
-		render_end_pending_cycles= pvrrc.verts.used*45;
+		render_end_pending_cycles= pvrrc.verts.used*25;
 		//if (render_end_pending_cycles<500000)
 			render_end_pending_cycles+=500000;
 

@@ -892,7 +892,7 @@ void init_memalloc(u32 size)
 void reset_memalloc()
 {
 	DynarecCacheUsed=0;
-	memset(DynarecCache,0x60000000,DynarecCacheSize);
+	memset(DynarecCache,0x42,DynarecCacheSize);
 }
 u8 dyna_tempbuffer[1024*1024];
 void* dyna_malloc(u32 size)
@@ -913,7 +913,8 @@ void* dyna_finalize(void* ptr,u32 oldsize,u32 newsize)
 		return 0;
 	
 	void* rv=&DynarecCache[DynarecCacheUsed];
-	DynarecCacheUsed+=newsize;
+	verify(!((u32)rv&127));
+	DynarecCacheUsed+=(newsize+127)&~127; // align blocks on cache lines
 	memcpy(rv,dyna_tempbuffer,newsize);
 	return rv;
 }

@@ -78,6 +78,123 @@ u32 render_end_pending_cycles;
 extern u32 op_usage[0x10000];
 #define DYNA_MEM_POOL_SIZE 32*1024*1024
 extern u8 dyna_mem_pool[DYNA_MEM_POOL_SIZE];
+
+
+
+void spgVBL()
+{
+	//Vblank counter
+	vblk_cnt++;
+	params.RaiseInterrupt(holly_HBLank);// -> This turned out to be HBlank btw , needs to be emulated ;(
+	//TODO : rend_if_VBlank();
+	rend_vblank();//notify for vblank :)
+	UpdateRRect();
+	if ((timeGetTime()-last_fps)>800)
+	{
+		double spd_fps=(double)(FrameCount)/(double)((double)(timeGetTime()-(double)last_fps)/1000);
+		double spd_vbs=(double)(vblk_cnt)/(double)((double)(timeGetTime()-(double)last_fps)/1000);
+		double spd_cpu=spd_vbs*Frame_Cycles;
+		spd_cpu/=1000000;	//mrhz kthx
+		double fullvbs=(spd_vbs/spd_cpu)*200;
+		double mv=VertexCount;
+		char mv_c=' ';
+
+		if (mv>750)
+		{
+			mv/=1000;	//KV
+			mv_c='K';
+		}
+		if (mv>750)
+		{
+			mv/=1000;	//
+			mv_c='M';
+		}
+		VertexCount=0;
+		last_fps=timeGetTime();
+		FrameCount=0;
+		vblk_cnt=0;
+
+		wchar fpsStr[256];
+		const char* mode=0;
+		const char* res=0;
+
+		res=SPG_CONTROL.interlace?"480i":"240p";
+
+		if (SPG_CONTROL.NTSC==0 && SPG_CONTROL.PAL==1)
+			mode="PAL";
+		else if (SPG_CONTROL.NTSC==1 && SPG_CONTROL.PAL==0)
+			mode="NTSC";
+		else
+		{
+			res=SPG_CONTROL.interlace?"480i":"480p";
+			mode="VGA";
+		}
+
+		if(kbhit())
+		{
+			int i,j;
+			u32 cumulcnt[0x200]={0};
+			switch(getch())
+			{
+				case 'x':
+					exit(0);
+					break;
+				case 'o': 
+					printf("---- IFB op usage\n");
+
+					for(i=0;i<0x10000;++i)
+					{
+						if (op_usage[i])
+						{
+							sh4_opcodelistentry* opentry=OpDesc[i];
+
+							for(j=0;j<sizeof(opcodes)/sizeof(sh4_opcodelistentry);++j)
+							{
+								if (opentry==&opcodes[j])
+								{
+									cumulcnt[j]+=op_usage[i];
+								}
+							}
+						}
+					}
+
+					for(i=0;i<sizeof(opcodes)/sizeof(sh4_opcodelistentry);++i)
+					{
+						if (cumulcnt[i])
+						{
+							printf("%12d\t%04x\t%s\n",cumulcnt[i],opcodes[i].rez,opcodes[i].disasm1);
+						}
+					}
+					break;
+				case 'z':
+					printf("---- IFB op usage reset\n");
+
+					for(i=0;i<0x10000;++i)
+					{
+						op_usage[i]=0;
+					}
+					break;
+				case 'd':
+				{
+					printf("---- dumping dynarec mem pool @%08x\n",dyna_mem_pool);
+					FILE * f=fopen("uda:/nulldc-mempool.bin","wb");
+					if(f){
+						fwrite(dyna_mem_pool,1,DYNA_MEM_POOL_SIZE,f);
+						fclose(f);
+					}
+					break;
+				}
+			}
+		}
+
+		printf("%4.2f%% - VPS: %4.2f(%s%s%4.2f) RPS: %4.2f Vert: %4.2f%c Sh4: %4.2f mhz\n", 
+			spd_cpu*100/200,spd_vbs,
+			mode,res,fullvbs,
+			spd_fps,mv,mv_c, spd_cpu);
+	}
+}
+
+
 //called from sh4 context , should update pvr/ta state and everything else
 void FASTCALL spgUpdatePvr(u32 cycles)
 {
@@ -116,115 +233,7 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 		//Vblank start -- really need to test the scanline values
 		if (prv_cur_scanline==0)
 		{
-			//Vblank counter
-			vblk_cnt++;
-			params.RaiseInterrupt(holly_HBLank);// -> This turned out to be HBlank btw , needs to be emulated ;(
-			//TODO : rend_if_VBlank();
-			rend_vblank();//notify for vblank :)
-			UpdateRRect();
-			if ((timeGetTime()-last_fps)>800)
-			{
-				double spd_fps=(double)(FrameCount)/(double)((double)(timeGetTime()-(double)last_fps)/1000);
-				double spd_vbs=(double)(vblk_cnt)/(double)((double)(timeGetTime()-(double)last_fps)/1000);
-				double spd_cpu=spd_vbs*Frame_Cycles;
-				spd_cpu/=1000000;	//mrhz kthx
-				double fullvbs=(spd_vbs/spd_cpu)*200;
-				double mv=VertexCount;
-				char mv_c=' ';
-
-				if (mv>750)
-				{
-					mv/=1000;	//KV
-					mv_c='K';
-				}
-				if (mv>750)
-				{
-					mv/=1000;	//
-					mv_c='M';
-				}
-				VertexCount=0;
-				last_fps=timeGetTime();
-				FrameCount=0;
-				vblk_cnt=0;
-
-				wchar fpsStr[256];
-				const char* mode=0;
-				const char* res=0;
-
-				res=SPG_CONTROL.interlace?"480i":"240p";
-
-				if (SPG_CONTROL.NTSC==0 && SPG_CONTROL.PAL==1)
-					mode="PAL";
-				else if (SPG_CONTROL.NTSC==1 && SPG_CONTROL.PAL==0)
-					mode="NTSC";
-				else
-				{
-					res=SPG_CONTROL.interlace?"480i":"480p";
-					mode="VGA";
-				}
-
-				if(kbhit())
-				{
-					int i,j;
-					u32 cumulcnt[0x200]={0};
-					switch(getch())
-					{
-						case 'x':
-							exit(0);
-							break;
-						case 'o': 
-							printf("---- IFB op usage\n");
-							
-							for(i=0;i<0x10000;++i)
-							{
-								if (op_usage[i])
-								{
-									sh4_opcodelistentry* opentry=OpDesc[i];
-										
-									for(j=0;j<sizeof(opcodes)/sizeof(sh4_opcodelistentry);++j)
-									{
-										if (opentry==&opcodes[j])
-										{
-											cumulcnt[j]+=op_usage[i];
-										}
-									}
-								}
-							}
-
-							for(i=0;i<sizeof(opcodes)/sizeof(sh4_opcodelistentry);++i)
-							{
-								if (cumulcnt[i])
-								{
-									printf("%12d\t%04x\t%s\n",cumulcnt[i],opcodes[i].rez,opcodes[i].disasm1);
-								}
-							}
-							break;
-						case 'z':
-							printf("---- IFB op usage reset\n");
-							
-							for(i=0;i<0x10000;++i)
-							{
-								op_usage[i]=0;
-							}
-							break;
-						case 'd':
-						{
-							printf("---- dumping dynarec mem pool @%08x\n",dyna_mem_pool);
-							FILE * f=fopen("uda:/nulldc-mempool.bin","wb");
-							if(f){
-								fwrite(dyna_mem_pool,1,DYNA_MEM_POOL_SIZE,f);
-								fclose(f);
-							}
-							break;
-						}
-					}
-				}
-				
-				printf("%4.2f%% - VPS: %4.2f(%s%s%4.2f) RPS: %4.2f Vert: %4.2f%c Sh4: %4.2f mhz\n", 
-					spd_cpu*100/200,spd_vbs,
-					mode,res,fullvbs,
-					spd_fps,mv,mv_c, spd_cpu);
-			}
+			spgVBL();
 		}
 	}
 
