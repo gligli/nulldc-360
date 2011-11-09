@@ -242,6 +242,8 @@ public:
 {PowerPC_instr ppc;GEN_ADDI(ppc,rd,ra,immed);ppce->write32(ppc);}
 #define EMIT_RLWINM(ppce,rd,ra,sh,mb,me) \
 {PowerPC_instr ppc;GEN_RLWINM(ppc,rd,ra,sh,mb,me);ppce->write32(ppc);}
+#define EMIT_RLWIMI(ppce,rd,ra,sh,mb,me) \
+{PowerPC_instr ppc;GEN_RLWIMI(ppc,rd,ra,sh,mb,me);ppce->write32(ppc);}
 #define EMIT_SRWI(ppce,rd,ra,sh) \
 {PowerPC_instr ppc;GEN_SRWI(ppc,rd,ra,sh);ppce->write32(ppc);}
 #define EMIT_SLWI(ppce,rd,ra,sh) \

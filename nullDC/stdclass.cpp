@@ -316,9 +316,9 @@ void * ExeptionHandler(int pir,void * srr0,void * dar)
 		printf("RamLockedWrite %x\n",address);
 		return NULL;// EXCEPTION_CONTINUE_EXECUTION;
 	}
-	else if (((u32)(address-sh4_reserved_mem))<(512*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
+	else if (((u32)(address-sh4_reserved_mem))<(1024*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
 	{
-//		printf("Rewrite %p %x\n",srr0,address);
+		printf("Rewrite %p %x\n",srr0,address);
 		//k
 		//
 		//cmp ecx,mask1
@@ -341,6 +341,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar)
 #endif
 		//cbb->Rewrite
 		// find last branch and make it always branch (never load directly)
+#if 0
 		PowerPC_instr * branch=(PowerPC_instr*)pos;
 		PowerPC_instr branch_op;
 //		disassemble((u32)branch,* branch);
@@ -351,10 +352,35 @@ void * ExeptionHandler(int pir,void * srr0,void * dar)
 		
 		branch_op&=~(0x1f<<21);
 		branch_op|=PPC_CC_A<<21;
-//		disassemble((u32)branch,branch_op);
+		disassemble((u32)branch,branch_op);
 		*branch=branch_op;
 		memicbi(branch,4);
 		return branch+((branch_op>>2)&0x3fff);// EXCEPTION_CONTINUE_EXECUTION;
+#else
+		PowerPC_instr * branch=(PowerPC_instr*)pos;
+		do{
+			--branch;
+		}while(*branch>>PPC_OPCODE_SHIFT!=PPC_OPCODE_ADDI);
+		int roml_idx=(*(branch)>>8)&0xff;
+
+//		printf("roml_idx %d\n",roml_idx);
+		
+		PowerPC_instr * dest=(PowerPC_instr*)pos;
+		do{
+			++dest;
+		}while(*(dest-1)!=(0x18000000|roml_idx));
+		
+//		disassemble((u32)dest,*dest);
+		
+		
+		PowerPC_instr ppc;
+		GEN_B(ppc,dest-branch,0,0);
+		
+		*branch=ppc;
+				
+		memicbi(branch,4);
+		return dest;// EXCEPTION_CONTINUE_EXECUTION;
+#endif
 	}
 	else
 	{

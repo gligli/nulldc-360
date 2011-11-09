@@ -658,6 +658,15 @@ PowerPC_instr Instruction(int opcode, ...);
 	  PPC_SET_MB    (ppc, (mb)); \
 	  PPC_SET_ME    (ppc, (me)); }
 
+#define GEN_RLWIMI(ppc,rd,ra,sh,mb,me) \
+	{ ppc = NEW_PPC_INSTR(); \
+	  PPC_SET_OPCODE(ppc, PPC_OPCODE_RLWIMI); \
+	  PPC_SET_RA    (ppc, (rd)); \
+	  PPC_SET_RD    (ppc, (ra)); \
+	  PPC_SET_SH    (ppc, (sh)); \
+	  PPC_SET_MB    (ppc, (mb)); \
+	  PPC_SET_ME    (ppc, (me)); }
+
 #define GEN_SRWI(ppc,rd,ra,sh) \
 	GEN_RLWINM(ppc, rd, ra, 32-sh, sh, 31)
 

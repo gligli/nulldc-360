@@ -480,7 +480,7 @@ bool _vmem_reserve()
 	if (sh4_ram_alt==0)
 		return false;*/
 
-	sh4_mem_marks=(u8*)0x60000000;//PAGE_SIZE*64*2,MEM_RESERVE,PAGE_NOACCESS
+	sh4_mem_marks=(u8*)0x78000000;//PAGE_SIZE*64*2,MEM_RESERVE,PAGE_NOACCESS
 	verify(sh4_mem_marks!=0);
 	
 

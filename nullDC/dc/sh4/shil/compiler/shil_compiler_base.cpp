@@ -1171,13 +1171,19 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 		case FLAG_16: EMIT_XORI(ppce,R3,R3,2); break;
 	}
 	
+#if 0
 	ppce->emitLoadImmediate32(R5,0xE0000000);
 	EMIT_CMPL(ppce,R3,R5,0);
-
-	//jae full_lookup
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
-	//and ecx,mask2
 	EMIT_RLWINM(ppce,R5,R3,0,3,31);
+#else
+	// crazy opti :D
+	EMIT_RLWINM(ppce,R6,R3,3,29,31);
+	EMIT_ADDI(ppce,R6,R6,0x10|1|(roml_patch_list.size()<<8));
+	ppce->emitMoveRegister(R5,R3);
+	EMIT_RLWIMI(ppce,R5,R6,26,0,2);
+#endif
+	
 }
 //const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
 void __fastcall shil_compile_readm(shil_opcode* op)
@@ -1237,7 +1243,6 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		}
 	}
 
-	EMIT_ADDIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 	switch(size)
 	{
 		case FLAG_8:  EMIT_LBZ(ppce,destreg,0,R5); break;
@@ -1346,7 +1351,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	//Ram Only Mem Lookup
 	roml(reg_addr,p4_handler,&old_offset,size,1);
 	//mov [ecx],src
-	EMIT_ADDIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
+
 	if (was_float)
 	{
 		switch(size)
@@ -1401,12 +1406,14 @@ void apply_roml_patches()
 		void * function=roml_patch_list[i].type==1 ?nvw_lut[roml_patch_list[i].asz]:nvr_lut[roml_patch_list[i].asz];
 
 //		u32 offset=ppce->ppc_indx;
-		ppce->write8(42);
+		ppce->write8(0x18);
 		ppce->write8(0);
 		ppce->write8(0);
-		ppce->write8(roml_patch_list[i].resume_offset);
+		ppce->write8(i);
 		//log("Resume offset: %d\n",roml_patch_list[i].resume_offset);
 		ppce->MarkLabel(roml_patch_list[i].p4_access);
+//gli what is that for?
+#if 0 
 		if (roml_patch_list[i].type==1 && (roml_patch_list[i].asz>=FLAG_32))
 		{
 			//check for SQ write
@@ -1440,6 +1447,7 @@ void apply_roml_patches()
 			//log("patch offset: %d\n",ppce->ppc_indx-offset-2);
 		}
 		else
+ #endif
 		{
 			if (roml_patch_list[i].reg_addr!=R3)
 				ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
