@@ -130,25 +130,25 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 
 	if (flags==1)
 	{
-		ppce->emitReverseBranchConditional((void*)cBB->TT_block->Code,bo_n,bi_n,0);
+		ppce->emitBranchConditional((void*)cBB->TT_block->Code,bo,bi,0);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TF_stub,0);
 	}
 	else if  (flags==2)
 	{
-		ppce->emitReverseBranchConditional((void*)cBB->TF_block->Code,bo,bi,0);
+		ppce->emitBranchConditional((void*)cBB->TF_block->Code,bo_n,bi_n,0);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	else  if  (flags==3)
 	{
-		ppce->emitReverseBranchConditional((void*)cBB->TF_block->Code,bo,bi,0);
+		ppce->emitBranchConditional((void*)cBB->TF_block->Code,bo_n,bi_n,0);
 		ppce->emitBranch((void*)cBB->TT_block->Code,0);
 	}
 	else
 	{
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
-		ppce->emitReverseBranchConditional((void*)bb_link_compile_inject_TF_stub,bo,bi,0);
+		ppce->emitBranchConditional((void*)bb_link_compile_inject_TF_stub,bo_n,bi_n,0);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	ppce->Generate();
@@ -381,7 +381,7 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 	ppce->emitLoadImmediate32(R4,sh4r.pc);
 	EMIT_CMP(ppce,R3,R4,0);
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
-	ppce->emitReverseBranchConditional((void*)RewriteBasicBlockGuess_FLUT_stub,PPC_CC_T,PPC_CC_ZER,0);
+	ppce->emitBranchConditional((void*)RewriteBasicBlockGuess_FLUT_stub,PPC_CC_F,PPC_CC_ZER,0);
 	ppce->emitBranch((void*)new_block->Code,0);
 	
 	verify(ppce->ppc_indx<=32);
@@ -768,9 +768,7 @@ compile_normaly:
 
 	ppce->MarkLabel(block_exit);
 
-//	ppce->emitLoad32(R3,&rec_cycles);
 	EMIT_ADDI(ppce,RCYCLES,RCYCLES,cycles);
-//	EMIT_STW(ppce,R3,(u32)&rec_cycles,R15); //gli opti ppce->emitStore32(&rec_cycles,R3);
 	ppce->emitLoadImmediate32(R3,start);
 	ppce->emitStore32(GetRegPtr(reg_pc),R3);
 	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,0);

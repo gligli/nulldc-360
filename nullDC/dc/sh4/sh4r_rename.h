@@ -13,7 +13,6 @@
 #define dbr sh4r.dbr
 #define vbr sh4r.vbr
 #define pr sh4r.pr
-#define dummy sh4r.dummy
 #define fpul sh4r.fpul
 #define mac sh4r.mac
 #define pc sh4r.pc

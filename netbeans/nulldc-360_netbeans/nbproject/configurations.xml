@@ -121,6 +121,7 @@
           <in>sh4_opcode_list.h</in>
           <in>sh4_registers.cpp</in>
           <in>sh4_registers.h</in>
+          <in>sh4r_rename.h</in>
           <in>tmu.cpp</in>
           <in>tmu.h</in>
           <in>ubc.cpp</in>

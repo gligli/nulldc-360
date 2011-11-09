@@ -116,6 +116,8 @@ private:
 	void ApplyPatches(u8* base);
 	dyna_reallocFP* ralloc;
 	dyna_finalizeFP* allocfin;
+	u32 bc_tab[0x4000];
+	u32 bc_tab_next_idx;
 public:
 	void* _patches;
 
@@ -159,7 +161,7 @@ public:
 	
 	void emitBranch(void * addr, int lk);
 	void emitLongBranch(void * addr, int lk);
-	void emitReverseBranchConditional(void * addr, int bo, int bi, int lk);
+	void emitBranchConditional(void * addr, int bo, int bi, int lk);
 	void emitLoadDouble(ppc_fpr_reg reg, void * addr);
 	void emitLoadFloat(ppc_fpr_reg reg, void * addr);
 	void emitLoad32(ppc_gpr_reg reg, void * addr);

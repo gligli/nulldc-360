@@ -82,6 +82,7 @@ void ppc_block::Init(dyna_reallocFP* ral,dyna_finalizeFP* alf)
 	ppc_indx=0;
 	ppc_size=0;
 	do_realloc=true;
+	bc_tab_next_idx=0;
 }
 #define patches (*(vector<code_patch>*) _patches)
 #define labels (*(vector<ppc_Label*>*) _labels)
@@ -109,6 +110,7 @@ void* ppc_block::Generate()
 	bool force=false;
 	
 //	force=true;
+//	force=!do_realloc;
 	
 	if(do_disasm || force) printf("Gen %p %04x %04x\n",ppc_buff,ppc_size,ppc_indx);
 	
@@ -283,6 +285,53 @@ void ppc_block::ApplyPatches(u8* base)
 			GEN_B(newop,jmpaddr>>2,0,1);
 			*(PowerPC_instr*)opaddr=newop;
 		}
+		else if((op&0xfc000000) == 5<<26) // bc
+		{
+			u32 absaddr=bc_tab[(op>>2)&0x3fff];
+			jmpaddr=absaddr-opaddr;
+			
+			if((s32)jmpaddr>=-32768 && (s32)jmpaddr<=32767)
+			{
+				// remove that ugly nop ;)
+				u32 j;
+				for(j=i+4;j<ppc_indx-4;j+=4) *(u32*)&ppc_buff[j]=*(u32*)&ppc_buff[j+4];
+				*(u32*)&ppc_buff[ppc_indx-4]=PPC_NOP;
+				
+				//printf("bc %08x %08x %08x\n",opaddr,op,jmpaddr);
+			}
+			else
+			{
+				// invert branch
+				int bo,bo_n=0;
+				bo=(op>>PPC_RD_SHIFT)&PPC_REG_MASK;
+				switch(bo){
+					case PPC_CC_F: bo_n=PPC_CC_T;break;
+					case PPC_CC_T: bo_n=PPC_CC_F;break;
+					default: verify(false);
+				}
+				op&=~(PPC_REG_MASK<<PPC_RD_SHIFT);
+				PPC_SET_BO(op,bo_n);
+				
+				// add real branch next to the bc, with the original link bit
+				int lk=op&1;
+				op&=~1;
+
+				PowerPC_instr b;
+				jmpaddr-=4;
+				verify((s32)jmpaddr>=-67108864 && (s32)jmpaddr<=67108863);
+				GEN_B(b,jmpaddr>>2,0,lk);
+				*((PowerPC_instr*)opaddr+1)=b; 
+				
+				jmpaddr=8;
+				
+				//printf("ind bc %08x %08x %08x\n",opaddr,op,jmpaddr);
+			}
+
+			newop=op&~0xfc00fffc;
+			PPC_SET_OPCODE(newop,PPC_OPCODE_BC);
+			PPC_SET_BD(newop,jmpaddr>>2);
+			*(PowerPC_instr*)opaddr=newop;
+		}
 	}
 }
 ppc_block::ppc_block()
@@ -403,12 +452,17 @@ void ppc_block::emitLongBranch(void * addr, int lk)
 	EMIT_BLR(this,lk);
 }
 
-void ppc_block::emitReverseBranchConditional(void * addr, int bo, int bi, int lk)
+void ppc_block::emitBranchConditional(void * addr, int bo, int bi, int lk)
 {
-	EMIT_BC(this,2,0,0,bo,bi); // makes the assumption that emitBranch will only generate 1 op
-	u32 idx=ppc_indx;
-	emitBranch(addr,lk);
-	verify(ppc_indx==idx+4);
+	PowerPC_instr ppc=NEW_PPC_INSTR();
+	PPC_SET_OPCODE(ppc,5); // primary opcode 5=bc
+	bc_tab[bc_tab_next_idx]=(u32)addr;
+	PPC_SET_BD(ppc,bc_tab_next_idx++);
+	PPC_SET_BO(ppc,bo);
+	PPC_SET_BI(ppc,bi);
+	PPC_SET_LK(ppc,lk);
+	write32(ppc);
+	write32(PPC_NOP);
 }
 
 void ppc_block::emitLoadDouble(ppc_fpr_reg reg, void * addr)
