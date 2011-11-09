@@ -4,36 +4,17 @@
 #include "sh4_registers.h"
 #include "intc.h"
 
-__attribute__((aligned(128))) u32 r[16];		//64 bytes : 1 cache line
-__attribute__((aligned(128))) f32 fr[16];		//64 bytes : 1 cache line
-__attribute__((aligned(128))) f32 xf[16];		//64 bytes : 1 cache line
-
-__attribute__((aligned(128))) u32 r_bank[8];
-
-u32 gbr,ssr,spc,sgr,dbr,vbr;
-u32 pr;
-u32 dummy0,dummy1,dummy2,fpul; //HACK: fpul will be written as a double, so make sure there is room before it
-mac_type mac;
-u32 pc;
-
-StatusReg sr;
-
-fpscr_type fpscr;
-
-
+__attribute__((aligned(65536))) struct Sh4RegContext sh4r;
 
 __attribute__((aligned(128))) f32 sin_table[0x10000+0x4000];	//+0x4000 to avoid having to warp around twice on cos
 
-u32*  xf_hex=(u32*)xf,*fr_hex=(u32*)fr;
+u32*  xf_hex=(u32*)sh4r.xf,*fr_hex=(u32*)sh4r.fr;
 
-StatusReg old_sr;
-fpscr_type old_fpscr;
+#define SAVE_REG(name) memcpy(&to->name,&sh4r.name,sizeof(sh4r.name))
+#define LOAD_REG(name) memcpy(&sh4r.name,&from->name,sizeof(sh4r.name))
 
-#define SAVE_REG(name) memcpy(&to->name,&name,sizeof(name))
-#define LOAD_REG(name) memcpy(&name,&from->name,sizeof(name))
-
-#define SAVE_REG_A(name) memcpy(to->name,name,sizeof(name))
-#define LOAD_REG_A(name) memcpy(name,from->name,sizeof(name))
+#define SAVE_REG_A(name) memcpy(to->name,sh4r.name,sizeof(sh4r.name))
+#define LOAD_REG_A(name) memcpy(sh4r.name,from->name,sizeof(sh4r.name))
 
 void SaveSh4Regs(Sh4RegContext* to)
 {
@@ -95,9 +76,9 @@ INLINE void ChangeGPR()
 	u32 temp[8];
 	for (int i=0;i<8;i++)
 	{
-		temp[i]=r[i];
-		r[i]=r_bank[i];
-		r_bank[i]=temp[i];
+		temp[i]=sh4r.r[i];
+		sh4r.r[i]=sh4r.r_bank[i];
+		sh4r.r_bank[i]=temp[i];
 	}
 }
 
@@ -115,23 +96,23 @@ INLINE void ChangeFP()
 //called when sr is changed and we must check for reg banks ect.. , returns true if interrupts got 
 bool UpdateSR()
 {
-	if (sr.MD)
+	if (sh4r.sr.MD)
 	{
-		if (old_sr.RB !=sr.RB)
+		if (sh4r.old_sr.RB !=sh4r.sr.RB)
 			ChangeGPR();//bank change
 	}
 	else
 	{
-		if (sr.RB)
+		if (sh4r.sr.RB)
 		{
 			log("UpdateSR MD=0;RB=1 , this must not happen\n");
-			sr.RB =0;//error - must allways be 0
-			if (old_sr.RB)
+			sh4r.sr.RB =0;//error - must allways be 0
+			if (sh4r.old_sr.RB)
 				ChangeGPR();//switch
 		}
 		else
 		{
-			if (old_sr.RB)
+			if (sh4r.old_sr.RB)
 				ChangeGPR();//switch
 		}
 	}
@@ -151,7 +132,7 @@ bool UpdateSR()
 	if (sr.IMASK==0xF)
 		rv=false;
 */
-	old_sr.m_full=sr.m_full;
+	sh4r.old_sr.m_full=sh4r.sr.m_full;
 	
 	return SRdecode();
 }
@@ -161,16 +142,16 @@ u32 old_rm=0xFF;
 u32 old_dn=0xFF;
 void SetFloatStatusReg()
 {
-	if ((old_rm!=fpscr.RM) || (old_dn!=fpscr.DN) || (old_rm==0xFF )|| (old_dn==0xFF))
+	if ((old_rm!=sh4r.fpscr.RM) || (old_dn!=sh4r.fpscr.DN) || (old_rm==0xFF )|| (old_dn==0xFF))
 	{
-		old_rm=fpscr.RM ;
-		old_dn=fpscr.DN ;
+		old_rm=sh4r.fpscr.RM ;
+		old_dn=sh4r.fpscr.DN ;
 		u32 temp=0x1f80;	//no flush to zero && round to nearest
 
-		if (fpscr.RM==1)	//if round to 0 , set the flag
+		if (sh4r.fpscr.RM==1)	//if round to 0 , set the flag
 			temp|=(3<<13);
 
-		if (fpscr.DN)		//denormals are considered 0
+		if (sh4r.fpscr.DN)		//denormals are considered 0
 			temp|=(1<<15);
 TR/*gli		_asm 
 		{
@@ -181,9 +162,9 @@ TR/*gli		_asm
 //called when fpscr is changed and we must check for reg banks ect..
 void UpdateFPSCR()
 {
-	if (fpscr.FR !=old_fpscr.FR)
+	if (sh4r.fpscr.FR !=sh4r.old_fpscr.FR)
 		ChangeFP();//fpu bank change
-	old_fpscr=fpscr;
+	sh4r.old_fpscr=sh4r.fpscr;
 	SetFloatStatusReg();//ensure they are on sync :)
 }
 
@@ -262,11 +243,11 @@ u32* Sh4_int_GetRegisterPtr(Sh4RegType reg)
 {
 	if ((reg>=r0) && (reg<=r15))
 	{
-		return &r[reg-r0];
+		return &sh4r.r[reg-r0];
 	}
 	else if ((reg>=r0_Bank) && (reg<=r7_Bank))
 	{
-		return &r_bank[reg-r0_Bank];
+		return &sh4r.r_bank[reg-r0_Bank];
 	}
 	else if ((reg>=fr_0) && (reg<=fr_15))
 	{
@@ -281,47 +262,47 @@ u32* Sh4_int_GetRegisterPtr(Sh4RegType reg)
 		switch(reg)
 		{
 		case reg_gbr :
-			return &gbr;
+			return &sh4r.gbr;
 			break;
 		case reg_vbr :
-			return &vbr;
+			return &sh4r.vbr;
 			break;
 
 		case reg_ssr :
-			return &ssr;
+			return &sh4r.ssr;
 			break;
 
 		case reg_spc :
-			return &spc;
+			return &sh4r.spc;
 			break;
 
 		case reg_sgr :
-			return &sgr;
+			return &sh4r.sgr;
 			break;
 
 		case reg_dbr :
-			return &dbr;
+			return &sh4r.dbr;
 			break;
 
 		case reg_mach :
-			return &mac.h;
+			return &sh4r.mac.h;
 			break;
 
 		case reg_macl :
-			return &mac.l;
+			return &sh4r.mac.l;
 			break;
 
 		case reg_pr :
-			return &pr;
+			return &sh4r.pr;
 			break;
 
 		case reg_fpul :
-			return &fpul;
+			return &sh4r.fpul;
 			break;
 
 
 		case reg_pc :
-			return &pc;
+			return &sh4r.pc;
 			break;
 
 		case reg_sr :
@@ -329,11 +310,11 @@ u32* Sh4_int_GetRegisterPtr(Sh4RegType reg)
 			break;
 
 		case reg_sr_T :
-			return &sr.T;
+			return &sh4r.sr.T;
 			break;
 
 		case reg_fpscr :
-			return &fpscr.full;
+			return &sh4r.fpscr.full;
 			break;
 
 

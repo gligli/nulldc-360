@@ -13,6 +13,8 @@
 
 shil_stream* ilst;
 
+#undef sh4op
+#undef rsh4op
 #define rsh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 #define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { ilst->shil_ifb(op,pc); }; void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 
@@ -61,23 +63,23 @@ void rec_shil_iNimp(u32 pc,u32 op ,char * text)
 		printf("fr[%d] : %f,",i,fr[i]);
 
 	printf("\nControl regs : \n"); 
-	printf("RM %d DN : %d PR %d SZ %d FR %d PR_SZ %d NIL %d\n",fpscr.RM,fpscr.DN,fpscr.PR,fpscr.SZ,fpscr.FR,fpscr.PR_SZ,fpscr.nil);
-	printf("finexact %d,",fpscr.finexact);
-	printf("funderflow %d,",fpscr.funderflow);
-	printf("foverflow %d,",fpscr.foverflow);
-	printf("fdivbyzero %d,",fpscr.fdivbyzero);
-	printf("finvalidop %d,",fpscr.finvalidop);
-	printf("einexact %d,",fpscr.einexact);
-	printf("eunderflow %d,",fpscr.eunderflow);
-	printf("eoverflow %d,",fpscr.eoverflow);
-	printf("edivbyzero %d,",fpscr.edivbyzero);
-	printf("einvalidop %d,",fpscr.einvalidop);
-	printf("cinexact %d,",fpscr.cinexact);
-	printf("cunderflow %d,",fpscr.cunderflow);
-	printf("coverflow %d,",fpscr.coverflow);
-	printf("cdivbyzero %d,",fpscr.cdivbyzero);
-	printf("cinvalid %d,",fpscr.cinvalid);
-	printf("cfpuerr %d\n",fpscr.cfpuerr);
+	printf("RM %d DN : %d PR %d SZ %d FR %d PR_SZ %d NIL %d\n",sh4r.fpscr.RM,sh4r.fpscr.DN,sh4r.fpscr.PR,sh4r.fpscr.SZ,sh4r.fpscr.FR,sh4r.fpscr.PR_SZ,sh4r.fpscr.nil);
+	printf("finexact %d,",sh4r.fpscr.finexact);
+	printf("funderflow %d,",sh4r.fpscr.funderflow);
+	printf("foverflow %d,",sh4r.fpscr.foverflow);
+	printf("fdivbyzero %d,",sh4r.fpscr.fdivbyzero);
+	printf("finvalidop %d,",sh4r.fpscr.finvalidop);
+	printf("einexact %d,",sh4r.fpscr.einexact);
+	printf("eunderflow %d,",sh4r.fpscr.eunderflow);
+	printf("eoverflow %d,",sh4r.fpscr.eoverflow);
+	printf("edivbyzero %d,",sh4r.fpscr.edivbyzero);
+	printf("einvalidop %d,",sh4r.fpscr.einvalidop);
+	printf("cinexact %d,",sh4r.fpscr.cinexact);
+	printf("cunderflow %d,",sh4r.fpscr.cunderflow);
+	printf("coverflow %d,",sh4r.fpscr.coverflow);
+	printf("cdivbyzero %d,",sh4r.fpscr.cdivbyzero);
+	printf("cinvalid %d,",sh4r.fpscr.cinvalid);
+	printf("cfpuerr %d\n",sh4r.fpscr.cfpuerr);
 
 	//while(1){}
 	die("SHIL: Internal fatal error");
@@ -721,7 +723,7 @@ rsh4op(gdrom_hle_op)
 rsh4op(i1111_nnnn_mmmm_0000)
 {//TODO : CHECK THIS PR FP
 	
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -751,7 +753,7 @@ rsh4op(i1111_nnnn_mmmm_0000)
 //fsub <FREG_M>,<FREG_N>   
 rsh4op(i1111_nnnn_mmmm_0001)
 {
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -779,7 +781,7 @@ rsh4op(i1111_nnnn_mmmm_0001)
 //fmul <FREG_M>,<FREG_N>   
 rsh4op(i1111_nnnn_mmmm_0010)
 {
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -803,7 +805,7 @@ rsh4op(i1111_nnnn_mmmm_0010)
 //fdiv <FREG_M>,<FREG_N>   
 rsh4op(i1111_nnnn_mmmm_0011)
 {
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -826,7 +828,7 @@ rsh4op(i1111_nnnn_mmmm_0011)
 //fcmp/eq <FREG_M>,<FREG_N>
 rsh4op(i1111_nnnn_mmmm_0100)
 {
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -850,7 +852,7 @@ rsh4op(i1111_nnnn_mmmm_0100)
 //fcmp/gt <FREG_M>,<FREG_N>
 rsh4op(i1111_nnnn_mmmm_0101)
 {
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -882,7 +884,7 @@ rsh4op(i1111_nnnn_mmmm_0101)
 //fmov.s @(R0,<REG_M>),<FREG_N>
 rsh4op(i1111_nnnn_mmmm_0110)
 {
-	if (fpscr.SZ == 0)
+	if (sh4r.fpscr.SZ == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -915,7 +917,7 @@ rsh4op(i1111_nnnn_mmmm_0110)
 //fmov.s <FREG_M>,@(R0,<REG_N>)
 rsh4op(i1111_nnnn_mmmm_0111)
 {//used
-	if (fpscr.SZ == 0)
+	if (sh4r.fpscr.SZ == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -948,7 +950,7 @@ rsh4op(i1111_nnnn_mmmm_0111)
 //fmov.s @<REG_M>,<FREG_N> 
 rsh4op(i1111_nnnn_mmmm_1000)
 {//used
-	if (fpscr.SZ == 0)
+	if (sh4r.fpscr.SZ == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -984,7 +986,7 @@ rsh4op(i1111_nnnn_mmmm_1000)
 //fmov.s @<REG_M>+,<FREG_N>
 rsh4op(i1111_nnnn_mmmm_1001)
 {
-	if (fpscr.SZ == 0)
+	if (sh4r.fpscr.SZ == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -1026,7 +1028,7 @@ rsh4op(i1111_nnnn_mmmm_1001)
 //fmov.s <FREG_M>,@<REG_N>
 rsh4op(i1111_nnnn_mmmm_1010)
 {
-	if (fpscr.SZ == 0)
+	if (sh4r.fpscr.SZ == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -1059,7 +1061,7 @@ rsh4op(i1111_nnnn_mmmm_1010)
 //fmov.s <FREG_M>,@-<REG_N>
 rsh4op(i1111_nnnn_mmmm_1011)
 {//used
-	if (fpscr.SZ == 0)
+	if (sh4r.fpscr.SZ == 0)
 	{
 		//iNimp("fmov.s <FREG_M>,@-<REG_N>");
 		u32 n = GetN(op);
@@ -1101,7 +1103,7 @@ rsh4op(i1111_nnnn_mmmm_1011)
 //fmov <FREG_M>,<FREG_N>   
 rsh4op(i1111_nnnn_mmmm_1100)
 {//TODO : checkthis
-	if (fpscr.SZ == 0)
+	if (sh4r.fpscr.SZ == 0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);
@@ -1149,7 +1151,7 @@ rsh4op(i1111_nnnn_0101_1101)
 {
 	int n=GetN(op);
 	
-	if (fpscr.PR ==0)
+	if (sh4r.fpscr.PR ==0)
 	{
 		//fr_hex[n]&=0x7FFFFFFF;
 		ilst->fabs(fr[n]);
@@ -1167,7 +1169,7 @@ rsh4op(i1111_nnnn_0101_1101)
 //FSCA FPUL, DRn//F0FD//1111_nnn0_1111_1101
 sh4op(i1111_nnn0_1111_1101)
 {
-	if (fpscr.PR==0)
+	if (sh4r.fpscr.PR==0)
 	{
 		int n=GetN(op) & 0xE;
 		ilst->fsca(fr[n]);
@@ -1183,7 +1185,7 @@ sh4op(i1111_nnnn_0111_1101)
 {
 
 	// What about double precision?
-	if (fpscr.PR==0)
+	if (sh4r.fpscr.PR==0)
 	{
 		u32 n = GetN(op);
 		ilst->fsrra(fr[n]);
@@ -1197,7 +1199,7 @@ sh4op(i1111_nnnn_0111_1101)
 //fcnvds <DR_N>,FPUL       
 rsh4op(i1111_nnnn_1011_1101)
 {
-	if (fpscr.PR == 1)
+	if (sh4r.fpscr.PR == 1)
 	{
 		shil_interpret(op);
 		return;
@@ -1213,7 +1215,7 @@ rsh4op(i1111_nnnn_1011_1101)
 rsh4op(i1111_nnnn_1010_1101)
 {
 
-	if (fpscr.PR == 1)
+	if (sh4r.fpscr.PR == 1)
 	{
 		shil_interpret(op);
 		return;
@@ -1237,7 +1239,7 @@ sh4op(i1111_nnmm_1110_1101)
 //fldi0 <FREG_N>           
 rsh4op(i1111_nnnn_1000_1101)
 {
-	if (fpscr.PR==0)
+	if (sh4r.fpscr.PR==0)
 	{
 		//iNimp("fldi0 <FREG_N>");
 		u32 n = GetN(op);
@@ -1255,7 +1257,7 @@ rsh4op(i1111_nnnn_1000_1101)
 //fldi1 <FREG_N>           
 rsh4op(i1111_nnnn_1001_1101)
 {
-	if (fpscr.PR==0)
+	if (sh4r.fpscr.PR==0)
 	{
 		//iNimp("fldi1 <FREG_N>");
 		u32 n = GetN(op);
@@ -1285,7 +1287,7 @@ rsh4op(i1111_nnnn_0001_1101)
 sh4op(i1111_nnnn_0010_1101)
 {//TODO : CHECK THIS (FP)
 
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 		//fr[n] = (float)(int)fpul;
@@ -1301,7 +1303,7 @@ sh4op(i1111_nnnn_0010_1101)
 //ftrc <FREG_N>, FPUL      
 rsh4op(i1111_nnnn_0011_1101)
 {
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 		//fpul = (u32)(s32)fr[n];
@@ -1320,7 +1322,7 @@ rsh4op(i1111_nnnn_0100_1101)
 {
 	u32 n = GetN(op);
 
-	if (fpscr.PR ==0)
+	if (sh4r.fpscr.PR ==0)
 	{
 		ilst->fneg(fr[n]);
 	}
@@ -1339,7 +1341,7 @@ rsh4op(i1111_1011_1111_1101)
 	return;
 
 	//iNimp("frchg");
- 	//fpscr.FR = 1 - fpscr.FR;
+ 	//sh4r.fpscr.FR = 1 - sh4r.fpscr.FR;
 
 	//UpdateFPSCR();
 }
@@ -1353,14 +1355,14 @@ rsh4op(i1111_0011_1111_1101)
 	return;
 
 	//iNimp("fschg");
-	//fpscr.SZ = 1 - fpscr.SZ;
+	//sh4r.fpscr.SZ = 1 - sh4r.fpscr.SZ;
 	//UpdateFPSCR();//*FixME* prob not needed
 }
 
 //fsqrt <FREG_N>                
 rsh4op(i1111_nnnn_0110_1101)
 {
-	if (fpscr.PR == 0)
+	if (sh4r.fpscr.PR == 0)
 	{
 		u32 n = GetN(op);
 
@@ -1389,7 +1391,7 @@ rsh4op(i1111_nnnn_0000_1101)
 rsh4op(i1111_nnnn_mmmm_1110)
 {
 	//iNimp("fmac <FREG_0>,<FREG_M>,<FREG_N>");
-	if (fpscr.PR==0)
+	if (sh4r.fpscr.PR==0)
 	{
 		u32 n = GetN(op);
 		u32 m = GetM(op);

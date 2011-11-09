@@ -160,10 +160,10 @@ void RequestSIIDRebuild()
 }
 bool SRdecode() 
 { 
-	u32 imsk=sr.IMASK;
+	u32 imsk=sh4r.sr.IMASK;
 	decoded_srimask=InterruptLevelBit[imsk];
 
-	if (sr.BL)
+	if (sh4r.sr.BL)
 		decoded_srimask=0x0FFFFFFF;
 
 	return (interrupt_vpend&interrupt_vmask)>decoded_srimask;
@@ -267,20 +267,20 @@ virtual_interrupt:
 
 void RaiseExeption(u32 code,u32 vector)
 {
-	if (sr.BL!=0)
+	if (sh4r.sr.BL!=0)
 	{
-		log("RaiseExeption: sr.BL==1, pc=%08X\n",pc);
-		verify(sr.BL == 0);
+		log("RaiseExeption: sr.BL==1, pc=%08X\n",sh4r.pc);
+		verify(sh4r.sr.BL == 0);
 	}
 		
-	spc = pc;
-	ssr = sr.GetFull();
-	sgr = r[15];
+	sh4r.spc = sh4r.pc;
+	sh4r.ssr = sh4r.sr.GetFull();
+	sh4r.sgr = sh4r.r[15];
 	CCN_EXPEVT = code;
-	sr.MD = 1;
-	sr.RB = 1;
-	sr.BL = 1;
-	pc = vbr + vector;
+	sh4r.sr.MD = 1;
+	sh4r.sr.RB = 1;
+	sh4r.sr.BL = 1;
+	sh4r.pc = sh4r.vbr + vector;
 	UpdateSR();
 	printf_except("RaiseExeption: from %08X , pc errh %08X\n",spc,pc);
 }
@@ -324,19 +324,19 @@ bool HandleSH4_exept(InterruptID expt)
 bool fastcall Do_Interrupt(u32 intEvn)
 {
 //	printf("Interrupt : 0x%04x,0x%08x\n",intEvn,pc);
-	verify(sr.BL==0);
+	verify(sh4r.sr.BL==0);
 
 	CCN_INTEVT = intEvn;
 
-	ssr = sr.GetFull();
-	spc = pc;
-	sgr = r[15];
-	sr.BL = 1;
-	sr.MD = 1;
-	sr.RB = 1;
+	sh4r.ssr = sh4r.sr.GetFull();
+	sh4r.spc = sh4r.pc;
+	sh4r.sgr = sh4r.r[15];
+	sh4r.sr.BL = 1;
+	sh4r.sr.MD = 1;
+	sh4r.sr.RB = 1;
 	UpdateSR();
 
-	pc = vbr + 0x600;
+	sh4r.pc = sh4r.vbr + 0x600;
 
 	return true;
 }
@@ -345,21 +345,21 @@ bool Do_Exeption(u32 lvl, u32 expEvn, u32 CallVect)
 {
 	CCN_EXPEVT = expEvn;
 
-	ssr = sr.GetFull();
-	spc = pc+2;
-	sgr = r[15];
-	sr.BL = 1;
-	sr.MD = 1;
-	sr.RB = 1;
+	sh4r.ssr = sh4r.sr.GetFull();
+	sh4r.spc = sh4r.pc+2;
+	sh4r.sgr = sh4r.r[15];
+	sh4r.sr.BL = 1;
+	sh4r.sr.MD = 1;
+	sh4r.sr.RB = 1;
 	UpdateSR();
 
 	//this is from when the project was still in C#
 	//left in for novely reasons ...
 	//CallStackTrace.cstAddCall(sh4.pc, sh4.pc, sh4.vbr + 0x600, CallType.Interrupt);
 
-	pc = vbr + CallVect;
+	sh4r.pc = sh4r.vbr + CallVect;
 
-	pc-=2;//fix up ;)
+	sh4r.pc-=2;//fix up ;)
 	return true;
 }
 

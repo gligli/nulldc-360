@@ -343,7 +343,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar)
 		// find last branch and make it always branch (never load directly)
 		PowerPC_instr * branch=(PowerPC_instr*)pos;
 		PowerPC_instr branch_op;
-		disassemble((u32)branch,* branch);
+//		disassemble((u32)branch,* branch);
 		do{
 			--branch;
 			branch_op=*branch;

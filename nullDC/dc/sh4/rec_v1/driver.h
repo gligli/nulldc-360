@@ -1,7 +1,9 @@
 #pragma once
 #include "types.h"
 
+#include <emitter/emitter.h>
 
+#define RCYCLES 31
 
 //interface
 void rec_Sh4_int_Run();

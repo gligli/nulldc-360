@@ -20,13 +20,13 @@
 
 u32 ssenoalloc=0;
 u32 ssealloc=0;
-ppc_gpr_reg reg_to_alloc[16]=
+ppc_gpr_reg reg_to_alloc[15]=
 {
 //	R5,R6,R7,R8,R9,R10,R11,R12
-	R16,R17,R18,R19,R20,R21,R22,R23,R24,R25,R26,R27,R28,R29,R30,R31
+	R16,R17,R18,R19,R20,R21,R22,R23,R24,R25,R26,R27,R28,R29,R30
 };
 
-#define REG_ALLOC_COUNT 16
+#define REG_ALLOC_COUNT 15
 
 //////////////////////////////////////////////////
 // new reg alloc class							//

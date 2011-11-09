@@ -1,5 +1,7 @@
 #include "types.h"
 
+#include "driver.h"
+
 #include "dc/sh4/sh4_interpreter.h"
 #include "dc/sh4/sh4_opcode_list.h"
 #include "dc/sh4/sh4_registers.h"
@@ -80,7 +82,7 @@ CompiledBlockInfo*  __fastcall CompileCode(u32 pc)
 extern "C" { // called from asm
 BasicBlockEP* __fastcall CompileCodePtr()
 {
-	return CompileCode(pc)->Code;
+	return CompileCode(sh4r.pc)->Code;
 }
 }
 
@@ -177,10 +179,14 @@ void naked DynaMainLoop()
 		"lis 3,Dynarec_Mainloop_end@ha			\n"
 		"stw 4,Dynarec_Mainloop_end@l(3)		\n"
 
+		//
+		"lis " xstr(RSH4R) ",sh4r@ha			\n"
+
+	
 		//Max cycle count :)
-		"li 4," xstr(CPU_TIMESLICE*9/10)		"\n"
+		"li " xstr(RCYCLES) "," xstr(CPU_TIMESLICE*9/10)		"\n"
 		"lis 3,rec_cycles@ha					\n" 
-		"stw 4,rec_cycles@l(3)					\n"
+		"stw " xstr(RCYCLES) ",rec_cycles@l(3)					\n"
 
 		"b no_update							\n"
 
@@ -207,8 +213,8 @@ void naked DynaMainLoop()
 		fastblock=BlockLookupGuess[GetLookupHash(address)];
 		*/
 		
-		"lis 3,pc@ha							\n"
-		"lwz 3,pc@l(3)							\n"
+		"lis 3,sh4r+0@ha						\n" //sh4r+0 is pc
+		"lwz 3,sh4r+0@l(3)						\n"
 		"mr 4,3									\n"
 				
 		"andi. 4,4," xstr(LOOKUP_HASH_MASK<<2)	"\n"
@@ -225,14 +231,16 @@ void naked DynaMainLoop()
 			return fastblock->Code;
 		}*/
 		
-		"lis 5,fpscr@ha							\n"
-		"lwz 5,fpscr@l(5)						\n"
+		"lis 5,sh4r+4@ha						\n" //sh4r+4 is fpscr
+		"lwz 5,sh4r+4@l(5)						\n"
 		"lwz 6,0(4)								\n"
 		"cmp 0,6,3								\n"
 		"bne full_lookup						\n"
 
-		"srwi 5,5,19							\n"
-		"andi. 5,5,3							\n"
+//		"srwi 5,5,19							\n"
+//		"andi. 5,5,3							\n"
+		"rlwinm 5,5,32-19,30,31					\n"
+	
 		"lwz 6,12(4)							\n"
 		"cmp 0,6,5								\n"
 		"bne full_lookup						\n"
@@ -259,12 +267,8 @@ void naked DynaMainLoop()
 		".align 4								\n"
 "do_update:										\n"
 		//called if update is needed
-		"li 3," xstr(CPU_TIMESLICE)				"\n"
-		"lis 6,rec_cycles@ha					\n" 
-		"lwz 7,rec_cycles@l(6)					\n"
-		"add 7,7,3								\n"
-		"stw 7,rec_cycles@l(6)					\n"
 		//ecx=cycles
+		"addi " xstr(RCYCLES) "," xstr(RCYCLES) "," xstr(CPU_TIMESLICE)		"\n"
 		"bl UpdateSystem						\n"
 
 		//check for exit
@@ -277,6 +281,8 @@ void naked DynaMainLoop()
 		"lis 6,old_esp@ha						\n"
 		"lwz 1,old_esp@l(6)						\n"
 "end_of_mainloop:								\n"
+		"lis 6,rec_cycles@ha					\n" 
+		"stw " xstr(RCYCLES) ",rec_cycles@l(6)	\n"
 		"blr									\n"
 	::: "15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"
 		/* TODO FPR clobber "f15","f16","f17","f18","f19","f20","f21","f22","f23","f24","f25","f26","f27","f28","f29","f30","f31" */);
@@ -432,9 +438,9 @@ void rec_Sh4_int_Step()
 	}
 	else
 	{
-		u32 op=ReadMem16(pc);
+		u32 op=ReadMem16(sh4r.pc);
 		ExecuteOpcode(op);
-		pc+=2;
+		sh4r.pc+=2;
 	}
 }
 
@@ -446,7 +452,7 @@ void rec_Sh4_int_Skip()
 	}
 	else
 	{
-		pc+=2;
+		sh4r.pc+=2;
 	}
 }
 

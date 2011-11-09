@@ -13,47 +13,31 @@ union mac_type
 };
 
 __attribute__((aligned(128))) extern f32 sin_table[0x10000+0x4000];
+
 struct Sh4RegContext
 {
-	u32 r[16];
-	u32 r_bank[8];
-
-	u32 gbr,ssr,spc,sgr,dbr,vbr;
-	u32 pr,fpul;
-	mac_type mac;
 	u32 pc;
-	//u16* pc_ptr;
-
 	StatusReg sr;
-
-	fpscr_type fpscr;
-
-	f32 xf[16];
+	u32 gbr,ssr,spc,sgr,dbr,vbr;
+	u32 r_bank[8];
+	u32 r[16];
 	f32 fr[16];
-
+	f32 xf[16];
+	u32 pr;
+	u32 dummy,fpul; //HACK: need dummy before fpul for dynarec
+	mac_type mac;
+	fpscr_type fpscr;
 	StatusReg old_sr;
 	fpscr_type old_fpscr;
 };
+
 void GenerateSinCos();
-__attribute__((aligned(128))) extern u32 r[16];
-__attribute__((aligned(128))) extern u32 r_bank[8];
 
-extern u32 gbr,ssr,spc,sgr,dbr,vbr;
-extern u32 pr;
-extern u32 fpul;
-extern mac_type mac;
-extern u32 pc;
+extern Sh4RegContext sh4r;
 
-extern StatusReg sr;
-
-extern fpscr_type fpscr;
-
-extern __attribute__((aligned(128))) f32 xf[16];
-extern __attribute__((aligned(128))) f32 fr[16];
-
-
-extern u32*  xf_hex,*fr_hex;
-
+extern u32* xf_hex;
+extern u32* fr_hex;
+	
 void SaveSh4Regs(Sh4RegContext* to);
 void LoadSh4Regs(Sh4RegContext* from);
 
@@ -113,9 +97,6 @@ f64 GetXD(u32 n);
 void SetDR(u32 n,f64 val);
 void SetXD(u32 n,f64 val);
 #endif
-
-extern StatusReg old_sr;
-extern fpscr_type old_fpscr;
 
 u32* Sh4_int_GetRegisterPtr(Sh4RegType reg);
 void SetFloatStatusReg();

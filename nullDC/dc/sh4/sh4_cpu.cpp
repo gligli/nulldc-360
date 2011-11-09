@@ -18,7 +18,7 @@
 #include "tmu.h"
 #include "dc/gdrom/gdrom_if.h"
 
-
+#include "sh4r_rename.h"
 
 #define GetN(str) ((str>>8) & 0xf)
 #define GetM(str) ((str>>4) & 0xf)

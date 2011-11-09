@@ -11,6 +11,7 @@
 #include "recompiler.h"
 #include "analyser.h"
 #include "dc/sh4/shil/shil_ce.h"
+#include "driver.h"
 
 void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB);
 
@@ -303,7 +304,7 @@ void ret_cache_reset()
 
 void __fastcall CheckBlock(CompiledBlockInfo* block)
 {
-	verify(block->cpu_mode_tag==fpscr.PR_SZ);
+	verify(block->cpu_mode_tag==sh4r.fpscr.PR_SZ);
 	//verify(block->size==pc);
 	verify(block->Discarded==false);
 }
@@ -358,7 +359,7 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 {
 	verify(cBB->Rewrite.Type==3);
 	//indirect call , rewrite & link , first time (hardlinks to target)
-	CompiledBlockInfo*	new_block=FindOrRecompileBlock(pc);
+	CompiledBlockInfo*	new_block=FindOrRecompileBlock(sh4r.pc);
 
 	if (cBB->Discarded)
 	{
@@ -377,7 +378,7 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 	ppce->ppc_size=64;
 
 	cBB->TF_block=new_block;
-	ppce->emitLoadImmediate32(R4,pc);
+	ppce->emitLoadImmediate32(R4,sh4r.pc);
 	EMIT_CMP(ppce,R3,R4,0);
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
 	ppce->emitReverseBranchConditional((void*)RewriteBasicBlockGuess_FLUT_stub,PPC_CC_T,PPC_CC_ZER,0);
@@ -488,10 +489,8 @@ bool BasicBlock::Compile()
 	*/
 
 	verify(cycles<0x10000);
-	ppce->emitLoad32(R3,&rec_cycles);
-	EMIT_ADDI(ppce,R3,R3,-cycles);
-	EMIT_CMPI(ppce,R3,0,0);
-	EMIT_STW(ppce,R3,(u32)&rec_cycles,R15); //gli opti ppce->emitStore32(&rec_cycles,R3);
+	EMIT_ADDI(ppce,RCYCLES,RCYCLES,-cycles);
+	EMIT_CMPI(ppce,RCYCLES,0,0);
 	ppce->emitBranchConditionalToLabel(block_exit,0,PPC_CC_T,PPC_CC_NEG);
 
 	if (flags.ProtectionType==BLOCK_PROTECTIONTYPE_MANUAL)
@@ -769,9 +768,9 @@ compile_normaly:
 
 	ppce->MarkLabel(block_exit);
 
-	ppce->emitLoad32(R3,&rec_cycles);
-	EMIT_ADDI(ppce,R3,R3,cycles);
-	EMIT_STW(ppce,R3,(u32)&rec_cycles,R15); //gli opti ppce->emitStore32(&rec_cycles,R3);
+//	ppce->emitLoad32(R3,&rec_cycles);
+	EMIT_ADDI(ppce,RCYCLES,RCYCLES,cycles);
+//	EMIT_STW(ppce,R3,(u32)&rec_cycles,R15); //gli opti ppce->emitStore32(&rec_cycles,R3);
 	ppce->emitLoadImmediate32(R3,start);
 	ppce->emitStore32(GetRegPtr(reg_pc),R3);
 	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,0);

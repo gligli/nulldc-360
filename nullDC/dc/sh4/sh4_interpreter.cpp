@@ -20,6 +20,8 @@
 
 #include <xenon_uart/xenon_uart.h>
 
+#include "sh4r_rename.h"
+
 #define CPU_TIMESLICE	(448)
 #define CPU_RATIO		(8)
 

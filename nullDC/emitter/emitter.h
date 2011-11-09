@@ -36,7 +36,8 @@ extern int ppc_condition_flags[][3];
 // CR2 bit 2
 #define CR_T_FLAG 10
 
-#define RTMP R15
+#define RTMP 10
+#define RSH4R 15
 
 #include "PowerPC.h"
 extern "C" {
@@ -124,9 +125,6 @@ public:
 	bool do_realloc;
 	bool do_disasm;
 
-	bool RTMP_valid;
-	u16 RTMP_prev_value;
-	
 	ppc_block();
 	~ppc_block();
 	void ppc_buffer_ensure(u32 size);
@@ -157,7 +155,7 @@ public:
 	//Get an index to next emitted opcode
 	u32 GetOpcodeIndex();
 	
-	void ensureRTMPValue(u16 value);
+	ppc_gpr_reg getHighReg(u16 value);
 	
 	void emitBranch(void * addr, int lk);
 	void emitLongBranch(void * addr, int lk);

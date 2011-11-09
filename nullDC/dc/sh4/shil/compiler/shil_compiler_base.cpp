@@ -56,7 +56,7 @@ union _Cmp64
 //ensure mode is 32b (for floating point)
 void c_Ensure32()
 {
-	assert(fpscr.PR==0);
+	assert(sh4r.fpscr.PR==0);
 }
 //emit a call to c_Ensure32 
 bool Ensure32()
@@ -80,9 +80,9 @@ u32* GetRegPtr(Sh4RegType reg)
 {
 	return GetRegPtr((u8)reg);
 }
-bool IsSSEAllocReg(u32 reg) //TODO: remove me if working
+bool IsSSEAllocReg(u32 reg) //TODO: remove me
 {
-	return (reg >=fr_0 && reg<=xf_15); // was fr_15
+	return (reg >=fr_0 && reg<=fr_15);
 }
 bool IsFpuReg(u32 reg)
 {
@@ -1285,6 +1285,20 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	u32 is_float=IsInFReg(op->reg1);
 	u32 was_float=is_float;
 
+	//if constant read , and on ram area , make it a direct mem access
+	//_watch_ mmu
+	if (!(op->flags & (FLAG_R0|FLAG_GBR|FLAG_REG2)))
+	{//[reg2+imm] form
+		assert(op->flags & FLAG_IMM1);
+		emit_vmem_op_compat_const(ppce,1,size,op->imm1,op->reg1);
+		return;
+	}
+
+	u32 old_offset=ppce->ppc_indx;
+	ppc_reg fast_reg;
+	u32 fast_reg_offset;
+	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
+
 	ppc_reg rsrc;
 	if (size==FLAG_64)
 	{
@@ -1312,34 +1326,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 			}
 		}
 	}
-
-	//if constant read , and on ram area , make it a direct mem access
-	//_watch_ mmu
-	if (!(op->flags & (FLAG_R0|FLAG_GBR|FLAG_REG2)))
-	{//[reg2+imm] form
-		assert(op->flags & FLAG_IMM1);
-		//[imm1] form
-		/*if (!is_float)
-		{
-			emit_vmem_op_compat_const(ppce,op->imm1,rsrc,false,m_unpack_sz[size],1);
-		}
-		else
-		{
-			emit_vmem_op_compat_const(ppce,op->imm1,rsrc,true,m_unpack_sz[size],1);
-		}*/
-		emit_vmem_op_compat_const(ppce,1,size,op->imm1,op->reg1);
-		return;
-	}
-
-	u32 old_offset=ppce->ppc_indx;
-	ppc_reg fast_reg;
-	u32 fast_reg_offset;
-	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
-	/*
-	ppce->Emit(op_mov32,EAX,ECX);
-	ppce->Emit(op_shr32,EAX,29);
-	ppce->Emit(op_call32,ppc_mrm(NO_REG,EAX,sib_scale_4,&mio_pvt[1][size][0][0]));
-	*/
+	
 	old_offset=ppce->ppc_indx-old_offset;
 	
 	//ppc_Label* patch_point= ppce->CreateLabel(true,0);
@@ -1350,7 +1337,11 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	EMIT_ADDIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 	if (was_float)
 	{
-		EMIT_STFS(ppce,rsrc,0,R5);
+		switch(size)
+		{
+			case FLAG_32: EMIT_STFS(ppce,rsrc,0,R5); break;
+			case FLAG_64: EMIT_STFD(ppce,rsrc,0,R5); break;
+		}
 	}
 	else
 	{
@@ -1389,6 +1380,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 void* nvw_lut[4]={(void*)WriteMem8,(void*)WriteMem16,(void*)WriteMem32,(void*)WriteMem32};
 void* nvr_lut[4]={(void*)ReadMem8,(void*)ReadMem16,(void*)ReadMem32,(void*)ReadMem32};
 #include "dc/mem/sh4_internal_reg.h"
+
 void apply_roml_patches()
 {
 	for (u32 i=0;i<roml_patch_list.size();i++)
@@ -1456,7 +1448,10 @@ void apply_roml_patches()
 			if (roml_patch_list[i].is_float)
 			{
 				//meh ?
-				dbgbreak;
+				if (!roml_patch_list[i].type) dbgbreak;
+				static u32 tmp;
+				ppce->emitStoreFloat(&tmp,roml_patch_list[i].reg_data);
+				ppce->emitLoad32(R4,&tmp);
 			}
 			else
 			{
@@ -2201,7 +2196,7 @@ void __fastcall shil_compile_fmac(shil_opcode* op)
 		//fr[n] += fr[0] * fr[m];
 		assert(Ensure32());
 
-		ppc_fpr_reg fr0=fra->GetRegister(FR0,fr_0,RA_FORCE);
+		ppc_fpr_reg fr0=fra->GetRegister(FR0,fr_0,RA_DEFAULT);
 		ppc_fpr_reg frp=fra->GetRegister(FR1,op->reg2,RA_DEFAULT);
 		ppc_fpr_reg frs=fra->GetRegister(FR2,op->reg1,RA_DEFAULT);
 		
@@ -2355,7 +2350,7 @@ void __fastcall shil_compile_ftrc(shil_opcode* op)
 */
 		EMIT_FCTIWZ(ppce,r1,r1);
 		
-		ppce->emitStoreDouble(GetRegPtr(reg_fpul)-1,r1);
+		ppce->emitStoreDouble((void*)((u32)GetRegPtr(reg_fpul)-4),r1);
 		
 /*		ppce->emitLoad32(R3,&toto);
 		

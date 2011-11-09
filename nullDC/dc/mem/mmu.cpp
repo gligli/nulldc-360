@@ -99,7 +99,7 @@ void ITLB_Sync(u32 entry)
 u32 mmu_error_TT;
 void fastcall mmu_raise_exeption(u32 mmu_error,u32 address,u32 am)
 {
-	printf_mmu("mmu_raise_exeption -> pc = 0x%X : ",pc);
+	printf_mmu("mmu_raise_exeption -> pc = 0x%X : ",sh4r.pc);
 	CCN_TEA=address;
 	CCN_PTEH.VPN=address>>10;
 
@@ -195,7 +195,7 @@ bool mmu_match(u32 va,CCN_PTEH_type Address,CCN_PTEL_type Data)
 
 	if ( (((Address.VPN<<10)&mask)==(va&mask)) )
 	{
-		bool asid_match = (Data.SH==0) && ( (sr.MD==0) || (CCN_MMUCR.SV == 0) );
+		bool asid_match = (Data.SH==0) && ( (sh4r.sr.MD==0) || (CCN_MMUCR.SV == 0) );
 
 		if ( ( asid_match==false ) || (Address.ASID==CCN_PTEH.ASID) )
 		{
@@ -265,7 +265,7 @@ template<u32 translation_type>
 u32 fastcall mmu_full_SQ(u32 va,u32& rv)
 {
 
-	if ((va&3) || (CCN_MMUCR.SQMD==1 && sr.MD==0))
+	if ((va&3) || (CCN_MMUCR.SQMD==1 && sh4r.sr.MD==0))
 	{
 		//here, or after ?
 		return MMU_ERROR_BADADDR;
@@ -286,7 +286,7 @@ u32 fastcall mmu_full_SQ(u32 va,u32& rv)
 		u32 md=UTLB[entry].Data.PR>>1;
 
 		//Priv mode protection
-		if ((md==0) && sr.MD==0)
+		if ((md==0) && sh4r.sr.MD==0)
 		{
 			return MMU_ERROR_PROTECTED;
 		}
@@ -319,13 +319,13 @@ u32 fastcall mmu_data_translation(u32 va,u32& rv)
 		return MMU_ERROR_NONE;
 	}
 
-	if ((sr.MD==0) && (va&0x80000000)!=0)
+	if ((sh4r.sr.MD==0) && (va&0x80000000)!=0)
 	{
 		//if on kernel, and not SQ addr -> error
 		return MMU_ERROR_BADADDR;
 	}
 
-	if (sr.MD==1 && ((va&0xFC000000)==0x7C000000))
+	if (sh4r.sr.MD==1 && ((va&0xFC000000)==0x7C000000))
 	{
 		rv=va;
 		return MMU_ERROR_NONE;
@@ -353,7 +353,7 @@ u32 fastcall mmu_data_translation(u32 va,u32& rv)
 	
 	//0X  & User mode-> protection violation
 	//Priv mode protection
-	if ((md==0) && sr.MD==0)
+	if ((md==0) && sh4r.sr.MD==0)
 	{
 		return MMU_ERROR_PROTECTED;
 	}
@@ -374,7 +374,7 @@ u32 fastcall mmu_data_translation(u32 va,u32& rv)
 
 u32 fastcall mmu_instruction_translation(u32 va,u32& rv)
 {
-	if ((sr.MD==0) && (va&0x80000000)!=0)
+	if ((sh4r.sr.MD==0) && (va&0x80000000)!=0)
 	{
 		//if SQ disabled , or if if SQ on but out of SQ mem then BAD ADDR ;)
 		if (va>=0xE0000000)
@@ -400,7 +400,7 @@ retry_ITLB_Match:
 
 		if ( (((ITLB[i].Address.VPN<<10)&mask)==(va&mask)) )
 		{
-			bool asid_match = (ITLB[i].Data.SH==0) && ( (sr.MD==0) || (CCN_MMUCR.SV == 0) );
+			bool asid_match = (ITLB[i].Data.SH==0) && ( (sh4r.sr.MD==0) || (CCN_MMUCR.SV == 0) );
 
 			if ( ( asid_match==false ) || (ITLB[i].Address.ASID==CCN_PTEH.ASID) )
 			{
@@ -447,7 +447,7 @@ retry_ITLB_Match:
 	
 	//0X  & User mode-> protection violation
 	//Priv mode protection
-	if ((md==0) && sr.MD==0)
+	if ((md==0) && sh4r.sr.MD==0)
 	{
 		return MMU_ERROR_PROTECTED;
 	}

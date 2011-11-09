@@ -4,7 +4,7 @@
 #include "ppc_fpregalloc.h"
 #include <assert.h>
 
-#define REG_ALLOC_COUNT (0)
+#define REG_ALLOC_COUNT (16)
 //FR0 is reserved for math/temp
 ppc_fpr_reg reg_to_alloc_fpr[16]=
 {
