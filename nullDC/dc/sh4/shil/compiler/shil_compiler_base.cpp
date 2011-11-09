@@ -206,7 +206,7 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 }
 
 //imm to reg
-void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
+void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool mask, bool right)
 {
 	assert(FLAG_32==(op->flags & 3));
 	assert(op->flags & FLAG_IMM1);
@@ -217,15 +217,49 @@ void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool invRDRA)
 	{
 		ppc_gpr_reg r1=LoadReg(R3,op->reg1);
 		assert(r1!=R3);
-		ppce->emitLoadImmediate32(R4,op->imm1);
-		EMIT_SET_RDRARB(ppc,r1,r1,R4,invRDRA,0);
+		
+		PPC_SET_RD(ppc,r1);
+		PPC_SET_RA(ppc,r1);
+		PPC_SET_SH(ppc,right?32-op->imm1:op->imm1);
+		if(mask)
+		{
+			if(right)
+			{
+				PPC_SET_MB(ppc,op->imm1);
+				PPC_SET_ME(ppc,31);
+			}
+			else
+			{
+				PPC_SET_MB(ppc,0);
+				PPC_SET_ME(ppc,(31-op->imm1));
+			}
+		}
+		ppce->write32(ppc);
+
 		SaveReg(op->reg1,r1);
 	}
 	else{
 		u32 * ptr = GetRegPtr(op->reg1);
 		ppce->emitLoad32(R4,ptr);
-		ppce->emitLoadImmediate32(R3,op->imm1);
-		EMIT_SET_RDRARB(ppc,R4,R4,R3,invRDRA,0);
+
+		PPC_SET_RD(ppc,R4);
+		PPC_SET_RA(ppc,R4);
+		PPC_SET_SH(ppc,right?32-op->imm1:op->imm1);
+		if(mask)
+		{
+			if(right)
+			{
+				PPC_SET_MB(ppc,op->imm1);
+				PPC_SET_ME(ppc,31);
+			}
+			else
+			{
+				PPC_SET_MB(ppc,0);
+				PPC_SET_ME(ppc,(31-op->imm1));
+			}
+		}
+		ppce->write32(ppc);
+
 		ppce->emitStore32(ptr,R4);
 	}
 }
@@ -841,25 +875,25 @@ void __fastcall shil_compile_swap(shil_opcode* op)
 void __fastcall shil_compile_shl(shil_opcode* op)
 {
 	PowerPC_instr ppc;
-	GEN_SLW(ppc,0,0,0);
+	GEN_RLWINM(ppc,0,0,0,0,0);
 	ppc|=1; // record bit
-	op_imm_to_reg(op,ppc,true);
+	op_imm_to_reg(op,ppc,true,false);
 }
 //shr reg32,imm , set flags
 void __fastcall shil_compile_shr(shil_opcode* op)
 {
 	PowerPC_instr ppc;
-	GEN_SRW(ppc,0,0,0);
+	GEN_RLWINM(ppc,0,0,0,0,0);
 	ppc|=1; // record bit
-	op_imm_to_reg(op,ppc,true);
+	op_imm_to_reg(op,ppc,true,true);
 }
 //sar reg32,imm , set flags
 void __fastcall shil_compile_sar(shil_opcode* op)
 {
 	PowerPC_instr ppc;
-	GEN_SRAW(ppc,0,0,0);
+	GEN_SRAWI(ppc,0,0,0);
 	ppc|=1; // record bit
-	op_imm_to_reg(op,ppc,true);
+	op_imm_to_reg(op,ppc,false,false);
 }
 
 //rotates
@@ -878,16 +912,16 @@ void __fastcall shil_compile_ror(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_RLWINM(ppc,0,0,31,0,31);
+	ppc|=1; // record bit
 	op_reg(op,ppc,false);
-	// needs T bit emu
 }
 //rol reg32
 void __fastcall shil_compile_rol(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_RLWINM(ppc,0,0,1,0,31);
+	ppc|=1; // record bit
 	op_reg(op,ppc,false);
-	// needs T bit emu
 }
 //neg
 void __fastcall shil_compile_neg(shil_opcode* op)
@@ -2655,8 +2689,8 @@ void sclt_Init()
 	SetH(shilop_SaveT,shil_compile_SaveT);
 	SetH(shilop_cmp,shil_compile_cmp);
 	SetH(shilop_test,shil_compile_test);
-//	SetH(shilop_rol,shil_compile_rol);
-//	SetH(shilop_ror,shil_compile_ror);
+	SetH(shilop_rol,shil_compile_rol);
+	SetH(shilop_ror,shil_compile_ror);
 	SetH(shilop_neg,shil_compile_neg);
 	SetH(shilop_not,shil_compile_not);
 	SetH(shilop_mov,shil_compile_mov);

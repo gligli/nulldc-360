@@ -580,7 +580,7 @@ sh4op(i0100_nnnn_0010_0100)
 }
 
 //rotl <REG_N>                  
-sh4op(i0100_nnnn_0000_0100)
+rsh4op(i0100_nnnn_0000_0100)
 {
 	u32 n = GetN(op);
 
@@ -599,7 +599,7 @@ sh4op(i0100_nnnn_0010_0101)
 }
 
 //rotr <REG_N>                  
-sh4op(i0100_nnnn_0000_0101)
+rsh4op(i0100_nnnn_0000_0101)
 {
 	u32 n = GetN(op);
 
