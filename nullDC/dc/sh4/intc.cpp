@@ -142,9 +142,11 @@ INTC_IPRC_type INTC_IPRC;
 
 //InterruptID intr_l;
 
+__attribute__((aligned(65536))) struct intr_s{
 u32 interrupt_vpend;
 u32 interrupt_vmask;	//-1 -> ingore that kthx.0x0FFFffff allows all interrupts ( virtual interrupts are allways masked
 u32 decoded_srimask;	//-1 kills all interrupts,including rebuild ones.
+} intr;
 
 //bit 0 ~ 27 : interrupt source 27:0. 0 = lowest level, 27 = highest level.
 //bit 28~31  : virtual interrupt sources.These have to do with the emu
@@ -156,17 +158,17 @@ u32 decoded_srimask;	//-1 kills all interrupts,including rebuild ones.
 //Rebuild sorted interrupt id table (priorities where updated)
 void RequestSIIDRebuild() 
 { 
-	interrupt_vpend|=2<<28;
+	intr.interrupt_vpend|=2<<28;
 }
 bool SRdecode() 
 { 
 	u32 imsk=sh4r.sr.IMASK;
-	decoded_srimask=InterruptLevelBit[imsk];
+	intr.decoded_srimask=InterruptLevelBit[imsk];
 
 	if (sh4r.sr.BL)
-		decoded_srimask=0x0FFFFFFF;
+		intr.decoded_srimask=0x0FFFFFFF;
 
-	return (interrupt_vpend&interrupt_vmask)>decoded_srimask;
+	return (intr.interrupt_vpend&intr.interrupt_vmask)>intr.decoded_srimask;
 }
 
 void fastcall VirtualInterrupt(u32 id)
@@ -174,10 +176,10 @@ void fastcall VirtualInterrupt(u32 id)
 	if (id)
 	{
 		u32 cnt=0;
-		u32 vpend=interrupt_vpend;
-		u32 vmask=interrupt_vmask;
-		interrupt_vpend=0;
-		interrupt_vmask=0xF0000000;
+		u32 vpend=intr.interrupt_vpend;
+		u32 vmask=intr.interrupt_vmask;
+		intr.interrupt_vpend=0;
+		intr.interrupt_vmask=0xF0000000;
 		//rebuild interrupt table
 		for (u32 ilevel=0;ilevel<16;ilevel++)
 		{
@@ -192,10 +194,10 @@ void fastcall VirtualInterrupt(u32 id)
 					InterruptBit[isrc]=1<<cnt;
 
 					if (p)
-						interrupt_vpend|=InterruptBit[isrc];
+						intr.interrupt_vpend|=InterruptBit[isrc];
 
 					if (m)
-						interrupt_vmask|=InterruptBit[isrc];
+						intr.interrupt_vmask|=InterruptBit[isrc];
 
 					cnt++;
 				}
@@ -209,29 +211,57 @@ void fastcall VirtualInterrupt(u32 id)
 //#ifdef COUNT_INTERRUPT_UPDATES
 u32 no_interrupts,yes_interrupts;
 //#endif
-naked int UpdateINTC()
+
+extern "C" { // called from ASM
+int UpdateINTCDoINT()
+{
+	u32 ecx=intr.interrupt_vpend&intr.interrupt_vmask;
+
+#ifdef COUNT_INTERRUPT_UPDATES
+	yes_interrupts++;
+#endif
+	if((ecx&0xF0000000)==0){
+		int eax=31-__builtin_clz(ecx);
+//            printf("eax %08x ecx %08x\n",eax,ecx);
+		return Do_Interrupt(InterruptEnvId[eax]);
+	}else{
+		VirtualInterrupt(ecx>>28);
+		return UpdateINTC();			
+	}
+}
+}
+#define ASM_INTC
+
+int UpdateINTC()
 {
 #ifdef XENON
-	u32 ecx=interrupt_vpend&interrupt_vmask;
-	
-	if(ecx<=decoded_srimask){
+#ifndef ASM_INTC
+	u32 ecx=intr.interrupt_vpend&intr.interrupt_vmask;
+
+	if(ecx<=intr.decoded_srimask){
 #ifdef COUNT_INTERRUPT_UPDATES
 		no_interrupts++;
 #endif
 		return 0;
 	}else{
-#ifdef COUNT_INTERRUPT_UPDATES
-		yes_interrupts++;
-#endif
-		if((ecx&0xF0000000)==0){
-			int eax=31-__builtin_clz(ecx);
-//            printf("eax %08x ecx %08x\n",eax,ecx);
-			return Do_Interrupt(InterruptEnvId[eax]);
-		}else{
-			VirtualInterrupt(ecx>>28);
-			return UpdateINTC();			
-		}
+		return UpdateINTCDoINT();
 	}
+#else
+	asm volatile (
+		"lis 7,intr@ha					\n"
+#if 0
+		"lwz 4,intr+0@l(7)				\n" // vpend
+		"lwz 5,intr+4@l(7)				\n" // vmask
+#else	
+		"ld 4,intr+0@l(7)				\n" // vpend+vmask at once :)
+		"srdi 5,4,32					\n"
+#endif
+		"and 4,4,5						\n"
+		"lwz 6,intr+8@l(7)				\n" // sri
+		"cmplw 4,6						\n"
+		"bgt UpdateINTCDoINT			\n"
+	);
+#endif
 #else
 	__asm
 	{
@@ -262,7 +292,8 @@ virtual_interrupt:
 		call VirtualInterrupt;
 		jmp UpdateINTC;
 	}
-#endif	
+#endif
+	return 0;
 }
 
 void RaiseExeption(u32 code,u32 vector)
@@ -285,26 +316,26 @@ void RaiseExeption(u32 code,u32 vector)
 	printf_except("RaiseExeption: from %08X , pc errh %08X\n",spc,pc);
 }
 
-void SetInterruptPend(InterruptID intr)
+void SetInterruptPend(InterruptID intr_)
 {
-	u32 piid= intr & InterruptPIIDMask;
-	interrupt_vpend|=InterruptBit[piid];
+	u32 piid= intr_ & InterruptPIIDMask;
+	intr.interrupt_vpend|=InterruptBit[piid];
 }
-void ResetInterruptPend(InterruptID intr)
+void ResetInterruptPend(InterruptID intr_)
 {
-	u32 piid= intr & InterruptPIIDMask;
-	interrupt_vpend&=~InterruptBit[piid];
+	u32 piid= intr_ & InterruptPIIDMask;
+	intr.interrupt_vpend&=~InterruptBit[piid];
 }
 
-void SetInterruptMask(InterruptID intr)
+void SetInterruptMask(InterruptID intr_)
 {
-	u32 piid= intr & InterruptPIIDMask;
-	interrupt_vmask|=InterruptBit[piid];
+	u32 piid= intr_ & InterruptPIIDMask;
+	intr.interrupt_vmask|=InterruptBit[piid];
 }
-void ResetInterruptMask(InterruptID intr)
+void ResetInterruptMask(InterruptID intr_)
 {
-	u32 piid= intr & InterruptPIIDMask;
-	interrupt_vmask&=~InterruptBit[piid];
+	u32 piid= intr_ & InterruptPIIDMask;
+	intr.interrupt_vmask&=~InterruptBit[piid];
 }
 //this is what left from the old intc .. meh .. 
 //exeptions are handled here .. .. hmm are they ? :P
@@ -424,9 +455,9 @@ void intc_Reset(bool Manual)
 	INTC_IPRB.reg_data = 0x0;
 	INTC_IPRC.reg_data = 0x0;
 
-	interrupt_vpend=0x00000000;	//rebuild & recalc
-	interrupt_vmask=0xFFFFFFFF;	//no masking
-	decoded_srimask=0;			//nothing is real, everything is allowed ...
+	intr.interrupt_vpend=0x00000000;	//rebuild & recalc
+	intr.interrupt_vmask=0xFFFFFFFF;	//no masking
+	intr.decoded_srimask=0;			//nothing is real, everything is allowed ...
 
 	RequestSIIDRebuild();		//we have to rebuild the table.
 
