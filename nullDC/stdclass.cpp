@@ -8,6 +8,7 @@
 
 extern "C"{
 #include <ppc/cache.h>
+#include <ppc/vm.h>
 }
 
 //comonly used classes across the project
@@ -284,14 +285,30 @@ u32 rv;
 
 void VArray2::LockRegion(u32 offset,u32 size)
 {
-/*gli	DWORD old;
-	VirtualProtect(((u8*)data)+offset , size, PAGE_READONLY,&old);*/
-	memicbi(((u8*)data)+offset , size);
+	u32 addr=(u32)data+offset;
+	
+	if (addr&0xffff || size&0xffff)
+	{
+		//gli WTF this happens!!
+	}
+	else
+	{
+//		printf("LockRegion %p %d\n",((u8*)data)+offset,size);
+//		vm_set_user_mapping_flags(addr,size,VM_WIMG_CACHED_READ_ONLY);
+	}
 }
 void VArray2::UnLockRegion(u32 offset,u32 size)
 {
-/*gli	DWORD old;
-	VirtualProtect(((u8*)data)+offset , size, PAGE_READWRITE,&old);*/
+	u32 addr=(u32)data+offset;
+	
+	if (addr&0xffff || size&0xffff)
+	{
+	}
+	else
+	{
+		printf("UnLockRegion %p %d\n",((u8*)data)+offset,size);
+		vm_set_user_mapping_flags(addr,size,VM_WIMG_CACHED);
+	}
 }
 
 #include "dc/sh4/rec_v1/compiledblock.h"
@@ -302,23 +319,32 @@ bool RamLockedWrite(u8* address,u32* sp);
 extern u8* sh4_mem_marks;
 extern u8* DynarecCache;
 extern u32 DynarecCacheSize;
-void * ExeptionHandler(int pir,void * srr0,void * dar)
+void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 {
+	printf("ExeptionHandler %d %p %p %d ",pir,srr0,dar,write);
+
 	u8* address=(u8*)dar;
 
+	if (((u32)(address-sh4_reserved_mem))<(1024*1024*1024) && ((u32)(address-sh4_reserved_mem))>(512*1024*1024)){
+		printf("####Block\n");
+		*(u32*)srr0=PPC_NOP;
+		memicbi(srr0,4);
+		return srr0+4;
+	}
+			
 	if (VramLockedWrite(address))
 	{
-		printf("VramLockedWrite %x\n",address);
+		printf("VramLockedWrite\n");
 		return NULL;// EXCEPTION_CONTINUE_EXECUTION;
 	}
 	else if (RamLockedWrite(address,NULL))
 	{
-		printf("RamLockedWrite %x\n",address);
+		printf("RamLockedWrite\n");
 		return NULL;// EXCEPTION_CONTINUE_EXECUTION;
 	}
-	else if (((u32)(address-sh4_reserved_mem))<(1024*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
+	else if (((u32)(address-sh4_reserved_mem))<(512*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
 	{
-		printf("Rewrite %p %x\n",srr0,address);
+		printf("Rewrite\n");
 		//k
 		//
 		//cmp ecx,mask1
@@ -341,7 +367,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar)
 #endif
 		//cbb->Rewrite
 		// find last branch and make it always branch (never load directly)
-#if 0
+#if 1
 		PowerPC_instr * branch=(PowerPC_instr*)pos;
 		PowerPC_instr branch_op;
 //		disassemble((u32)branch,* branch);

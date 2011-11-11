@@ -82,7 +82,7 @@ u32* GetRegPtr(Sh4RegType reg)
 }
 bool IsSSEAllocReg(u32 reg) //TODO: remove me
 {
-	return (reg >=fr_0 && reg<=xf_15);
+	return (reg >=fr_0 && reg<=fr_15);
 }
 bool IsFpuReg(u32 reg)
 {
@@ -137,7 +137,7 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
 			assert(r1!=R3);
 			
-			if(ppc_imm && op->imm1<0x10000)
+			if(ppc_imm && (s32)op->imm1>=-32768 && (s32)op->imm1<=32767)
 			{
 				PPC_SET_RD(ppc_imm,r1);
 				PPC_SET_RA(ppc_imm,r1);
@@ -158,7 +158,7 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 			u32 * ptr = GetRegPtr(op->reg1);
 			ppce->emitLoad32(R4,ptr);
 
-			if(ppc_imm && op->imm1<0x10000)
+			if(ppc_imm && (s32)op->imm1>=-32768 && (s32)op->imm1<=32767)
 			{
 				PPC_SET_RD(ppc_imm,R4);
 				PPC_SET_RA(ppc_imm,R4);
@@ -381,7 +381,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 		switch(sz)
 		{
 		case FLAG_8:
-TR			if (rw==0)
+			if (rw==0)
 			{
 				ira->SaveRegister(reg,(s8*)((u32)ptr^3));
 			}
@@ -431,7 +431,7 @@ TR					fra->SaveRegister(reg,(float*)ptr);
 			}
 			break;
 		case FLAG_64:
-TR			verify(IsFpuReg(reg));
+			verify(IsFpuReg(reg));
 			if (rw==0)
 			{
 				ppce->emitLoadDouble(FR0,(u32*)ptr);
@@ -447,7 +447,7 @@ TR			verify(IsFpuReg(reg));
 	}
 	else
 	{
-TR		bool doloop=false;//sz==FLAG_64;
+		bool doloop=false;//sz==FLAG_64;
 
 		do
 		{
@@ -468,9 +468,15 @@ TR		bool doloop=false;//sz==FLAG_64;
 					ira->GetRegister(R4,reg,RA_FORCE);//any reg will do
 				}
 			}
-
+			
+	/*		ppce->emitDebugValue(rw);
+			ppce->emitDebugReg(R3);
+			if(rw==1) ppce->emitDebugReg(R4);*/
+			
 			//call the function
 			ppce->emitBranch(ptr,1);
+			
+//			if(rw==0) ppce->emitDebugReg(R3);
 
 			if(rw==0)
 			{
@@ -479,25 +485,25 @@ TR		bool doloop=false;//sz==FLAG_64;
 				case FLAG_8:
 					{
 					ppc_reg r=ira->GetRegister(R3,reg,RA_NODATA);
-					EMIT_EXTSB(ppce,R3,R3);
+					EMIT_EXTSB(ppce,r,R3);
 					ira->SaveRegister(reg,r);
 					}
 					break;
 				case FLAG_16:
 					{
 					ppc_reg r=ira->GetRegister(R3,reg,RA_NODATA);
-					EMIT_EXTSH(ppce,R3,R3);
+					EMIT_EXTSH(ppce,r,R3);
 					ira->SaveRegister(reg,r);
 					}
 					break;
 				case FLAG_32:
 					if (IsSSEAllocReg(reg))
 					{
-						ppce->emitStore32(GetRegPtr(reg),R3);
+TR						ppce->emitStore32(GetRegPtr(reg),R3);
 					}
 					else
 					{
-						ira->SaveRegister(reg,R3);
+TR						ira->SaveRegister(reg,R3);
 					}
 					break;
 				case FLAG_64:
@@ -632,6 +638,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 			assert(gpr2!=R4);
 		}
 
+//		printf("shil_compile_mov %d\n",flags);
 		switch(flags)
 		{
 		case XMMtoXMM:
@@ -965,9 +972,6 @@ void __fastcall shil_compile_and(shil_opcode* op)
 //Address calculation helpers
 void readwrteparams1(u8 reg1,u32 imm,ppc_reg* fast_nimm)
 {
-	//verify((imm&0xffff)==imm);
-	verify((s32)imm>=-32768 && (s32)imm<=32767);
-		
 	if (ira->IsRegAllocated(reg1))
 	{
 		//lea ecx,[reg1+imm]
@@ -975,14 +979,39 @@ void readwrteparams1(u8 reg1,u32 imm,ppc_reg* fast_nimm)
 		assert(reg!=R3);
 		*fast_nimm=reg;
 		
-		EMIT_ADDI(ppce,R3,reg,imm);
+		if((s32)imm>=-32768 && (s32)imm<=32767)
+		{
+//			printf("reg %d %08x lo\n",reg,imm);
+			EMIT_ADDI(ppce,R3,reg,imm);
+		}
+		else
+		{
+//			printf("reg %d %08x\n",reg,imm);
+/*			ppce->emitLoadImmediate32(R3,imm);
+			EMIT_ADD(ppce,R3,R3,reg);*/
+			EMIT_ADDIS(ppce,R3,reg,HA(imm))
+			EMIT_ADDI(ppce,R3,R3,imm);
+		}
 	}
 	else
 	{
 		//mov ecx,imm
 		//add ecx,reg1
 		ppce->emitLoad32(R3,GetRegPtr(reg1));
-		EMIT_ADDI(ppce,R3,R3,imm);
+
+		if((s32)imm>=-32768 && (s32)imm<=32767)
+		{
+//			printf("reg %08x lo\n",imm);
+			EMIT_ADDI(ppce,R3,R3,imm);
+		}
+		else
+		{
+//			printf("reg %08x\n",imm);
+/*			ppce->emitLoadImmediate32(R9,imm);
+			EMIT_ADD(ppce,R3,R3,R9);*/
+			EMIT_ADDIS(ppce,R3,R3,HA(imm))
+			EMIT_ADDI(ppce,R3,R3,imm);
+		}
 	}
 }
 void readwrteparams2(u8 reg1,u8 reg2)
@@ -1112,13 +1141,14 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,u32* fast_offset)
 	ppc_reg reg=ERROR_REG;
 
 //	printf("readwrteparams flags %d\n",flags);
+	
 	switch(flags)
 	{
 		//1 olny
 	case flag_imm:
 		ppce->emitLoadImmediate32(R3,op->imm1);
 		reg=R3;
-		dbgbreak;//must never ever happen
+		//gli dbgbreak;//must never ever happen
 		break;
 
 	case flag_r2:
@@ -1205,11 +1235,12 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 		case FLAG_16: EMIT_XORI(ppce,R3,R3,2); break;
 	}
 	
-#if 0
+#if 1
 	ppce->emitLoadImmediate32(R5,0xE0000000);
 	EMIT_CMPL(ppce,R3,R5,0);
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
 	EMIT_RLWINM(ppce,R5,R3,0,3,31);
+	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 #else
 	// crazy opti :D
 	EMIT_RLWINM(ppce,R6,R3,3,29,31);
@@ -1267,16 +1298,18 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		{
 			if (ira->IsRegAllocated(op->reg1))
 			{
-				destreg=LoadReg(R4,op->reg1);
+				destreg=LoadReg_nodata(R4,op->reg1);
 				verify(destreg!=R4);
 			}
 			else
 			{
-				destreg=LoadReg_nodata(R4,op->reg1);
+				destreg=R4;
 			}
 		}
 	}
 
+//	printf("destreg %d %d\n",destreg,reg_addr);
+	
 	switch(size)
 	{
 		case FLAG_8:  EMIT_LBZ(ppce,destreg,0,R5); break;
@@ -1336,20 +1369,6 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	u32 is_float=IsInFReg(op->reg1);
 	u32 was_float=is_float;
 
-	//if constant read , and on ram area , make it a direct mem access
-	//_watch_ mmu
-	if (!(op->flags & (FLAG_R0|FLAG_GBR|FLAG_REG2)))
-	{//[reg2+imm] form
-		assert(op->flags & FLAG_IMM1);
-		emit_vmem_op_compat_const(ppce,1,size,op->imm1,op->reg1);
-		return;
-	}
-
-	u32 old_offset=ppce->ppc_indx;
-	ppc_reg fast_reg;
-	u32 fast_reg_offset;
-	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
-
 	ppc_reg rsrc;
 	if (size==FLAG_64)
 	{
@@ -1378,6 +1397,20 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 		}
 	}
 	
+	//if constant read , and on ram area , make it a direct mem access
+	//_watch_ mmu
+	if (!(op->flags & (FLAG_R0|FLAG_GBR|FLAG_REG2)))
+	{//[reg2+imm] form
+		assert(op->flags & FLAG_IMM1);
+		emit_vmem_op_compat_const(ppce,1,size,op->imm1,op->reg1);
+		return;
+	}
+
+	u32 old_offset=ppce->ppc_indx;
+	ppc_reg fast_reg;
+	u32 fast_reg_offset;
+	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
+
 	old_offset=ppce->ppc_indx-old_offset;
 	
 	//ppc_Label* patch_point= ppce->CreateLabel(true,0);
@@ -1602,6 +1635,7 @@ void __fastcall shil_compile_cmp(shil_opcode* op)
 	assert(FLAG_32==(op->flags & 3));
 	if (op->flags & FLAG_IMM1)
 	{
+		assert(((s32)op->imm1>=-32768 && (s32)op->imm1<=32767));
 		assert(0==(op->flags & (FLAG_REG2|FLAG_IMM2)));
 		if (ira->IsRegAllocated(op->reg1))
 		{
@@ -1667,6 +1701,7 @@ void __fastcall shil_compile_test(shil_opcode* op)
 	assert(FLAG_32==(op->flags & 3));
 	if (op->flags & FLAG_IMM1)
 	{
+		assert((op->imm1&0xffff)==op->imm1);
 		assert(0==(op->flags & (FLAG_REG2|FLAG_IMM2)));
 		if (ira->IsRegAllocated(op->reg1))
 		{
@@ -2182,19 +2217,15 @@ void __fastcall shil_compile_pref(shil_opcode* op)
 	{
 		LoadReg_force(R3,op->reg1);
 		
-/*		
-		ppce->Emit(op_mov32,R4,R3);
-		ppce->Emit(op_and32,R4,0xFC000000);
-		ppce->Emit(op_cmp32,R4,0xE0000000);
-*/
 		EMIT_RLWINM(ppce,R4,R3,6,26,31);
 		EMIT_CMPLI(ppce,R4,0xe0>>2,0);
 
+		ppce->emitBranchConditional((void*)do_pref,PPC_CC_T,PPC_CC_ZER,1);
 		
-		ppc_Label* after=ppce->CreateLabel(false,8);
+/*		ppc_Label* after=ppce->CreateLabel(false,8);
 		ppce->emitBranchConditionalToLabel(after,0,PPC_CC_F,PPC_CC_ZER);
 		ppce->emitBranch((void*)do_pref,1);
-		ppce->MarkLabel(after);
+		ppce->MarkLabel(after);*/
 	}
 	else if (op->flags&FLAG_IMM1)
 	{

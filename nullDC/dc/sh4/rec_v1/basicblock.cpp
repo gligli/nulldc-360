@@ -378,12 +378,17 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 	ppce->ppc_size=64;
 
 	cBB->TF_block=new_block;
+#if 0
+//gli WTF
 	ppce->emitLoadImmediate32(R4,sh4r.pc);
 	EMIT_CMP(ppce,R3,R4,0);
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
 	ppce->emitBranchConditional((void*)RewriteBasicBlockGuess_FLUT_stub,PPC_CC_F,PPC_CC_ZER,0);
 	ppce->emitBranch((void*)new_block->Code,0);
-	
+#else
+	ppce->emitLoadImmediate32(R3,(u32)cBB);
+	ppce->emitBranch((void*)RewriteBasicBlockGuess_FLUT_stub,0);
+#endif	
 	verify(ppce->ppc_indx<=32);
 	
 	ppce->Generate();
@@ -453,9 +458,12 @@ void ret_cache_push(CompiledBlockInfo* cBB,ppc_block* ppce)
 {
 //	ppce->do_disasm=true;
 	EMIT_ADDI(ppce,R1,R1,8); //add the ptr ;)
+#if 0	
 	ppce->emitLoadImmediate32(R3,RET_CACHE_PTR_MASK_AND);
 	EMIT_AND(ppce,R1,R1,R3);
-
+#else
+	EMIT_RLWIMI(ppce,R1,R1,10,23,23);
+#endif
 	//Adress
 	ppce->emitLoadImmediate32(R3,cBB->TT_next_addr);
 	EMIT_STW(ppce,R3,RET_CACHE_STACK_OFFSET_A,R1);
@@ -491,6 +499,13 @@ bool BasicBlock::Compile()
 	verify(cycles<0x10000);
 	EMIT_ADDI(ppce,RCYCLES,RCYCLES,-cycles);
 	EMIT_CMPI(ppce,RCYCLES,0,0);
+	
+/*	
+	// debug tool
+	ppce->emitLoadImmediate32(R3,(cBB->start&0x1FFFFFFF)|0x70000000);
+	EMIT_LBZ(ppce,R3,0,R3);	
+*/
+	
 	ppce->emitBranchConditionalToLabel(block_exit,0,PPC_CC_T,PPC_CC_NEG);
 
 	if (flags.ProtectionType==BLOCK_PROTECTIONTYPE_MANUAL)
@@ -638,6 +653,7 @@ compile_normaly:
 			//ppce->Emit(op_int3);
 			
 			//ppce->Emit(op_mov32 ,EAX,GetRegPtr(reg_pc));
+			ppce->emitLoad32(R3,GetRegPtr(reg_pc));
 			EMIT_LWZ(ppce,R4,RET_CACHE_STACK_OFFSET_A,R1);
 			EMIT_CMP(ppce,R3,R4,0);
 			//je ok
@@ -652,10 +668,15 @@ compile_normaly:
 			//ppce->Emit(op_int3);
 			//Get the block ptr
 			EMIT_LWZ(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
-			ppce->emitMoveRegister(R14,R3);
 			EMIT_ADDI(ppce,R1,R1,-8);
+
+#if 0	
 			ppce->emitLoadImmediate32(R4,RET_CACHE_PTR_MASK_AND);
 			EMIT_AND(ppce,R1,R1,R4);
+#else
+			EMIT_RLWIMI(ppce,R1,R1,10,23,23);
+#endif
+			
 			EMIT_ORI(ppce,R1,R1,RET_CACHE_PTR_MASK_OR);
 #ifdef RET_CACHE_PROF
 			ppce->Emit(op_add32,ppc_ptr(&ret_cache_hits),1);

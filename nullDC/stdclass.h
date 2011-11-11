@@ -263,7 +263,7 @@ public:
     }
 };
 
-void * ExeptionHandler(int pir,void * srr0,void * dar);
+void * ExeptionHandler(int pir,void * srr0,void * dar,int write);
 int msgboxf(wchar* text,unsigned int type,...);
 
 

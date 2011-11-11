@@ -340,7 +340,7 @@ u32 shil_optimise_pass_ce_main(BasicBlock* bb)
 
 			if (op->opcode==shilop_writem && !is_writem_safe(bb,op))
 			{
-				log("Block %08X : disabling read-const @ %d/%d\n",bb->start,i,bb->ilst.opcodes.size());
+//				log("Block %08X : disabling read-const @ %d/%d\n",bb->start,i,bb->ilst.opcodes.size());
 				unsafe_pos=i;
 				break;
 			}
@@ -694,6 +694,7 @@ shilh(readm)
 				{
 					verify((op->flags & FLAG_SX)==0);
 					data=ReadMem32(addr);
+					printf("readm %08x\n",data);
 				}
 
 				bb->locked.push_back(addr);
@@ -706,7 +707,9 @@ shilh(readm)
 						ce_SetConst(op->reg1,data);
 					}
 					else
+					{
 						ce_MakeConst(op->reg1,data);
+					}
 				}
 				else
 				{	

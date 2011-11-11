@@ -398,7 +398,7 @@ void* _nvmem_map_buffer(u32 dst,u32 addrsz,u32 offset,u32 size)
 	for (u32 i=1;i<map_times;i++)
 	{
 		dst+=size;
-		vm_create_user_mapping((u32)&sh4_reserved_mem[dst],mem,size,VM_WIMG_CACHED|3); //FILE_MAP_READ
+		vm_create_user_mapping((u32)&sh4_reserved_mem[dst],mem,size,VM_WIMG_CACHED_READ_ONLY); //FILE_MAP_READ
 	}
 
 	return rv;

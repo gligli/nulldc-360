@@ -262,7 +262,7 @@ void CPUSwitchMode(int mode, bool saveState, bool breakLoop)
 		break;    
 	default:
 		printf("Unsupported ARM mode %02x\n", mode);
-		die("Arm error..");
+		//gli die("Arm error..");
 		break;
 	}
 	armMode = mode;

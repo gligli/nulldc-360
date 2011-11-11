@@ -110,7 +110,7 @@ void* ppc_block::Generate()
 	bool force=false;
 	
 //	force=true;
-//	force=!do_realloc;
+//	force=(u32)ppc_buff>=0x8054f510;
 	
 	if(do_disasm || force) printf("Gen %p %04x %04x\n",ppc_buff,ppc_size,ppc_indx);
 	
@@ -532,14 +532,14 @@ void ppc_block::emitMoveRegister(ppc_gpr_reg to,ppc_gpr_reg from)
 
 void ppc_block::emitLoadImmediate32(ppc_gpr_reg reg, u32 val)
 {
-	if(val&0xffff0000)
+	if((s32)val>=-32768 && (s32)val<=32767)
 	{
-		EMIT_LIS(this,reg,val>>16);
-		if (val&0xffff) EMIT_ORI(this,reg,reg,val);
+		EMIT_LI(this,reg,val);
 	}
 	else
 	{
-		EMIT_LI(this,reg,val);
+		EMIT_LIS(this,reg,val>>16);
+		if (val&0xffff) EMIT_ORI(this,reg,reg,val);
 	}
 }
 
