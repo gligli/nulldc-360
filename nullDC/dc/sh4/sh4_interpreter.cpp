@@ -648,6 +648,7 @@ void __fastcall MediumUpdate()
 	#ifdef INCLUDE_DEV_TOOLS
 	if(!GetAsyncKeyState(DEV_TOOL_FAST_FW_KEY))
 	#endif
+/*gli usefull
 	{
 		aica_sample_cycles+=3584*AICA_SAMPLE_GCM;
 
@@ -660,12 +661,13 @@ void __fastcall MediumUpdate()
 
 		aica_periodical(3584);
 	}
-
+*/
 	maple_periodical(3584);
 
 /*gli useless
 	libExtDevice.UpdateExtDevice(3584);
-	UpdateDMA();*/
+	UpdateDMA();
+ */
 
 	if (!(update_cnt&0x8))
 		SlowUpdate();

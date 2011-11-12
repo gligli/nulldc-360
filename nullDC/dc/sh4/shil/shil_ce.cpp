@@ -608,7 +608,7 @@ bool GetRamReadAdr(shil_opcode* op,u32* addr)
 }
 bool ce_ReadWriteParams(shil_opcode* op)
 {
-	//return false;
+	return false;
 	bool rv=false;
 
 	if (op->flags & FLAG_REG2)
@@ -694,7 +694,6 @@ shilh(readm)
 				{
 					verify((op->flags & FLAG_SX)==0);
 					data=ReadMem32(addr);
-					printf("readm %08x\n",data);
 				}
 
 				bb->locked.push_back(addr);

@@ -126,6 +126,7 @@ public:
 	u32 ppc_size;
 	bool do_realloc;
 	bool do_disasm;
+	bool do_disasm_imm;
 
 	ppc_block();
 	~ppc_block();

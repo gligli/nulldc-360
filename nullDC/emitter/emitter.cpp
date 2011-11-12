@@ -340,6 +340,7 @@ ppc_block::ppc_block()
 	_labels=new vector<code_patch>;
 	labels.reserve(64);
 	do_disasm=false;
+	do_disasm_imm=false;
 }
 ppc_block::~ppc_block()
 {
@@ -384,6 +385,10 @@ void  ppc_block::write32(u32 value)
 {
 	ppc_buffer_ensure(15);
 	//printf("ppc_block::write32 %08X\n",value);
+
+//	if(do_disasm_imm) printf("do_disasm_imm\n");
+	if (do_disasm_imm) disassemble(ppc_indx,value);
+		
 	*(u32*)&ppc_buff[ppc_indx]=value;
 	ppc_indx+=4;
 }
