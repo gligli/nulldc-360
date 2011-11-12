@@ -608,9 +608,10 @@ bool GetRamReadAdr(shil_opcode* op,u32* addr)
 }
 bool ce_ReadWriteParams(shil_opcode* op)
 {
-	return false;
+	//return false;
 	bool rv=false;
 
+/*gli cause problems in the bios
 	if (op->flags & FLAG_REG2)
 	{
 		if (ce_IsConst(op->reg2))
@@ -626,6 +627,7 @@ bool ce_ReadWriteParams(shil_opcode* op)
 			op->flags&=~FLAG_REG2;
 		}
 	}
+*/ 
 	if (op->flags & FLAG_R0)
 	{
 		if (ce_IsConst(r0))

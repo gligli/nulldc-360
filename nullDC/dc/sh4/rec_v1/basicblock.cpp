@@ -525,9 +525,10 @@ bool BasicBlock::Compile()
 		while(sz>=4)
 		{
 			u32* pmem=(u32*)GetMemPtr(start+i,4);
+//			printf("man %p %08x %d\n",pmem,*pmem,sz);
 			ppce->emitLoad32(R3,pmem);
 			ppce->emitLoadImmediate32(R4,*pmem);
-			EMIT_CMP(ppce,R3,R4,0);
+			EMIT_CMPL(ppce,R3,R4,0);
 
 			if (sz==4)
 			{
@@ -544,8 +545,9 @@ bool BasicBlock::Compile()
 		{
 			//die("lol");
 			u16* pmem=(u16*)GetMemPtr(start+i,2);
-			EMIT_LI(ppce,R3,(u32)pmem);
-			EMIT_CMPI(ppce,R3,*pmem,0);
+//			printf("man %p %04x %d\n",pmem,*pmem,sz);
+			ppce->emitLoad16(R3,pmem);
+			EMIT_CMPLI(ppce,R3,*pmem,0);
 			
 			ppce->emitBranchConditionalToLabel(execute_block,0,PPC_CC_T,PPC_CC_ZER);
 
@@ -561,6 +563,7 @@ bool BasicBlock::Compile()
 		ppce->emitBranch((void*)SuspendBlock,1);
 		ppce->emitBranch((void*)Dynarec_Mainloop_no_update,0);
 		ppce->MarkLabel(execute_block);
+//		ppce->do_disasm=true;
 	}
 #ifdef COUNT_BLOCK_LOCKTYPE_USAGE
 	else

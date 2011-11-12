@@ -809,15 +809,9 @@ bool RamLockedWrite(u8* address,u32* sp)
 			return false;
 		PageInfo[addr_hash].invalidates++;
 					
-		//for (size_t i=0;i<list->ItemCount;i++)
-		//{
-		//	if ((*list)[i])
-		//	{
 		while(list->ItemCount)
 			SuspendBlock_exept((*list)[list->ItemCount-1],sp);
-		//	}
-		//}
-		//list->clear();
+
 		mem_b.UnLockRegion((u32)offset&(~(PAGE_SIZE-1)),PAGE_SIZE);
 
 		if (PageInfo[addr_hash].invalidates>=1)
