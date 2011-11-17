@@ -461,6 +461,7 @@ void ppc_block::emitBranchConditional(void * addr, int bo, int bi, int lk)
 {
 	PowerPC_instr ppc=NEW_PPC_INSTR();
 	PPC_SET_OPCODE(ppc,5); // primary opcode 5=bc
+	verify(bc_tab_next_idx<0x4000);
 	bc_tab[bc_tab_next_idx]=(u32)addr;
 	PPC_SET_BD(ppc,bc_tab_next_idx++);
 	PPC_SET_BO(ppc,bo);

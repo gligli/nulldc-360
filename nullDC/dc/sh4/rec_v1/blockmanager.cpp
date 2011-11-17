@@ -808,9 +808,11 @@ bool RamLockedWrite(u8* address,u32* sp)
 		if (list->ItemCount==0)
 			return false;
 		PageInfo[addr_hash].invalidates++;
-					
+				
 		while(list->ItemCount)
+		{
 			SuspendBlock_exept((*list)[list->ItemCount-1],sp);
+		}
 
 		mem_b.UnLockRegion((u32)offset&(~(PAGE_SIZE-1)),PAGE_SIZE);
 
@@ -907,8 +909,12 @@ void* dyna_finalize(void* ptr,u32 oldsize,u32 newsize)
 		return 0;
 	
 	void* rv=&DynarecCache[DynarecCacheUsed];
+#if 1
 	verify(!((u32)rv&127));
 	DynarecCacheUsed+=(newsize+127)&~127; // align blocks on cache lines
+#else
+	DynarecCacheUsed+=newsize;
+#endif
 	memcpy(rv,dyna_tempbuffer,newsize);
 	return rv;
 }

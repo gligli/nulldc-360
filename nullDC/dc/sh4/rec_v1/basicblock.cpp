@@ -76,7 +76,7 @@ void RewriteBasicBlockFixed(CompiledBlockInfo* cBB)
 	ppce->Init(dyna_realloc,dyna_finalize);
 	ppce->do_realloc=false;
 	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
-	ppce->ppc_size=64;
+	ppce->ppc_size=32;
 
 	cBB->Rewrite.Last=flags;
 
@@ -212,8 +212,8 @@ void __attribute__((naked)) bb_link_compile_inject_TF_stub(CompiledBlockInfo* pt
 {
 	asm volatile(
 		"bl bb_link_compile_inject_TF				\n"
-		"mtctr 3									\n"
-		"bctr										\n"
+		"mtlr 3										\n"
+		"blr										\n"
 	);
 }
 
@@ -221,8 +221,8 @@ void __attribute__((naked)) bb_link_compile_inject_TT_stub(CompiledBlockInfo* pt
 {
 	asm volatile(
 		"bl bb_link_compile_inject_TT				\n"
-		"mtctr 3									\n"
-		"bctr										\n"
+		"mtlr 3										\n"
+		"blr										\n"
 	);
 }
 #endif
@@ -347,8 +347,8 @@ void __attribute__((naked)) RewriteBasicBlockGuess_FLUT_stub(CompiledBlockInfo* 
 		"lis 3,Dynarec_Mainloop_no_update@h			\n"
 		"ori 3,3,Dynarec_Mainloop_no_update@l		\n"
 		"lwz 3,0(3)									\n"
-		"mtctr 3									\n"
-		"bctr										\n"
+		"mtlr 3										\n"
+		"blr										\n"
 	);
 }
 #endif
@@ -378,18 +378,18 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 	ppce->ppc_size=64;
 
 	cBB->TF_block=new_block;
-#if 0
-//gli WTF
+#if 1
+	ppce->emitLoad32(R3,GetRegPtr(reg_pc));
 	ppce->emitLoadImmediate32(R4,sh4r.pc);
 	EMIT_CMP(ppce,R3,R4,0);
+	ppce->emitBranchConditional((void*)new_block->Code,PPC_CC_T,PPC_CC_ZER,0);
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
-	ppce->emitBranchConditional((void*)RewriteBasicBlockGuess_FLUT_stub,PPC_CC_F,PPC_CC_ZER,0);
-	ppce->emitBranch((void*)new_block->Code,0);
+	ppce->emitBranch((void*)RewriteBasicBlockGuess_FLUT_stub,0);
 #else
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
 	ppce->emitBranch((void*)RewriteBasicBlockGuess_FLUT_stub,0);
 #endif	
-	verify(ppce->ppc_indx<=32);
+	verify(ppce->ppc_indx<=36);
 	
 	ppce->Generate();
 	delete ppce;
@@ -409,8 +409,8 @@ void __attribute__((naked)) RewriteBasicBlockGuess_TTG_stub(CompiledBlockInfo* p
 {
 	asm volatile(
 		"bl RewriteBasicBlockGuess_TTG				\n"
-		"mtctr 3									\n"
-		"bctr										\n"
+		"mtlr 3										\n"
+		"blr										\n"
 	);
 }
 #endif
@@ -434,6 +434,7 @@ void FASTCALL RewriteBasicBlockGuess_NULL(CompiledBlockInfo* cBB)
 }
 void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB)
 {
+//	printf("RewriteBasicBlock %d %d\n",cBB->Rewrite.Type,cBB->Rewrite.RCFlags);
 	if (cBB->Rewrite.Type==1)
 		RewriteBasicBlockCond(cBB);
 	else if (cBB->Rewrite.Type==2)
@@ -517,11 +518,12 @@ bool BasicBlock::Compile()
 		verify(sz!=0);
 
 		int i=0;
-		//that can be optimised a lota :p
 		
+		//that can be optimised a lota :p
 		ppc_Label* exit_discard_block= ppce->CreateLabel(false,0);
 		ppc_Label* execute_block= ppce->CreateLabel(false,8);
 		verify(sz!=0);
+
 		while(sz>=4)
 		{
 			u32* pmem=(u32*)GetMemPtr(start+i,4);
@@ -563,7 +565,6 @@ bool BasicBlock::Compile()
 		ppce->emitBranch((void*)SuspendBlock,1);
 		ppce->emitBranch((void*)Dynarec_Mainloop_no_update,0);
 		ppce->MarkLabel(execute_block);
-//		ppce->do_disasm=true;
 	}
 #ifdef COUNT_BLOCK_LOCKTYPE_USAGE
 	else
@@ -588,7 +589,7 @@ bool BasicBlock::Compile()
 	for (u32 i=0;i<list_sz;i++)
 	{
 		shil_opcode* op=&ilst.opcodes[i];
-
+#if 0
 		if ((BLOCK_EXITTYPE_COND==flags.ExitType) && i>0 && (list_sz>1) && (op[0].opcode == shilop_LoadT) && (op[0].imm1==128))	//if flag will be preserved, and we are on a LoadT jcond
 		{
 			//
@@ -614,6 +615,7 @@ bool BasicBlock::Compile()
 				continue;
 			}
 		}
+#endif
 compile_normaly:
 		shil_compile(op);
 	}
@@ -641,7 +643,7 @@ compile_normaly:
 			cBB->Rewrite.Offset=ppce->ppc_indx;
 			ppce->emitLoadImmediate32(R3,(u32)cBB);
 			ppce->emitBranch((void*)RewriteBasicBlockGuess_TTG_stub,0);
-			u32 extrasz=32-(ppce->ppc_indx-cBB->Rewrite.Offset);
+			u32 extrasz=36-(ppce->ppc_indx-cBB->Rewrite.Offset);
 			for (u32 i=0;i<extrasz/4;i++)
 				ppce->write32(PPC_NOP);
 		}
@@ -651,41 +653,28 @@ compile_normaly:
 #ifdef RET_CACHE_PROF
 			ppce->Emit(op_add32,ppc_ptr(&ret_cache_total),1);
 #endif
-			//cmp pr,guess
-			//call_ret_cache_ptr
-			//ppce->Emit(op_int3);
-			
-			//ppce->Emit(op_mov32 ,EAX,GetRegPtr(reg_pc));
-			ppce->emitLoad32(R3,GetRegPtr(reg_pc));
+
+			ira->GetRegister(R3,reg_pc,RA_FORCE);
 			EMIT_LWZ(ppce,R4,RET_CACHE_STACK_OFFSET_A,R1);
 			EMIT_CMP(ppce,R3,R4,0);
-			//je ok
+			
 #ifndef RET_CACHE_PROF
 			ppce->emitBranchConditional(Dynarec_Mainloop_no_update,PPC_CC_F,PPC_CC_ZER,0);
 #else
 			ppce->Emit(op_jne ,ppc_ptr_imm(ret_cache_misscall));
 #endif
-			//ok:
-//	ppce->do_disasm=true;
-			
-			//ppce->Emit(op_int3);
+
 			//Get the block ptr
 			EMIT_LWZ(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
-			EMIT_ADDI(ppce,R1,R1,-8);
 
-#if 0	
-			ppce->emitLoadImmediate32(R4,RET_CACHE_PTR_MASK_AND);
-			EMIT_AND(ppce,R1,R1,R4);
-#else
+			EMIT_ADDI(ppce,R1,R1,-8);
 			EMIT_RLWIMI(ppce,R1,R1,10,23,23);
-#endif
-			
 			EMIT_ORI(ppce,R1,R1,RET_CACHE_PTR_MASK_OR);
+			
 #ifdef RET_CACHE_PROF
 			ppce->Emit(op_add32,ppc_ptr(&ret_cache_hits),1);
 #endif
-			
-			//mov eax,[pcall_ret_address+codeoffset]
+
 			EMIT_LWZ(ppce,R4,offsetof(CompiledBlockInfo,pTT_next_addr),R3);
 			EMIT_MTCTR(ppce,R4);
 			EMIT_BCTR(ppce);

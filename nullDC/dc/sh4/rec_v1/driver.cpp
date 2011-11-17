@@ -101,7 +101,7 @@ CompiledBlockInfo* FindOrRecompileBlock(u32 pc)
 		return CompileCode(pc);
 }
 
-void naked CompileAndRunCode()
+void __attribute__((naked)) CompileAndRunCode()
 {
 #ifdef XENON
 	asm volatile (

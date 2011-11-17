@@ -10,13 +10,8 @@ struct pginfo
 	{
 		struct
 		{
-#ifdef XENON
-			u32 reserved:31;	//bit 1-31: reserved
-			u32 ManualCheck:1;	//bit 0 :1-> manual check , 0 -> locked check
-#else
 			u32 ManualCheck:1;	//bit 0 :1-> manual check , 0 -> locked check
 			u32 reserved:31;	//bit 1-31: reserved
-#endif
 		};
 		u32 full;
 	} flags;

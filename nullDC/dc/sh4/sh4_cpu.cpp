@@ -73,9 +73,9 @@ void cpu_iNimp(u32 op, char* info)
 {
 	log("not implemented opcode : %X : ", op);
 	log(info);
-	log(" @ %X\nPress Any key to continue\n", pc);
-	getc(stdin);
+	log(" @ %X\n", pc);
 
+	dbgbreak;
 	//sh4_cpu->Stop();
 }
 

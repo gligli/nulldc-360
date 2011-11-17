@@ -377,7 +377,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 		
 		branch_op&=~(0x1f<<21);
 		branch_op|=PPC_CC_A<<21;
-		disassemble((u32)branch,branch_op);
+//		disassemble((u32)branch,branch_op);
 		*branch=branch_op;
 		memicbi(branch,4);
 		return branch+((branch_op>>2)&0x3fff);// EXCEPTION_CONTINUE_EXECUTION;

@@ -1368,6 +1368,19 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	u32 size=op->flags&3;
 	u32 is_float=IsInFReg(op->reg1);
 	u32 was_float=is_float;
+	//if constant read , and on ram area , make it a direct mem access
+	//_watch_ mmu
+	if (!(op->flags & (FLAG_R0|FLAG_GBR|FLAG_REG2)))
+	{//[reg2+imm] form
+		assert(op->flags & FLAG_IMM1);
+		emit_vmem_op_compat_const(ppce,1,size,op->imm1,op->reg1);
+		return;
+	}
+
+	u32 old_offset=ppce->ppc_indx;
+	ppc_reg fast_reg;
+	u32 fast_reg_offset;
+	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
 
 	ppc_reg rsrc;
 	if (size==FLAG_64)
@@ -1397,20 +1410,6 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 		}
 	}
 	
-	//if constant read , and on ram area , make it a direct mem access
-	//_watch_ mmu
-	if (!(op->flags & (FLAG_R0|FLAG_GBR|FLAG_REG2)))
-	{//[reg2+imm] form
-		assert(op->flags & FLAG_IMM1);
-		emit_vmem_op_compat_const(ppce,1,size,op->imm1,op->reg1);
-		return;
-	}
-
-	u32 old_offset=ppce->ppc_indx;
-	ppc_reg fast_reg;
-	u32 fast_reg_offset;
-	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
-
 	old_offset=ppce->ppc_indx-old_offset;
 	
 	//ppc_Label* patch_point= ppce->CreateLabel(true,0);
@@ -2775,6 +2774,7 @@ void shil_compile(shil_opcode* op)
 	{
 		log("SHIL COMPILER ERROR\n");
 	}
+//	log("SHIL %s\n",GetShilName((shil_opcodes)op->opcode));
 	sclt[op->opcode](op);
 }
 
