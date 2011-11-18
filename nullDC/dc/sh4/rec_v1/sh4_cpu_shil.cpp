@@ -570,13 +570,12 @@ rsh4op(i0100_nnnn_mmmm_1101)
 }
 
 //rotcl <REG_N>                 
-sh4op(i0100_nnnn_0010_0100)
+rsh4op(i0100_nnnn_0010_0100)
 {
 	u32 n = GetN(op);
 
-	ilst->LoadT(CF);
 	ilst->rcl(r[n]);
-	ilst->SaveT(SaveCF);
+	ilst->SaveT(CC_E);
 }
 
 //rotl <REG_N>                  
@@ -585,17 +584,16 @@ rsh4op(i0100_nnnn_0000_0100)
 	u32 n = GetN(op);
 
 	ilst->rol(r[n]);
-	ilst->SaveT(SaveCF);
+	ilst->SaveT(CC_E);
 }
 
 //rotcr <REG_N>                 
-sh4op(i0100_nnnn_0010_0101)
+rsh4op(i0100_nnnn_0010_0101)
 {
 	u32 n = GetN(op);
 
-	ilst->LoadT(CF);
 	ilst->rcr(r[n]);
-	ilst->SaveT(SaveCF);
+	ilst->SaveT(CC_E);
 }
 
 //rotr <REG_N>                  
@@ -604,7 +602,7 @@ rsh4op(i0100_nnnn_0000_0101)
 	u32 n = GetN(op);
 
 	ilst->ror(r[n]);
-	ilst->SaveT(SaveCF);
+	ilst->SaveT(CC_E);
 }					
 //************************ byte reorder/sign ************************
 //swap.b <REG_M>,<REG_N>        

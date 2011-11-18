@@ -218,6 +218,12 @@ void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool mask, bool r
 		ppc_gpr_reg r1=LoadReg(R3,op->reg1);
 		assert(r1!=R3);
 		
+		if(op->imm1==1) // T flag?
+		{
+			EMIT_RLWINM(ppce,R5,r1,(right||!mask)?0:1,31,31);
+			EMIT_CMPLI(ppce,R5,1,0);
+		}
+				
 		PPC_SET_RD(ppc,r1);
 		PPC_SET_RA(ppc,r1);
 		PPC_SET_SH(ppc,right?32-op->imm1:op->imm1);
@@ -242,6 +248,12 @@ void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool mask, bool r
 		u32 * ptr = GetRegPtr(op->reg1);
 		ppce->emitLoad32(R4,ptr);
 
+		if(op->imm1==1) // T flag?
+		{
+			EMIT_RLWINM(ppce,R5,R4,(right||!mask)?0:1,31,31);
+			EMIT_CMPLI(ppce,R5,1,0);
+		}
+				
 		PPC_SET_RD(ppc,R4);
 		PPC_SET_RA(ppc,R4);
 		PPC_SET_SH(ppc,right?32-op->imm1:op->imm1);
@@ -264,8 +276,40 @@ void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool mask, bool r
 	}
 }
 
+
+void op_reg_rot(ppc_gpr_reg r1, int rot, bool carry)
+{
+	if(rot)
+	{
+		EMIT_RLWINM(ppce,R5,r1,(rot==2)?1:0,31,31);
+		EMIT_CMPLI(ppce,R5,1,0);
+
+		if(carry)
+		{
+			EMIT_BC(ppce,3,0,0,PPC_CC_T,CR_T_FLAG);
+			if(rot==2)
+			{
+				EMIT_RLWINM(ppce,r1,r1,0,1,31);
+			}
+			else
+			{
+				EMIT_RLWINM(ppce,r1,r1,0,0,30);
+			}
+			EMIT_B(ppce,2,0,0);
+			if(rot==2)
+			{
+				EMIT_ORIS(ppce,r1,r1,0x8000);
+			}
+			else
+			{
+				EMIT_ORI(ppce,r1,r1,1);
+			}
+		}
+	}
+}
+
 //reg
-void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc, bool setRB)
+void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc, bool setRB, int rot, bool carry) // rot: 0=!rot, 1=left, 2=right
 {
 	assert(FLAG_32==(op->flags & 3));
 	assert(0==(op->flags & FLAG_IMM1));
@@ -282,6 +326,8 @@ void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc, bool setRB)
 		if (setRB) PPC_SET_RB(ppc,r1);
 		ppce->write32(ppc);
 		
+		op_reg_rot(r1,rot,carry);
+		
 		SaveReg(op->reg1,r1);
 	}
 	else
@@ -294,6 +340,8 @@ void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc, bool setRB)
 		if (setRB) PPC_SET_RB(ppc,R4);
 		ppce->write32(ppc);
 
+		op_reg_rot(R4,rot,carry);
+		
 		ppce->emitStore32(ptr,R4);
 	}
 }
@@ -883,7 +931,6 @@ void __fastcall shil_compile_shl(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_RLWINM(ppc,0,0,0,0,0);
-	ppc|=1; // record bit
 	op_imm_to_reg(op,ppc,true,false);
 }
 //shr reg32,imm , set flags
@@ -891,7 +938,6 @@ void __fastcall shil_compile_shr(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_RLWINM(ppc,0,0,0,0,0);
-	ppc|=1; // record bit
 	op_imm_to_reg(op,ppc,true,true);
 }
 //sar reg32,imm , set flags
@@ -899,7 +945,6 @@ void __fastcall shil_compile_sar(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_SRAWI(ppc,0,0,0);
-	ppc|=1; // record bit
 	op_imm_to_reg(op,ppc,false,false);
 }
 
@@ -907,42 +952,44 @@ void __fastcall shil_compile_sar(shil_opcode* op)
 //rcl reg32, CF is set before calling
 void __fastcall shil_compile_rcl(shil_opcode* op)
 {
-//	op_reg(op,op_rcl32);
+	PowerPC_instr ppc;
+	GEN_RLWINM(ppc,0,0,1,0,31);
+	op_reg(op,ppc,false,1,true);
 }
 //rcr reg32, CF is set before calling
 void __fastcall shil_compile_rcr(shil_opcode* op)
 {
-//	op_reg(op,op_rcr32);
+	PowerPC_instr ppc;
+	GEN_RLWINM(ppc,0,0,31,0,31);
+	op_reg(op,ppc,false,2,true);
 }
 //ror reg32
 void __fastcall shil_compile_ror(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_RLWINM(ppc,0,0,31,0,31);
-	ppc|=1; // record bit
-	op_reg(op,ppc,false);
+	op_reg(op,ppc,false,2,false);
 }
 //rol reg32
 void __fastcall shil_compile_rol(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_RLWINM(ppc,0,0,1,0,31);
-	ppc|=1; // record bit
-	op_reg(op,ppc,false);
+	op_reg(op,ppc,false,1,false);
 }
 //neg
 void __fastcall shil_compile_neg(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_NEG(ppc,0,0);
-	op_reg(op,ppc,false);
+	op_reg(op,ppc,false,0,false);
 }
 //not
 void __fastcall shil_compile_not(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_NOR(ppc,0,0,0);
-	op_reg(op,ppc,true);
+	op_reg(op,ppc,true,0,false);
 }
 
 //xor reg32,reg32/imm32
@@ -2723,6 +2770,8 @@ void sclt_Init()
 	SetH(shilop_SaveT,shil_compile_SaveT);
 	SetH(shilop_cmp,shil_compile_cmp);
 	SetH(shilop_test,shil_compile_test);
+	SetH(shilop_rcl,shil_compile_rcl);
+	SetH(shilop_rcr,shil_compile_rcr);
 	SetH(shilop_rol,shil_compile_rol);
 	SetH(shilop_ror,shil_compile_ror);
 	SetH(shilop_neg,shil_compile_neg);
@@ -2744,9 +2793,6 @@ void sclt_Init()
 	SetH(shilop_ftrc,shil_compile_ftrc);
 		
 /* gli86
-
-	SetH(shilop_rcl,shil_compile_rcl);
-	SetH(shilop_rcr,shil_compile_rcr);
 
 	SetH(shilop_swap,shil_compile_swap);
 	SetH(shilop_mul,shil_compile_mul);
