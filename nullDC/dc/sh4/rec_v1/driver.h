@@ -4,6 +4,7 @@
 #include <emitter/emitter.h>
 
 #define RCYCLES 31
+#define CPU_TIMESLICE	(BLOCKLIST_MAX_CYCLES)
 
 //interface
 void rec_Sh4_int_Run();

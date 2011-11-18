@@ -122,33 +122,27 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	
 //	printf("cBB->Rewrite.RCFlags %08x %d\n",cBB->Rewrite.RCFlags,flags);
 	
-	int bo=ppc_condition_flags[cBB->Rewrite.RCFlags][0];
-	int bi=ppc_condition_flags[cBB->Rewrite.RCFlags][1];
-
-	int bo_n=ppc_condition_flags[cBB->Rewrite.RCFlags^1][0];
-	int bi_n=ppc_condition_flags[cBB->Rewrite.RCFlags^1][1];
-
 	if (flags==1)
 	{
-		ppce->emitBranchConditional((void*)cBB->TT_block->Code,bo,bi,0);
+		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,CR_T_COND_FLAG,0);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TF_stub,0);
 	}
 	else if  (flags==2)
 	{
-		ppce->emitBranchConditional((void*)cBB->TF_block->Code,bo_n,bi_n,0);
+		ppce->emitBranchConditional((void*)cBB->TF_block->Code,PPC_CC_T,CR_T_COND_FLAG,0);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	else  if  (flags==3)
 	{
-		ppce->emitBranchConditional((void*)cBB->TF_block->Code,bo_n,bi_n,0);
+		ppce->emitBranchConditional((void*)cBB->TF_block->Code,PPC_CC_T,CR_T_COND_FLAG,0);
 		ppce->emitBranch((void*)cBB->TT_block->Code,0);
 	}
 	else
 	{
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
-		ppce->emitBranchConditional((void*)bb_link_compile_inject_TF_stub,bo_n,bi_n,0);
+		ppce->emitBranchConditional((void*)bb_link_compile_inject_TF_stub,PPC_CC_T,CR_T_COND_FLAG,0);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	ppce->Generate();
@@ -490,6 +484,7 @@ bool BasicBlock::Compile()
 	ppce->Emit(op_mov32,&Curr_block,(u32)cBB);
 	*/
 
+	ppc_Label* block_begin = ppce->CreateLabel(true,0);
 	ppc_Label* block_exit = ppce->CreateLabel(false,0);
 
 	/*
@@ -585,38 +580,9 @@ bool BasicBlock::Compile()
 
 	u32 list_sz=(u32)ilst.opcodes.size();
 	
-	u32 exit_cond_direct=16;//16 -> not possible
 	for (u32 i=0;i<list_sz;i++)
 	{
 		shil_opcode* op=&ilst.opcodes[i];
-#if 0
-		if ((BLOCK_EXITTYPE_COND==flags.ExitType) && i>0 && (list_sz>1) && (op[0].opcode == shilop_LoadT) && (op[0].imm1==128))	//if flag will be preserved, and we are on a LoadT jcond
-		{
-			//
-			//folowing opcodes better be mov only 
-			if (
-				 //(i==(list_sz-1)) &&//&& //if current opcode is LoadT/jcond [shoul allways be...] -> checks above since its not the last opcode allways [opt passes move some stuff downhere, const wbs ..]
-				(op[-1].opcode == shilop_SaveT)							  //and previous was a load to T [== the cmp was right before bt/no bts)
-				)
-			{
-				for (u32 j=i+1;j<list_sz;j++)
-				{
-					//log("%d: %d\n",j,op[j-i].opcode);
-					if (op[j-i].opcode!=shilop_mov)
-						goto compile_normaly;
-				}
-				//log("Flag promotion @ %d out of %d\n",i,(list_sz-1));
-				exit_cond_direct=op[-1].imm1;
-
-/*gli wtf		if (exit_cond_direct==CC_FPU_E)
-					exit_cond_direct=CC_NP;*/
-
-				//skip the LoadT jcond, work on opcodes after
-				continue;
-			}
-		}
-#endif
-compile_normaly:
 		shil_compile(op);
 	}
 
@@ -687,12 +653,6 @@ compile_normaly:
 			u32 TT_a=cBB->TT_next_addr;
 			u32 TF_a=cBB->TF_next_addr;
 			
-			if (exit_cond_direct==16)
-			{
-				EMIT_CROR(ppce,PPC_CC_ZER,CR_T_FLAG,CR_T_FLAG);
-				exit_cond_direct=CC_E;
-			}
-
 			if (TT_a==cBB->start)
 			{
 				cBB->TT_block=cBB;
@@ -715,22 +675,11 @@ compile_normaly:
 					cBB->TF_block->AddRef(cBB);
 			}
 
-			//we invert the test, jne->je etc
-			//due to historical reasons, thats how the COND exit type works ;p
-			exit_cond_direct^=1;
-
 			cBB->Rewrite.Type=1;
-			cBB->Rewrite.RCFlags=exit_cond_direct;
 			cBB->Rewrite.Offset=ppce->ppc_indx;
 			
 			/* gli 8 ops max for cond rewrite */
 			for(int i=0;i<8;++i) ppce->write32(PPC_NOP);
-			
-/*			
-			ppce->Emit(op_mov32,ECX,(u32)cBB);					//mov ecx , block
-			ppce->Emit(JumpCC[exit_cond_direct],ppc_ptr_imm(0));//jne
-			ppce->Emit(op_jmp,ppc_ptr_imm(0));
-			ppce->Emit(op_int3);*/
 		} 
 		break;
 	case BLOCK_EXITTYPE_FIXED_CALL:		//same as below
@@ -779,9 +728,15 @@ compile_normaly:
 
 	ppce->MarkLabel(block_exit);
 
-	EMIT_ADDI(ppce,RCYCLES,RCYCLES,cycles);
+	EMIT_ADDI(ppce,RCYCLES,RCYCLES,cycles+CPU_TIMESLICE);
+	
 	ppce->emitLoadImmediate32(R3,start);
 	ppce->emitStore32(GetRegPtr(reg_pc),R3);
+
+	ppce->emitBranch((void*)UpdateSystem,1);
+	EMIT_CMPI(ppce,R3,0,0);
+	ppce->emitBranchConditionalToLabel(block_begin,0,PPC_CC_T,PPC_CC_ZER);
+	
 	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,0);
 
 	//apply roml patches and generate needed code

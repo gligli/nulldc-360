@@ -249,7 +249,7 @@ int UpdateINTC()
 #else
 	asm volatile (
 		"lis 7,intr@ha					\n"
-#if 0
+#if 1
 		"lwz 4,intr+0@l(7)				\n" // vpend
 		"lwz 5,intr+4@l(7)				\n" // vmask
 #else	

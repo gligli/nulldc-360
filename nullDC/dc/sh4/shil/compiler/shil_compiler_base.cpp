@@ -1627,6 +1627,10 @@ void __fastcall shil_compile_LoadT(shil_opcode* op)
 	{
 		EMIT_CROR(ppce,PPC_CC_ZER,CR_T_FLAG,CR_T_FLAG);
 	}
+	else
+	{
+		EMIT_CROR(ppce,CR_T_COND_FLAG,CR_T_FLAG,CR_T_FLAG);
+	}
 }
 //cmp-test
 void __fastcall shil_compile_cmp(shil_opcode* op)

@@ -35,6 +35,7 @@ extern int ppc_condition_flags[][3];
 
 // CR2 bit 2
 #define CR_T_FLAG 10
+#define CR_T_COND_FLAG 9
 
 #define RTMP 10
 #define RSH4R 15

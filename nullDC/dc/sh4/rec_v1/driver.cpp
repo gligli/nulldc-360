@@ -25,8 +25,6 @@
 
 #include <ppc/timebase.h>
 
-#define CPU_TIMESLICE	(BLOCKLIST_MAX_CYCLES)
-
 //uh uh 
 volatile bool  rec_sh4_int_bCpuRun=false;
 cThread* rec_sh4_int_thr_handle=0;
@@ -266,11 +264,6 @@ void naked DynaMainLoop()
 
 		".align 4								\n"
 "do_update:										\n"
-		//called if update is needed
-		//ecx=cycles
-		"addi " xstr(RCYCLES) "," xstr(RCYCLES) "," xstr(CPU_TIMESLICE)		"\n"
-		"bl UpdateSystem						\n"
-
 		//check for exit
 		"lis 6,rec_sh4_int_bCpuRun@ha			\n"
 		"lwz 6,rec_sh4_int_bCpuRun@l(6)			\n"
