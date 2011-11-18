@@ -376,6 +376,8 @@ public:
 {PowerPC_instr ppc;GEN_CRNOR(ppc,cd,ca,cb);ppce->write32(ppc);}
 #define EMIT_MFCR(ppce,rt) \
 {PowerPC_instr ppc;GEN_MFCR(ppc,rt);ppce->write32(ppc);}
+#define EMIT_MCRXR(ppce,bf) \
+{PowerPC_instr ppc;GEN_MCRXR(ppc,bf);ppce->write32(ppc);}
 
 // debug
 

@@ -451,9 +451,7 @@ rsh4op(i0011_nnnn_mmmm_1110)
 	u32 n=GetN(op);
 	u32 m=GetM(op);
 
-	ilst->LoadT(CF);			//load T to carry flag
 	ilst->adc(r[n],r[m]);		//add w/ carry
-	ilst->SaveT(SaveCF);//save CF to T
 }
 
 // addv <REG_M>,<REG_N>          

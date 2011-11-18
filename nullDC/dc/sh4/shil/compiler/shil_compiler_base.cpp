@@ -123,7 +123,7 @@ u32 IsInFReg(u32 reg)
 
 //Common opcode handling code
 //reg to reg
-void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc_imm, bool invRDRA)
+void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc_imm, bool invRDRA, bool sub, bool carry)
 {
 //	ppce->do_disasm=true;
 	assert(FLAG_32==(op->flags & 3));
@@ -137,20 +137,31 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
 			assert(r1!=R3);
 			
+			if(carry)
+			{
+				EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
+				EMIT_ADDI(ppce,r1,r1,1);
+			}
+			
 			if(ppc_imm && (s32)op->imm1>=-32768 && (s32)op->imm1<=32767)
 			{
 				PPC_SET_RD(ppc_imm,r1);
 				PPC_SET_RA(ppc_imm,r1);
-				PPC_SET_IMMED(ppc_imm,op->imm1);
+				PPC_SET_IMMED(ppc_imm,op->imm1*(sub?-1:1));
 				ppce->write32(ppc_imm);
 			}
 			else
 			{
-				ppce->emitLoadImmediate32(R4,op->imm1);
+				ppce->emitLoadImmediate32(R4,op->imm1*(sub?-1:1));
 				EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA,0);
 			}
-			
+
 			SaveReg(op->reg1,r1);
+
+			if(sub && op->imm1==1) // lousy test for DT
+			{
+				EMIT_CMPI(ppce,r1,0,0);
+			}
 		}
 		else
 		{
@@ -158,19 +169,31 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 			u32 * ptr = GetRegPtr(op->reg1);
 			ppce->emitLoad32(R4,ptr);
 
+			if(carry)
+			{
+				EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
+				EMIT_ADDI(ppce,R4,R4,1);
+			}
+			
 			if(ppc_imm && (s32)op->imm1>=-32768 && (s32)op->imm1<=32767)
 			{
 				PPC_SET_RD(ppc_imm,R4);
 				PPC_SET_RA(ppc_imm,R4);
-				PPC_SET_IMMED(ppc_imm,op->imm1);
+				PPC_SET_IMMED(ppc_imm,op->imm1*(sub?-1:1));
 				ppce->write32(ppc_imm);
 			}
 			else
 			{
-				ppce->emitLoadImmediate32(R3,op->imm1);
+				ppce->emitLoadImmediate32(R3,op->imm1*(sub?-1:1));
 				EMIT_SET_RDRARB(ppc,R4,R3,R4,invRDRA,0);
 			}
+
 			ppce->emitStore32(ptr,R4);
+
+			if(sub && op->imm1==1) // lousy test for DT
+			{
+				EMIT_CMPI(ppce,R4,0,0);
+			}
 		}
 	}
 	else
@@ -180,6 +203,13 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 		{
 			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
 			assert(r1!=R3);
+			
+			if(carry)
+			{
+				EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
+				EMIT_ADDI(ppce,r1,r1,1);
+			}
+			
 			if (ira->IsRegAllocated(op->reg2))
 			{
 				ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
@@ -199,6 +229,13 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 
 			u32 * ptr = GetRegPtr(op->reg1);
 			ppce->emitLoad32(R4,ptr);
+
+			if(carry)
+			{
+				EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
+				EMIT_ADDI(ppce,R4,R4,1);
+			}
+			
 			EMIT_SET_RDRARB(ppc,R4,r2,R4,invRDRA,0);
 			ppce->emitStore32(ptr,R4);
 		}
@@ -998,7 +1035,7 @@ void __fastcall shil_compile_xor(shil_opcode* op)
 	PowerPC_instr ppc,ppc_imm;
 	GEN_XOR(ppc,0,0,0);
 	GEN_XORI(ppc_imm,0,0,0);
-	op_reg_to_reg(op,ppc,ppc_imm,true);
+	op_reg_to_reg(op,ppc,ppc_imm,true,false,false);
 }
 //or reg32,reg32/imm32
 void __fastcall shil_compile_or(shil_opcode* op)
@@ -1006,14 +1043,14 @@ void __fastcall shil_compile_or(shil_opcode* op)
 	PowerPC_instr ppc,ppc_imm;
 	GEN_OR(ppc,0,0,0);
 	GEN_ORI(ppc_imm,0,0,0);
-	op_reg_to_reg(op,ppc,ppc_imm,true);
+	op_reg_to_reg(op,ppc,ppc_imm,true,false,false);
 }
 //and reg32,reg32/imm32
 void __fastcall shil_compile_and(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_AND(ppc,0,0,0);
-	op_reg_to_reg(op,ppc,0,true);
+	op_reg_to_reg(op,ppc,0,true,false,false);
 }
 //readm/writem 
 //Address calculation helpers
@@ -1797,21 +1834,22 @@ void __fastcall shil_compile_add(shil_opcode* op)
 	PowerPC_instr ppc,ppc_imm;
 	GEN_ADD(ppc,0,0,0);
 	GEN_ADDI(ppc_imm,0,0,0);
-	op_reg_to_reg(op,ppc,ppc_imm,false);
+	op_reg_to_reg(op,ppc,ppc_imm,false,false,false);
 }
 void __fastcall shil_compile_adc(shil_opcode* op)
 {
 	PowerPC_instr ppc;
-	GEN_ADDC(ppc,0,0,0);
+	GEN_ADD(ppc,0,0,0);
 	ppc|=1; // record bit
-	op_reg_to_reg(op,ppc,0,false);
+	op_reg_to_reg(op,ppc,0,false,false,true);
+	EMIT_CROR(ppce,CR_T_FLAG,PPC_CC_OVR,PPC_CC_OVR);
 }
 void __fastcall shil_compile_sub(shil_opcode* op)
 {
-	PowerPC_instr ppc;
+	PowerPC_instr ppc,ppc_imm;
 	GEN_SUBF(ppc,0,0,0);
-	ppc|=1; // record bit
-	op_reg_to_reg(op,ppc,0,false);
+	GEN_ADDI(ppc_imm,0,0,0);
+	op_reg_to_reg(op,ppc,ppc_imm,false,true,false);
 }
 
 
