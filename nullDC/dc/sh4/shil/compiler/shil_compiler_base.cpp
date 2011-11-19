@@ -932,8 +932,6 @@ void __fastcall shil_compile_movex(shil_opcode* op)
 	}
 }
 
-#if 0 //gli86
-
 //shift based
 //swap8/16 reg32
 void __fastcall shil_compile_swap(shil_opcode* op)
@@ -946,22 +944,19 @@ void __fastcall shil_compile_swap(shil_opcode* op)
 
 	if (size==FLAG_8)
 	{
-		ppc_gpr_reg r1 = LoadReg_force(EAX,op->reg1);
-		ppce->Emit(op_xchg8,AH,AL);//ror16 ?
+		ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
+		EMIT_RLWIMI(ppce,r1,r1,16,0,15);
+		EMIT_RLWINM(ppce,r1,r1,8,16,31);		
 		SaveReg(op->reg1,r1);
 	}
 	else
 	{
 		assert(size==FLAG_16);//has to be 16 bit
-		//log("Shil : wswap not implemented\n");
-		
-		//use rotate ?
-		ppc_gpr_reg r1 = LoadReg(EAX,op->reg1);
-		ppce->Emit(op_ror32,r1,16);
+		ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
+		EMIT_RLWINM(ppce,r1,r1,16,0,31);
 		SaveReg(op->reg1,r1);
 	}
 }
-#endif
 
 //shl reg32,imm , set flags
 void __fastcall shil_compile_shl(shil_opcode* op)
@@ -1834,7 +1829,6 @@ void __fastcall shil_compile_sub(shil_opcode* op)
 }
 
 
-#if 0 //gli86
 //left over from older code
 void __fastcall shil_compile_jcond(shil_opcode* op)
 {
@@ -1850,22 +1844,25 @@ void load_with_se16(ppc_gpr_reg to,u8 from)
 {
 	if (ira->IsRegAllocated(from))
 	{
-		ppc_gpr_reg r1=LoadReg(EAX,from);
-		ppce->Emit(op_movsx16to32, to,r1);
+		ppc_gpr_reg r1=LoadReg(R4,from);
+		EMIT_EXTSH(ppce,to,r1);
 	}
 	else
-		ppce->Emit(op_movsx16to32, to,(u16*)GetRegPtr(from));
+	{
+		ppce->emitLoad16(to,(u16*)GetRegPtr(from));
+		EMIT_EXTSH(ppce,to,to);
+	}
 }
 
 void load_with_ze16(ppc_gpr_reg to,u8 from)
 {
 	if (ira->IsRegAllocated(from))
 	{
-		ppc_gpr_reg r1=LoadReg(EAX,from);
-		ppce->Emit(op_movzx16to32, to,r1);
+		ppc_gpr_reg r1=LoadReg(R4,from);
+		EMIT_RLWINM(ppce,to,r1,0,16,31);
 	}
 	else
-		ppce->Emit(op_movzx16to32, to,(u16*)GetRegPtr(from));
+		ppce->emitLoad16(to,(u16*)GetRegPtr(from));
 }
 //mul16/32/64 reg,reg
 void __fastcall shil_compile_mul(shil_opcode* op)
@@ -1882,7 +1879,6 @@ void __fastcall shil_compile_mul(shil_opcode* op)
 
 	if (sz!=FLAG_64)
 	{
-		ppc_gpr_reg r1,r2;
 		if (sz==FLAG_16)
 		{
 			//FlushRegCache_reg(op->reg1);
@@ -1891,32 +1887,34 @@ void __fastcall shil_compile_mul(shil_opcode* op)
 			if (op->flags & FLAG_SX)
 			{
 				//ppce->Emit(op_movsx16to32, EAX,(u16*)GetRegPtr(op->reg1));
-				load_with_se16(EAX,(u8)op->reg1);
+				load_with_se16(R4,(u8)op->reg1);
 				//ppce->Emit(op_movsx16to32, ECX,(u16*)GetRegPtr(op->reg2));
-				load_with_se16(ECX,(u8)op->reg2);
+				load_with_se16(R5,(u8)op->reg2);
 			}
 			else
 			{
 				//ppce->Emit(op_movzx16to32, EAX,(u16*)GetRegPtr(op->reg1));
-				load_with_ze16(EAX,(u8)op->reg1);
+				load_with_ze16(R4,(u8)op->reg1);
 				//ppce->Emit(op_movzx16to32, ECX,(u16*)GetRegPtr(op->reg2));
-				load_with_ze16(ECX,(u8)op->reg2);
+				load_with_ze16(R5,(u8)op->reg2);
 			}
 		}
 		else
 		{
 			//ppce->Emit(op_mov32,EAX,GetRegPtr(op->reg1));
 			//ppce->Emit(op_mov32,ECX,GetRegPtr(op->reg2));
-			r1=LoadReg_force(EAX,op->reg1);
-			r2=LoadReg_force(ECX,op->reg2);
+			LoadReg_force(R4,op->reg1);
+			LoadReg_force(R5,op->reg2);
 		}
 
-		if (op->flags & FLAG_SX)
-			ppce->Emit(op_imul32,EAX,ECX);
+		/*if (op->flags & FLAG_SX)
+			ppce->Emit(op_imul32,R4,ECX);
 		else
-			ppce->Emit(op_mul32,ECX);
+			ppce->Emit(op_mul32,ECX);*/
 		
-		SaveReg((u8)reg_macl,EAX);
+		EMIT_MULLW(ppce,R3,R4,R5);
+		
+		SaveReg((u8)reg_macl,R3);
 	}
 	else
 	{
@@ -1925,17 +1923,25 @@ void __fastcall shil_compile_mul(shil_opcode* op)
 		ira->FlushRegister(op->reg1);
 		ira->FlushRegister(op->reg2);
 
-		ppce->Emit(op_mov32,EAX,GetRegPtr(op->reg1));
+		ppce->emitLoad32(R4,GetRegPtr(op->reg1));
+		ppce->emitLoad32(R5,GetRegPtr(op->reg2));
 
+		EMIT_MULLW(ppce,R3,R4,R5);
+		
 		if (op->flags & FLAG_SX)
-			ppce->Emit(op_imul32,ppc_ptr(GetRegPtr(op->reg2)));
+		{
+			EMIT_MULHW(ppce,R4,R4,R5);
+		}
 		else
-			ppce->Emit(op_mul32,ppc_ptr(GetRegPtr(op->reg2)));
+		{
+			EMIT_MULHWU(ppce,R4,R4,R5);
+		}
 
-		SaveReg((u8)reg_macl,EAX);
-		SaveReg((u8)reg_mach,EDX);
+		SaveReg((u8)reg_macl,R3);
+		SaveReg((u8)reg_mach,R4);
 	}
 }
+#if 0 //gli86
 void FASTCALL sh4_div0u();
 void FASTCALL sh4_div0s(u32 rn,u32 rm);
 u32 FASTCALL sh4_rotcl(u32 rn);
@@ -2065,8 +2071,6 @@ void __fastcall shil_compile_div32(shil_opcode* op)
 	SaveReg(rQuotient,Quotient);
 }
 #endif
-
-
 
 //Fpu alloc helpers
 #define fa_r1r2 (1|2)
@@ -2812,19 +2816,17 @@ void sclt_Init()
 	SetH(shilop_fneg,shil_compile_fneg);
 	SetH(shilop_fsqrt,shil_compile_fsqrt);
 	SetH(shilop_ftrc,shil_compile_ftrc);
+	SetH(shilop_mul,shil_compile_mul);
+	SetH(shilop_swap,shil_compile_swap);
 		
 /* gli86
-
-	SetH(shilop_swap,shil_compile_swap);
-	SetH(shilop_mul,shil_compile_mul);
-
 	SetH(shilop_ftrv,shil_compile_ftrv);
 	SetH(shilop_fipr,shil_compile_fipr);
 	SetH(shilop_floatfpul,shil_compile_floatfpul);
 	SetH(shilop_fsca,shil_compile_fsca);
 	SetH(shilop_fsrra,shil_compile_fsrra);
+	
 	SetH(shilop_div32,shil_compile_div32);
-
 */
 	/*
 	u32 shil_nimp=shilop_count;

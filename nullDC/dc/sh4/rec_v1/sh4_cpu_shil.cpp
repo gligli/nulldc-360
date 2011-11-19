@@ -247,7 +247,7 @@ rsh4op(i0010_nnnn_mmmm_1000)
 }
 //************************ mulls! ************************ 
 //mulu.w <REG_M>,<REG_N>          
-sh4op(i0010_nnnn_mmmm_1110)
+rsh4op(i0010_nnnn_mmmm_1110)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -256,7 +256,7 @@ sh4op(i0010_nnnn_mmmm_1110)
 }
 
 //muls.w <REG_M>,<REG_N>          
-sh4op(i0010_nnnn_mmmm_1111)
+rsh4op(i0010_nnnn_mmmm_1111)
 {	
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -265,7 +265,7 @@ sh4op(i0010_nnnn_mmmm_1111)
 }
 
 //dmulu.l <REG_M>,<REG_N>       
-sh4op(i0011_nnnn_mmmm_0101)
+rsh4op(i0011_nnnn_mmmm_0101)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -274,7 +274,7 @@ sh4op(i0011_nnnn_mmmm_0101)
 }
 
 //dmuls.l <REG_M>,<REG_N>       
-sh4op(i0011_nnnn_mmmm_1101)
+rsh4op(i0011_nnnn_mmmm_1101)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -283,19 +283,19 @@ sh4op(i0011_nnnn_mmmm_1101)
 }
 
 //mac.w @<REG_M>+,@<REG_N>+     
-sh4op(i0100_nnnn_mmmm_1111)
+rsh4op(i0100_nnnn_mmmm_1111)
 {
 	shil_interpret(op);
 }
 
 //mac.l @<REG_M>+,@<REG_N>+     
-sh4op(i0000_nnnn_mmmm_1111)
+rsh4op(i0000_nnnn_mmmm_1111)
 {
 	shil_interpret(op);
 }
 
 //mul.l <REG_M>,<REG_N>         
-sh4op(i0000_nnnn_mmmm_0111)
+rsh4op(i0000_nnnn_mmmm_0111)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
@@ -604,7 +604,7 @@ rsh4op(i0100_nnnn_0000_0101)
 }					
 //************************ byte reorder/sign ************************
 //swap.b <REG_M>,<REG_N>        
-sh4op(i0110_nnnn_mmmm_1000)
+rsh4op(i0110_nnnn_mmmm_1000)
 {
 	u32 m = GetM(op);
 	u32 n = GetN(op);
@@ -614,7 +614,7 @@ sh4op(i0110_nnnn_mmmm_1000)
 } 
 
 //swap.w <REG_M>,<REG_N>        
-sh4op(i0110_nnnn_mmmm_1001)
+rsh4op(i0110_nnnn_mmmm_1001)
 {
 	u32 n = GetN(op);
 	u32 m = GetM(op);
