@@ -152,7 +152,7 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 			}
 			else
 			{
-				ppce->emitLoadImmediate32(R4,op->imm1*(sub?-1:1));
+				ppce->emitLoadImmediate32(R4,op->imm1);
 				EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA,0);
 			}
 
@@ -184,7 +184,7 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 			}
 			else
 			{
-				ppce->emitLoadImmediate32(R3,op->imm1*(sub?-1:1));
+				ppce->emitLoadImmediate32(R3,op->imm1);
 				EMIT_SET_RDRARB(ppc,R4,R3,R4,invRDRA,0);
 			}
 
