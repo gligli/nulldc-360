@@ -23,8 +23,8 @@ struct Sh4RegContext
 	u32 r[16];
 	f32 fr[16];
 	f32 xf[16];
+	u32 zer_fpul,fpul;
 	u32 pr;
-	u32 fpul;
 	mac_type mac;
 	fpscr_type fpscr;
 	StatusReg old_sr;

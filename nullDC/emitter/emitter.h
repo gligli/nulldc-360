@@ -206,6 +206,8 @@ public:
 {PowerPC_instr ppc;GEN_EXTSB(ppc,rd,rs);ppce->write32(ppc);}
 #define EMIT_EXTSH(ppce,rd,rs) \
 {PowerPC_instr ppc;GEN_EXTSH(ppc,rd,rs);ppce->write32(ppc);}
+#define EMIT_EXTSW(ppce,rd,rs) \
+{PowerPC_instr ppc;GEN_EXTSW(ppc,rd,rs);ppce->write32(ppc);}
 #define EMIT_STB(ppce,rs,immed,ra) \
 {PowerPC_instr ppc;GEN_STB(ppc,rs,immed,ra);ppce->write32(ppc);}
 #define EMIT_STH(ppce,rs,immed,ra) \
@@ -332,6 +334,10 @@ public:
 {PowerPC_instr ppc;GEN_FDIV(ppc,fd,fa,fb,dbl);ppce->write32(ppc);}
 #define EMIT_FABS(ppce,fd,fs) \
 {PowerPC_instr ppc;GEN_FABS(ppc,fd,fs);ppce->write32(ppc);}
+#define EMIT_FCFID(ppce,fd,fs) \
+{PowerPC_instr ppc;GEN_FCFID(ppc,fd,fs);ppce->write32(ppc);}
+#define EMIT_FRSP(ppce,fd,fs) \
+{PowerPC_instr ppc;GEN_FRSP(ppc,fd,fs);ppce->write32(ppc);}
 #define EMIT_FMR(ppce,fd,fs) \
 {PowerPC_instr ppc;GEN_FMR(ppc,fd,fs);ppce->write32(ppc);}
 #define EMIT_FNEG(ppce,fd,fs) \
@@ -352,6 +358,8 @@ public:
 {PowerPC_instr ppc;GEN_FRSQRTE(ppc,fd,fs);ppce->write32(ppc);}
 #define EMIT_FSQRT(ppce,fd,fs) \
 {PowerPC_instr ppc;GEN_FSQRT(ppc,fd,fs);ppce->write32(ppc);}
+#define EMIT_FSQRTS(ppce,fd,fs) \
+{PowerPC_instr ppc;GEN_FSQRTS(ppc,fd,fs);ppce->write32(ppc);}
 #define EMIT_FSEL(ppce,fd,fa,fb,fc) \
 {PowerPC_instr ppc;GEN_FSEL(ppc,fd,fa,fb,fc);ppce->write32(ppc);}
 #define EMIT_FRES(ppce,fd,fs) \

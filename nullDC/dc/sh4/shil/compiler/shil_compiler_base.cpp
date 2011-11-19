@@ -8,6 +8,7 @@
 #include "dc/sh4/shil/shil_ce.h"
 #include "dc/sh4/sh4_registers.h"
 #include "dc/sh4/rec_v1/blockmanager.h"
+#include "dc/sh4/rec_v1/driver.h"
 #include "dc/sh4/sh4_opcode_list.h"
 #include "dc/mem/sh4_mem.h"
 #include "emitter/regalloc/ppc_fpregalloc.h"
@@ -2399,7 +2400,8 @@ void __fastcall shil_compile_fsqrt(shil_opcode* op)
 	}
 }
 
-#if 0
+//#define _FAST_fssra
+
 void __fastcall shil_compile_fsrra(shil_opcode* op)
 {
 	assert(0==(op->flags & (FLAG_IMM1|FLAG_IMM2|FLAG_REG2)));
@@ -2421,29 +2423,28 @@ void __fastcall shil_compile_fsrra(shil_opcode* op)
 
 		if (fra->IsRegAllocated(op->reg1))
 		{
-			ppc_sse_reg fr1=fra->GetRegister(XMM0,op->reg1,RA_DEFAULT);
-			verify(fr1!=XMM0);
+			ppc_fpr_reg fr1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
+			verify(fr1!=FR0);
 #ifdef _FAST_fssra
-			ppce->SSE_RSQRTSS_XMM_to_XMM(fr1,fr1);
+			EMIT_FSQRTS(ppce,fr1,fr1);
+			EMIT_FRES(ppce,fr1,fr1);
 #else
-			//fra->FlushRegister_xmm(XMM7);
-			ppce->Emit(op_sqrtss ,XMM0,fr1);				//XMM0=sqrt(fr1)
-			ppce->Emit(op_movss,fr1,(u32*)mm_1);			//fr1=1
-			ppce->Emit(op_divss,fr1,XMM0);				//fr1=1/XMM0
+			EMIT_FSQRTS(ppce,fr1,fr1);
+			EMIT_FDIV(ppce,fr1,FRONE,fr1,0);
 #endif
 			fra->SaveRegister(op->reg1,fr1);
 		}
 		else
 		{
-			#ifdef _FAST_fssra
-			ppce->SSE_RSQRTSS_M32_to_XMM(XMM0,GetRegPtr(op->reg1));//XMM0=APPR(1/sqrt(fr1))
-			#else
-			fra->FlushRegister_xmm(XMM7);
-			ppce->Emit(op_sqrtss ,XMM7,GetRegPtr(op->reg1));	//XMM7=sqrt(fr1)
-			ppce->Emit(op_movss ,XMM0,(u32*)mm_1);			//XMM0=1
-			ppce->Emit(op_divss ,XMM0,XMM7);					//XMM0=1/XMM7
-			#endif
-			ppce->Emit(op_movss ,GetRegPtr(op->reg1),XMM0);	//fr1=XMM0
+			ppce->emitLoadFloat(FR0,GetRegPtr(op->reg1));
+#ifdef _FAST_fssra
+			EMIT_FSQRTS(ppce,FR0,FR0);
+			EMIT_FRES(ppce,FR0,FR0);
+#else
+			EMIT_FSQRTS(ppce,FR0,FR0);
+			EMIT_FDIV(ppce,FR0,FRONE,FR0,0);
+#endif
+			ppce->emitStoreFloat(GetRegPtr(op->reg1),FR0);	//fr1=XMM0
 		}
 		
 	}
@@ -2463,8 +2464,16 @@ void __fastcall shil_compile_floatfpul(shil_opcode* op)
 		assert(!IsReg64((Sh4RegType)op->reg1));
 
 		//TODO : This is not entietly correct , sh4 rounds too [need to set MXCSR]
-		ppc_sse_reg r1=fra->GetRegister(XMM0,op->reg1,RA_NODATA);
-		ppce->Emit(op_cvtsi2ss ,r1,GetRegPtr(reg_fpul));
+		ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_NODATA);
+		
+		//lousy 64bit sign extension...
+		ppce->emitLoad32(R3,GetRegPtr(reg_fpul));
+		EMIT_RLWINM(ppce,R3,R3,1,31,31);
+		EMIT_NEG(ppce,R3,R3);
+		ppce->emitStore32(GetRegPtr(reg_fpul)-1,R3);
+				
+		ppce->emitLoadDouble(r1,GetRegPtr(reg_fpul)-1);
+		EMIT_FCFID(ppce,r1,r1);
 		fra->SaveRegister(op->reg1,r1);
 		
 	}
@@ -2473,7 +2482,6 @@ void __fastcall shil_compile_floatfpul(shil_opcode* op)
 		assert(false);
 	}
 }
-#endif
 
 //#define _CHEAP_FTRC_FIX
 
@@ -2818,13 +2826,13 @@ void sclt_Init()
 	SetH(shilop_ftrc,shil_compile_ftrc);
 	SetH(shilop_mul,shil_compile_mul);
 	SetH(shilop_swap,shil_compile_swap);
+	SetH(shilop_fsrra,shil_compile_fsrra);
+	SetH(shilop_floatfpul,shil_compile_floatfpul);
 		
 /* gli86
 	SetH(shilop_ftrv,shil_compile_ftrv);
 	SetH(shilop_fipr,shil_compile_fipr);
-	SetH(shilop_floatfpul,shil_compile_floatfpul);
 	SetH(shilop_fsca,shil_compile_fsca);
-	SetH(shilop_fsrra,shil_compile_fsrra);
 	
 	SetH(shilop_div32,shil_compile_div32);
 */

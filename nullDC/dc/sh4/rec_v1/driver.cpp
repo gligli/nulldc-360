@@ -133,6 +133,8 @@ u32 Dynarec_Mainloop_no_update_fast;
 #define xstr(s) str(s)
 #define str(s) #s
 
+f32 float_one=1.0;
+
 void naked DynaMainLoop()
 {
 #ifdef XENON
@@ -159,6 +161,10 @@ void naked DynaMainLoop()
 		//Reset it !
 		"bl ret_cache_reset						\n"
 
+		// constant regs
+		"lis 3,float_one@ha						\n"
+		"lfs 15,float_one@l(3)					\n"
+	
 		//misc pointers needed
 		"lis 3,block_stack_pointer@ha			\n"
 		"stw 1,block_stack_pointer@l(3)			\n"

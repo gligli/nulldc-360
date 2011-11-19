@@ -362,6 +362,7 @@ void Sh4_int_Reset(bool Manual)
 
 		gbr=ssr=spc=sgr=dbr=vbr=0;
 		mac.h=mac.l=pr=fpul=0;
+		sh4r.zer_fpul=0;
 
 		sr.SetFull(0x700000F0);
 		old_sr=sr;

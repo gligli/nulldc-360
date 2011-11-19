@@ -3,6 +3,7 @@
 
 #include <emitter/emitter.h>
 
+#define FRONE 15
 #define RCYCLES 31
 #define CPU_TIMESLICE	(BLOCKLIST_MAX_CYCLES)
 

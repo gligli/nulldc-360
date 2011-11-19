@@ -1177,7 +1177,7 @@ sh4op(i1111_nnn0_1111_1101)
 }
 
 //FSRRA //1111_nnnn_0111_1101
-sh4op(i1111_nnnn_0111_1101)
+rsh4op(i1111_nnnn_0111_1101)
 {
 
 	// What about double precision?
@@ -1280,7 +1280,7 @@ rsh4op(i1111_nnnn_0001_1101)
 
 
 //float FPUL,<FREG_N>      
-sh4op(i1111_nnnn_0010_1101)
+rsh4op(i1111_nnnn_0010_1101)
 {//TODO : CHECK THIS (FP)
 
 	if (sh4r.fpscr.PR == 0)
