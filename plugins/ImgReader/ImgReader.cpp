@@ -54,6 +54,7 @@ void irLoadSettings()
 	strcpy(irsettings.DefaultImage,"sda:/dcisos/soulcalibur/Soul Calibur v1.000 (1999)(Namco)(NTSC)(US)[!][4S T-1401N].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/sonic/Sonic Adventure International v1.003 (1999)(Sega)(NTSC)(JP)(M5)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/ct/Crazy Taxi v1.004 (1999)(Sega)(NTSC)(US)[!][10S 51035].gdi");
+//	strcpy(irsettings.DefaultImage,"sda:/dcisos/powerstone/Power Stone v1.001 (1999)(Capcom)(NTSC)(US)[!].gdi");
 //	irsettings.PatchRegion=true;
 }
 void irSaveSettings()

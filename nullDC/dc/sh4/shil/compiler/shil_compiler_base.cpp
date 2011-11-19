@@ -2490,6 +2490,8 @@ void __fastcall shil_compile_floatfpul(shil_opcode* op)
 }
 #endif
 
+//#define _CHEAP_FTRC_FIX
+
 f32 fpr_ftrc_saturate=0x7FFFFFBF;//1.11111111111111111111111 << 31
 void __fastcall shil_compile_ftrc(shil_opcode* op)
 {
@@ -2505,13 +2507,17 @@ void __fastcall shil_compile_ftrc(shil_opcode* op)
 
 		ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
 
-/*		
+
 #ifdef _CHEAP_FTRC_FIX 
-		ppce->Emit(op_minss,r1,&sse_ftrc_saturate);
+		ppce->emitLoadFloat(FR1,&fpr_ftrc_saturate);
+		EMIT_FSUB(ppce,FR2,r1,FR1,0);
+		EMIT_FSEL(ppce,r1,FR2,FR1,r1);
 #endif
-		ppce->Emit(op_cvttss2si, EAX,r1);
+
+		EMIT_FCTIWZ(ppce,FR0,r1);
 
 #ifndef _CHEAP_FTRC_FIX 
+/*
 		ppc_gpr_reg r2=ECX;
 		fra->LoadRegisterGPR(r2,op->reg1);
 		assert(r2!=EAX);
@@ -2519,16 +2525,12 @@ void __fastcall shil_compile_ftrc(shil_opcode* op)
 		ppce->Emit(op_add32,r2,0x7FFFFFFF);	//0x7FFFFFFF for +, 0x80000000 for -
 		ppce->Emit(op_cmp32,EAX,0x80000000);//is result indefinitive ?
 		ppce->Emit(op_cmove32,EAX,r2);		//if yes, saturate		
-#endif
 */
-		EMIT_FCTIWZ(ppce,r1,r1);
-		
-		ppce->emitStoreDouble((void*)((u32)GetRegPtr(reg_fpul)-4),r1);
-		
-/*		ppce->emitLoad32(R3,&toto);
-		
-		//fpul=EAX
-		SaveReg(reg_fpul,R3);*/
+#endif
+
+		EMIT_LI(ppce,R3,(u32)GetRegPtr(reg_fpul)-(u32)&sh4r);
+		EMIT_STFIWX(ppce,FR0,R3,RSH4R);
+		ira->ReloadRegister(reg_fpul);
 	}
 	else
 	{

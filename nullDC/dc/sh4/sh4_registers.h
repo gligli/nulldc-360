@@ -24,7 +24,7 @@ struct Sh4RegContext
 	f32 fr[16];
 	f32 xf[16];
 	u32 pr;
-	u32 dummy,fpul; //HACK: need dummy before fpul for dynarec
+	u32 fpul;
 	mac_type mac;
 	fpscr_type fpscr;
 	StatusReg old_sr;

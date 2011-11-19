@@ -153,7 +153,7 @@ void SetFloatStatusReg()
 
 		if (sh4r.fpscr.DN)		//denormals are considered 0
 			temp|=(1<<15);
-TR/*gli		_asm 
+/*gli		_asm 
 		{
 			ldmxcsr temp;	//load the float status :)
 		}*/
