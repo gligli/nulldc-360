@@ -1851,7 +1851,7 @@ void load_with_se16(ppc_gpr_reg to,u8 from)
 	}
 	else
 	{
-		ppce->emitLoad16(to,(u16*)GetRegPtr(from));
+		ppce->emitLoad32(to,GetRegPtr(from));
 		EMIT_EXTSH(ppce,to,to);
 	}
 }
@@ -1864,7 +1864,10 @@ void load_with_ze16(ppc_gpr_reg to,u8 from)
 		EMIT_RLWINM(ppce,to,r1,0,16,31);
 	}
 	else
-		ppce->emitLoad16(to,(u16*)GetRegPtr(from));
+	{
+		ppce->emitLoad32(to,GetRegPtr(from));
+		EMIT_RLWINM(ppce,to,to,0,16,31);
+	}
 }
 //mul16/32/64 reg,reg
 void __fastcall shil_compile_mul(shil_opcode* op)
