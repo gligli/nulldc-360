@@ -18,13 +18,14 @@ struct Sh4RegContext
 {
 	u32 pc;
 	StatusReg sr;
-	u32 gbr,ssr,spc,sgr,dbr,vbr;
+	u32 gbr,ssr,sgr,dbr,vbr;
 	u32 r_bank[8];
 	u32 r[16];
 	f32 fr[16];
 	f32 xf[16];
 	u32 zer_fpul,fpul;
 	u32 pr;
+	u32 spc;
 	mac_type mac;
 	fpscr_type fpscr;
 	StatusReg old_sr;

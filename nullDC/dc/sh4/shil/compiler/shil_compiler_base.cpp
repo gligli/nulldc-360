@@ -4,6 +4,7 @@
 #include "dc/sh4/shil/shil.h"
 #include <assert.h>
 #include "emitter/emitter.h"
+#include "emitter/3DMath.h"
 
 #include "dc/sh4/shil/shil_ce.h"
 #include "dc/sh4/sh4_registers.h"
@@ -2359,7 +2360,7 @@ void __fastcall shil_compile_fmac(shil_opcode* op)
 		ppc_fpr_reg frp=fra->GetRegister(FR1,op->reg2,RA_DEFAULT);
 		ppc_fpr_reg frs=fra->GetRegister(FR2,op->reg1,RA_DEFAULT);
 		
-		EMIT_FMADD(ppce,frs,fr0,frp,frs);
+		EMIT_FMADDS(ppce,frs,fr0,frp,frs);
 
 		fra->SaveRegister(op->reg1,frs);
 	}
@@ -2531,7 +2532,6 @@ void __fastcall shil_compile_ftrc(shil_opcode* op)
 	}
 }
 
-#if 0
 //Mixed opcodes (sse & x87)
 void __fastcall shil_compile_fsca(shil_opcode* op)
 {
@@ -2568,15 +2568,20 @@ void __fastcall shil_compile_fsca(shil_opcode* op)
 		fr[n | 1] = sin_table[(16384 + pi_index) & 0xFFFF];
 		*/
 		//ppce->Emit(op_int3);
-		ppc_sse_reg r1=fra->GetRegister(XMM0,op->reg1,RA_NODATA);	//to store sin
-		ppc_sse_reg r2=fra->GetRegister(XMM1,op->reg1+1,RA_NODATA);	//to store cos
+		ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_NODATA);	//to store sin
+		ppc_fpr_reg r2=fra->GetRegister(FR1,op->reg1+1,RA_NODATA);	//to store cos
 
 		verify(!ira->IsRegAllocated(reg_fpul));
-		ppce->Emit(op_movzx16to32,EAX,GetRegPtr(reg_fpul));			//we do the 'and' here :p
-		ppce->Emit(op_movss,r1,ppc_mrm(EAX,sib_scale_4,&sin_table[0])); //r1=sin
+		ppce->emitLoad32(R4,GetRegPtr(reg_fpul));			//we do the 'and' here :p
+		EMIT_RLWINM(ppce,R4,R4,2,14,29);
+		EMIT_ADDIS(ppce,R4,R4,HA((u32)sin_table));
+		EMIT_ADDI(ppce,R4,R4,(u32)sin_table);
+		
+		EMIT_LFS(ppce,r1,0,R4); //r1=sin
 		
 		//cos(x) = sin (pi/2 + x) , we add 1/4 of 2pi (2^16/4)
-		ppce->Emit(op_movss,r2,ppc_mrm(EAX,sib_scale_4,&sin_table[0x4000])); //r2=cos, table has 0x4000 more for warping :)
+		EMIT_ADDIS(ppce,R4,R4,1);
+		EMIT_LFS(ppce,r2,0,R4); //r2=cos, table has 0x4000 more for warping :)
 
 		fra->SaveRegister(op->reg1,r1);
 		fra->SaveRegister(op->reg1 + 1,r2);
@@ -2593,11 +2598,6 @@ void __fastcall shil_compile_ftrv(shil_opcode* op)
 	u32 sz=op->flags & 3;
 	if (sz==FLAG_32)
 	{
-		fra->FlushRegister_xmm(XMM0);
-		fra->FlushRegister_xmm(XMM1);
-		fra->FlushRegister_xmm(XMM2);
-		fra->FlushRegister_xmm(XMM3);
-
 		fra->FlushRegister(op->reg1);
 		fra->FlushRegister(op->reg1+1);
 		fra->FlushRegister(op->reg1+2);
@@ -2606,40 +2606,10 @@ void __fastcall shil_compile_ftrv(shil_opcode* op)
 		assert(!IsReg64((Sh4RegType)op->reg1));
 		assert(Ensure32());
 
-
-		if (ppc_caps.sse_2)
-		{
-			ppce->Emit(op_movaps ,XMM3,GetRegPtr(op->reg1));	//xmm0=vector
-
-			ppce->Emit(op_pshufd ,XMM0,XMM3,0);					//xmm0={v0}
-			ppce->Emit(op_pshufd ,XMM1,XMM3,0x55);				//xmm1={v1}	
-			ppce->Emit(op_pshufd ,XMM2,XMM3,0xaa);				//xmm2={v2}
-			ppce->Emit(op_pshufd ,XMM3,XMM3,0xff);				//xmm3={v3}
-		}
-		else
-		{
-			ppce->Emit(op_movaps ,XMM0,GetRegPtr(op->reg1));	//xmm0=vector
-
-			ppce->Emit(op_movaps ,XMM3,XMM0);					//xmm3=vector
-			ppce->Emit(op_shufps ,XMM0,XMM0,0);					//xmm0={v0}
-			ppce->Emit(op_movaps ,XMM1,XMM3);					//xmm1=vector
-			ppce->Emit(op_movaps ,XMM2,XMM3);					//xmm2=vector
-			ppce->Emit(op_shufps ,XMM3,XMM3,0xff);				//xmm3={v3}
-			ppce->Emit(op_shufps ,XMM1,XMM1,0x55);				//xmm1={v1}	
-			ppce->Emit(op_shufps ,XMM2,XMM2,0xaa);				//xmm2={v2}
-		}
-
-		ppce->Emit(op_mulps ,XMM0,GetRegPtr(xf_0));			//v0*=vm0
-		ppce->Emit(op_mulps ,XMM1,GetRegPtr(xf_4));			//v1*=vm1
-		ppce->Emit(op_mulps ,XMM2,GetRegPtr(xf_8));			//v2*=vm2
-		ppce->Emit(op_mulps ,XMM3,GetRegPtr(xf_12));		//v3*=vm3
-
-		ppce->Emit(op_addps ,XMM0,XMM1);					//sum it all up
-		ppce->Emit(op_addps ,XMM2,XMM3);
-		ppce->Emit(op_addps ,XMM0,XMM2);
-
-		ppce->Emit(op_movaps ,GetRegPtr(op->reg1),XMM0);
-
+		ppce->emitLoadImmediate32(R3,(u32)GetRegPtr(op->reg1));
+		ppce->emitLoadImmediate32(R4,(u32)GetRegPtr(xf_0));
+		ppce->emitBranch((void*)Mat44TransformVector,1);
+		
 		fra->ReloadRegister(op->reg1);
 		fra->ReloadRegister(op->reg1+1);
 		fra->ReloadRegister(op->reg1+2);
@@ -2659,9 +2629,22 @@ void __fastcall shil_compile_fipr(shil_opcode* op)
 	{
 		assert(Ensure32());
 
-		fra->FlushRegister_xmm(XMM0);
-		fra->FlushRegister_xmm(XMM1);
+#if 1
+		ppc_fpr_reg v0[4],v1[4];
+		u32 i;
+		for(i=0;i<4;++i)
+		{
+			v0[i]=fra->GetRegister((ppc_reg)(FR1+i),op->reg1+i,RA_DEFAULT);
+			v1[i]=fra->GetRegister((ppc_reg)(FR5+i),op->reg2+i,RA_DEFAULT);
+		}
 
+		EMIT_FMUL(ppce,FR9,v0[0],v1[0],0);
+		EMIT_FMADDS(ppce,FR10,v0[1],v1[1],FR9);
+		EMIT_FMADDS(ppce,FR9,v0[2],v1[2],FR10);
+		EMIT_FMADDS(ppce,v0[3],v0[3],v1[3],FR9);
+
+		fra->SaveRegister(op->reg1+3,v0[3]);
+#else		
 		fra->FlushRegister(op->reg1);
 		fra->FlushRegister(op->reg1+1);
 		fra->FlushRegister(op->reg1+2);
@@ -2672,36 +2655,19 @@ void __fastcall shil_compile_fipr(shil_opcode* op)
 		fra->FlushRegister(op->reg2+2);
 		fra->FlushRegister(op->reg2+3);
 
-		if (ppc_caps.sse_3)
-		{
-			ppce->Emit(op_movaps ,XMM0,GetRegPtr(op->reg1));
-			ppce->Emit(op_mulps ,XMM0,GetRegPtr(op->reg2));
-												//xmm0={a0				,a1				,a2				,a3}
-			ppce->Emit(op_haddps,XMM0,XMM0);	//xmm0={a0+a1			,a2+a3			,a0+a1			,a2+a3}
-			ppce->Emit(op_haddps,XMM0,XMM0);	//xmm0={(a0+a1)+(a2+a3) ,(a0+a1)+(a2+a3),(a0+a1)+(a2+a3),(a0+a1)+(a2+a3)}
-
-			ppce->Emit(op_movss,GetRegPtr(op->reg1+3),XMM0);
-		}
-		else
-		{
-			ppce->Emit(op_movaps ,XMM0,GetRegPtr(op->reg1));
-			ppce->Emit(op_mulps ,XMM0,GetRegPtr(op->reg2));
-			ppce->Emit(op_movhlps ,XMM1,XMM0);
-			ppce->Emit(op_addps ,XMM0,XMM1);
-			ppce->Emit(op_movaps ,XMM1,XMM0);
-			ppce->Emit(op_shufps ,XMM1,XMM1,1);
-			ppce->Emit(op_addss ,XMM0,XMM1);
-			ppce->Emit(op_movss,GetRegPtr(op->reg1+3),XMM0);
-		}
+		ppce->emitLoadImmediate32(R3,(u32)GetRegPtr(op->reg1));
+		ppce->emitLoadImmediate32(R4,(u32)GetRegPtr(op->reg2));
+		ppce->emitBranch((void*)DotProduct,1);
+		ppce->emitStoreFloat(GetRegPtr(op->reg1+3),FR1);
+		
 		fra->ReloadRegister(op->reg1+3);
+#endif
 	}
 	else
 	{
 		assert(false);
 	}
 }
-#endif
-
 
 extern "C" {
 	void tain(){
@@ -2828,12 +2794,11 @@ void sclt_Init()
 	SetH(shilop_swap,shil_compile_swap);
 	SetH(shilop_fsrra,shil_compile_fsrra);
 	SetH(shilop_floatfpul,shil_compile_floatfpul);
-		
-/* gli86
+	SetH(shilop_fsca,shil_compile_fsca);
 	SetH(shilop_ftrv,shil_compile_ftrv);
 	SetH(shilop_fipr,shil_compile_fipr);
-	SetH(shilop_fsca,shil_compile_fsca);
-	
+		
+/* gli86
 	SetH(shilop_div32,shil_compile_div32);
 */
 	/*

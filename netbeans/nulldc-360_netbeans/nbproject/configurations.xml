@@ -148,6 +148,7 @@
           <in>regalloc.h</in>
           <in>regalloc_base.h</in>
         </df>
+        <in>3DMath.h</in>
         <in>BaseTypes.h</in>
         <in>PowerPC.h</in>
         <in>emitter.cpp</in>
@@ -349,6 +350,10 @@
               <pElem>../../../../../../usr/local/xenon/xenon/include/sys</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/drkPvr</pElem>
             </incDir>
+            <preprocessorList>
+              <Elem>__ALTIVEC__</Elem>
+              <Elem>__VEC__</Elem>
+            </preprocessorList>
           </cTool>
           <ccTool>
             <incDir>
@@ -388,6 +393,10 @@
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/gui</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/ImgReader/deps</pElem>
             </incDir>
+            <preprocessorList>
+              <Elem>__ALTIVEC__</Elem>
+              <Elem>__VEC__</Elem>
+            </preprocessorList>
           </ccTool>
         </makeTool>
       </makefileType>

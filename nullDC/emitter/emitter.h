@@ -366,8 +366,10 @@ public:
 {PowerPC_instr ppc;GEN_FRES(ppc,fd,fs);ppce->write32(ppc);}
 #define EMIT_FNMSUB(ppce,fd,fa,fb,fc) \
 {PowerPC_instr ppc;GEN_FNMSUB(ppc,fd,fa,fb,fc);ppce->write32(ppc);}
-#define EMIT_FMADD(ppce,fd,fa,fb,fc) \
-{PowerPC_instr ppc;GEN_FMADD(ppc,fd,fa,fb,fc);ppce->write32(ppc);}
+#define EMIT_FMADD(ppce,fd,fa,fc,fb) \
+{PowerPC_instr ppc;GEN_FMADD(ppc,fd,fa,fc,fb);ppce->write32(ppc);}
+#define EMIT_FMADDS(ppce,fd,fa,fc,fb) \
+{PowerPC_instr ppc;GEN_FMADDS(ppc,fd,fa,fc,fb);ppce->write32(ppc);}
 #define EMIT_BCLR(ppce,lk,bo,bi) \
 {PowerPC_instr ppc;GEN_BCLR(ppc,lk,bo,bi);ppce->write32(ppc);}
 #define EMIT_BNELR(ppce,cr,lk) \

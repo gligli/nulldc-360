@@ -14,6 +14,12 @@ bool shil_opcode::ReadsReg(Sh4RegType reg)
 {
 	bool used=false;
 
+	if(this->opcode==shilop_fipr)
+	{
+		if(((reg>=reg1) && (reg<=reg1+3)) || ((reg>=reg2) && (reg<=reg2+3)))
+			return true;
+	}
+	
 	if (reg==reg_fpul)
 	{
 		if (this->opcode==shilop_floatfpul)

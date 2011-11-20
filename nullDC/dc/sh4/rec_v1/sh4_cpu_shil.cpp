@@ -1163,7 +1163,7 @@ rsh4op(i1111_nnnn_0101_1101)
 }
 
 //FSCA FPUL, DRn//F0FD//1111_nnn0_1111_1101
-sh4op(i1111_nnn0_1111_1101)
+rsh4op(i1111_nnn0_1111_1101)
 {
 	if (sh4r.fpscr.PR==0)
 	{
@@ -1223,7 +1223,7 @@ rsh4op(i1111_nnnn_1010_1101)
 }
  
 //fipr <FV_M>,<FV_N>            
-sh4op(i1111_nnmm_1110_1101)
+rsh4op(i1111_nnmm_1110_1101)
 {
 	int n=GetN(op)&0xC;
 	int m=(GetN(op)&0x3)<<2;
@@ -1404,7 +1404,7 @@ rsh4op(i1111_nnnn_mmmm_1110)
 
 
 //ftrv xmtrx,<FV_N>       
-sh4op(i1111_nn01_1111_1101)
+rsh4op(i1111_nn01_1111_1101)
 {
 	u32 n=GetN(op)&0xC;
 	ilst->ftrv(fr[n]);
