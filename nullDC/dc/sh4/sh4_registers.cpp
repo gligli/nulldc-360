@@ -74,17 +74,49 @@ void LoadSh4Regs(Sh4RegContext* from)
 INLINE void ChangeGPR()
 {
 	u32 temp[8];
+	
+	if (settings.dynarec.Enable)
+	{
+		asm volatile(
+			"lis 3,sh4r@h				\n"
+			"stw 16,64+0(3)				\n"
+			"stw 17,64+4(3)				\n"
+			"stw 18,64+8(3)				\n"
+			"stw 19,64+12(3)			\n"
+			"stw 20,64+16(3)			\n"
+			"stw 21,64+20(3)			\n"
+			"stw 22,64+24(3)			\n"
+			"stw 23,64+28(3)			\n"
+		:::"3");
+	}
+	
 	for (int i=0;i<8;i++)
 	{
 		temp[i]=sh4r.r[i];
 		sh4r.r[i]=sh4r.r_bank[i];
 		sh4r.r_bank[i]=temp[i];
 	}
+
+	if (settings.dynarec.Enable)
+	{
+		asm volatile(
+			"lis 3,sh4r@h				\n"
+			"lwz 16,64+0(3)				\n"
+			"lwz 17,64+4(3)				\n"
+			"lwz 18,64+8(3)				\n"
+			"lwz 19,64+12(3)			\n"
+			"lwz 20,64+16(3)			\n"
+			"lwz 21,64+20(3)			\n"
+			"lwz 22,64+24(3)			\n"
+			"lwz 23,64+28(3)			\n"
+		:::"3","16","17","18","19","20","21","22","23");
+	}
 }
 
 INLINE void ChangeFP()
 {
 	u32 temp[16];
+
 	for (int i=0;i<16;i++)
 	{
 		temp[i]=fr_hex[i];

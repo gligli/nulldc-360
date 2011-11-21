@@ -19,25 +19,6 @@ RecOpCallFP* RecOpPtr[0x10000];
 OpcodeType OpTyp[0x10000];
 sh4_opcodelistentry* OpDesc[0x10000];
 
-#define Mask_n_m 0xF00F
-#define Mask_n_m_imm4 0xF000
-#define Mask_n 0xF0FF
-#define Mask_none 0xFFFF
-#define Mask_imm8 0xFF00 
-#define Mask_imm12 0xF000
-#define Mask_n_imm8 0xF000
-#define Mask_n_ml3bit 0xF08F
-#define Mask_nh3bit 0xF1FF
-#define Mask_nh2bit 0xF3FF
-
-#define GetN(str) ((str>>8) & 0xf)
-#define GetM(str) ((str>>4) & 0xf)
-#define GetImm4(str) ((str>>0) & 0xf)
-#define GetImm8(str) ((str>>0) & 0xff)
-#define GetSImm8(str) ((s8)((str>>0) & 0xff))
-#define GetImm12(str) ((str>>0) & 0xfff)
-#define GetSImm12(str) (((s16)((GetImm12(str))<<4))>>3)
-
 INLINE bool strcmp2(const char* &str1_o,const char * str2)
 {
 	u32 sz=0;

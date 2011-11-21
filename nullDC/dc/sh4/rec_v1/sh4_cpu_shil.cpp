@@ -18,14 +18,6 @@ shil_stream* ilst;
 #define rsh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 #define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { ilst->shil_ifb(op,pc); }; void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 
-#define GetN(str) ((str>>8) & 0xf)
-#define GetM(str) ((str>>4) & 0xf)
-#define GetImm4(str) ((str>>0) & 0xf)
-#define GetImm8(str) ((u8)(str>>0))
-#define GetSImm8(str) ((s8)((str>>0) & 0xff))
-#define GetImm12(str) ((str>>0) & 0xfff)
-#define GetSImm12(str) (((s16)((GetImm12(str))<<4))>>3)
-
 //#define tmu_underflow  0x0100
 #define iNimp(info) rec_shil_iNimp(pc,op,info)
 

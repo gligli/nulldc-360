@@ -494,7 +494,6 @@ sh4op(i1111_nnnn_0100_1101)
 //frchg                    
 sh4op(i1111_1011_1111_1101)
 {
-	//iNimp("frchg");
  	fpscr.FR = 1 - fpscr.FR;
 
 	UpdateFPSCR();

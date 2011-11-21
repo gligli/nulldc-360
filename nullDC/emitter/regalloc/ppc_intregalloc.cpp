@@ -20,13 +20,12 @@
 
 u32 ssenoalloc=0;
 u32 ssealloc=0;
-ppc_gpr_reg reg_to_alloc[15]=
+ppc_gpr_reg reg_to_alloc[16]=
 {
-//	R5,R6,R7,R8,R9,R10,R11,R12
-	R16,R17,R18,R19,R20,R21,R22,R23,R24,R25,R26,R27,R28,R29,R30
+	R16,R17,R18,R19,R20,R21,R22,R23,R24,R25,R26,R27,R28,R29,R30,R31
 };
 
-#define REG_ALLOC_COUNT 15
+#define REG_ALLOC_COUNT 16
 
 //////////////////////////////////////////////////
 // new reg alloc class							//
@@ -94,69 +93,24 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 	virtual void DoAllocation(BasicBlock* block,ppc_block* ppce)
 	{
 		this->ppce=ppce;
-		sort_temp used[16];
 		for (int i=0;i<16;i++)
 		{
-			used[i].cnt=0;
-			used[i].reg=r0+i;
-			used[i].no_load=false;
-			r_alloced[i].ppcreg=ERROR_REG;
-			r_alloced[i].InReg=false;
-			r_alloced[i].Dirty=false;
-		}
-
-		u32 op_count=block->ilst.op_count;
-		shil_opcode* curop;
-
-		for (u32 j=0;j<op_count;j++)
-		{
-			curop=&block->ilst.opcodes[j];
-			for (int i = 0;i<16;i++)
-			{
-				Sh4RegType reg=(Sh4RegType)(r0+i);
-				if ((curop->WritesReg(reg)==true) && (curop->ReadsReg(reg)==false) && (used[i].cnt==0))
-				{
-					used[i].no_load=true;
-				}
-				//both reads and writes , give it one more ;P
-				if ( curop->UpdatesReg((Sh4RegType) (r0+i)) )
-					used[i].cnt+=12;	//3 +rw (9)
-				else if (curop->ReadsReg((Sh4RegType) (r0+i)))
-					used[i].cnt+=6;		//3 +r (3)
-				else if (curop->WritesReg((Sh4RegType) (r0+i)))
-					used[i].cnt+=9;		//3 +w (6)
-			}
-		}
-
-		bubble_sort(used,16);
-
-		for (u32 i=0;i<REG_ALLOC_COUNT;i++)
-		{
-			if (used[i].cnt<14)	//3+3+3+6
-				break;
-			r_alloced[used[i].reg].ppcreg=reg_to_alloc[i];
-			if (used[i].no_load)
-			{
-				r_alloced[used[i].reg].InReg=true;
-				r_alloced[used[i].reg].Dirty=false;
-			}
+			r_alloced[i].ppcreg=reg_to_alloc[i];
+			r_alloced[i].InReg=true;
+			r_alloced[i].Dirty=true;
 		}
 	}
 	//BeforeEmit		: generate any code needed before the main emittion begins (other register allocators may have emited code tho)
 	virtual void BeforeEmit()
 	{
-		for (int i=0;i<16;i++)
-		{
-			if (IsRegAllocated(i))
-			{
-				GetRegister(R3,i,RA_DEFAULT);
-			}
-		}
 	}
 	//BeforeTrail		: generate any code needed after the main emittion has ended (other register allocators may emit code after that tho)
 	virtual void BeforeTrail()
 	{
-		FlushRegCache();
+		for (int i=0;i<16;i++)
+		{
+			GetRegister(R3,i,RA_DEFAULT);
+		}
 	}
 	//AfterTrail		: generate code after the native block end (after the ret) , can be used to emit helper functions (other register allocators may emit code after that tho)
 	virtual void AfterTrail()
