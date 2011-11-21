@@ -537,6 +537,9 @@ T __fastcall ReadMem_area0(u32 addr)
 	return 0;
 }
 
+#include <ppc/timebase.h>
+u64 time_gdrom=0;
+
 template<u32 sz, class T, u32 b_start,u32 b_end>
 void  __fastcall WriteMem_area0(u32 addr,T data)
 {
@@ -569,11 +572,14 @@ void  __fastcall WriteMem_area0(u32 addr,T data)
 	{
 		//EMUERROR4("Write to area0_32 not implemented [GD-ROM], addr=%x,data=%x,size=%d",addr,data,sz);
 		bswap_n(data,sz);
+	u64 gdr=mftb();
 #if defined(BUILD_NAOMI	) || defined(BUILD_ATOMISWAVE)
 		WriteMem_naomi(addr,data,sz);
 #else
 		WriteMem_gdrom(addr,data,sz);
 #endif
+	gdr=mftb()-gdr;
+	time_gdrom+=gdr;
 	}
 	else if ((base_start >=0x005F) && (base_end <=0x005F) && (addr>= 0x005F6800) && (addr<=0x005F7CFF)) //	/*:PVR i/f Control Reg.*/ -> ALL SB registers
 	{

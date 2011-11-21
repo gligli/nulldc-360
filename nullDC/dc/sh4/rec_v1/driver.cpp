@@ -411,12 +411,15 @@ end_of_mainloop:
 #endif
 }
 
+u64 time_dr_start=0;
+
 //interface
 void rec_Sh4_int_Run()
 {
 	rec_sh4_int_bCpuRun=true;
 	rec_cycles=0;
 	SetFloatStatusReg();
+	time_dr_start=mftb();
 	DynaMainLoop();
 	printf("################### out of DynaMainLoop\n");
 }

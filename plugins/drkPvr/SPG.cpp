@@ -72,6 +72,7 @@ void CalculateSync()
 	Frame_Cycles=pvr_numscanlines*Line_Cycles;
 }
 
+bool do_render_pending=false;
 bool render_end_pending=false;
 u32 render_end_pending_cycles;
 
@@ -79,7 +80,10 @@ extern u32 op_usage[0x10000];
 #define DYNA_MEM_POOL_SIZE 32*1024*1024
 extern u8 dyna_mem_pool[DYNA_MEM_POOL_SIZE];
 
-
+extern u64 time_dr_start;
+extern u64 time_update_system;
+extern u64 time_rw_regs;
+extern u64 time_gdrom;
 
 void spgVBL()
 {
@@ -167,8 +171,13 @@ void spgVBL()
 					}
 					break;
 				case 'z':
-					printf("---- IFB op usage reset\n");
-
+					printf("---- stats reset\n");
+					
+					time_dr_start=mftb();
+					time_update_system=0;
+					time_rw_regs=0;
+					time_gdrom=0;
+					
 					for(i=0;i<0x10000;++i)
 					{
 						op_usage[i]=0;
@@ -184,6 +193,11 @@ void spgVBL()
 					}
 					break;
 				}
+				case 't':
+					printf("UpdateSystem: %.3f%%\n",100.0f*(float)time_update_system/(mftb()-time_dr_start));
+					printf("RW regs: %.3f%%\n",100.0f*(float)time_rw_regs/(mftb()-time_dr_start));
+					printf("GDROM: %.3f%%\n",100.0f*(float)time_gdrom/(mftb()-time_dr_start));
+					break;
 			}
 		}
 
@@ -236,6 +250,12 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 			spgVBL();
 		}
 	}
+	
+	if(do_render_pending){
+			DoRender();
+			do_render_pending=false;
+	}
+
 
 	if (render_end_pending)
 	{

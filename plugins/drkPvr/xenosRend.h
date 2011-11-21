@@ -27,6 +27,7 @@ extern struct XenosDevice * xe;
 	void VBlank();
 	void StartRender();
 	void EndRender();
+	void DoRender();
 
 	void ListCont();
 	void ListInit();
@@ -37,6 +38,9 @@ extern struct XenosDevice * xe;
 	void ListModes(void(* callback)(u32 w,u32 h,u32 rr));
 
 	void VramLockedWrite(vram_block* bl);
+	
+	extern bool do_render_pending;
+
 
 #define rend_init         InitRenderer
 #define rend_term         TermRenderer

@@ -22,6 +22,7 @@ _vmem v2.5 :
 
 extern "C" {
 #include <ppc/vm.h>
+#include <ppc/timebase.h>
 }
 
 //top registed handler
@@ -113,17 +114,26 @@ extern u32 pc;
 //#define CHECK_ALIGN
 //#define MEM_VERBOSE
 
+u64 time_rw_regs=0;
+
+
 u8 INLINE _vmem_ReadMem8(u32 addr) 
 {
+	u64 rwt=mftb();
 #ifdef MEM_VERBOSE	
 	printf("_vmem_ReadMem8 %08x\n",addr);
 #endif
 	unat data_ptr;
-	return (_vmem_translate(addr,data_ptr)) ? (u8)(*(_vmem_ReadMem8FP**)((u8*)_vmem_RF8+data_ptr))(addr) : *(u8*)(data_ptr^3);
+	u8 res= (_vmem_translate(addr,data_ptr)) ? (u8)(*(_vmem_ReadMem8FP**)((u8*)_vmem_RF8+data_ptr))(addr) : *(u8*)(data_ptr^3);
+	
+	rwt=mftb()-rwt;
+	time_rw_regs+=rwt;
+	return res;
 }
 
 u16 INLINE _vmem_ReadMem16(u32 addr)
 { 
+	u64 rwt=mftb();
 #ifdef MEM_VERBOSE	
 	printf("_vmem_ReadMem16 %08x\n",addr);
 #endif
@@ -131,11 +141,16 @@ u16 INLINE _vmem_ReadMem16(u32 addr)
 	if (addr&1) die("misaligned");
 #endif
 	unat data_ptr;
-	return (_vmem_translate(addr,data_ptr)) ? (u16)(*(_vmem_ReadMem16FP**)((u8*)_vmem_RF16+data_ptr))(addr) : *(u16*)(data_ptr^2);
+	u16 res= (_vmem_translate(addr,data_ptr)) ? (u16)(*(_vmem_ReadMem16FP**)((u8*)_vmem_RF16+data_ptr))(addr) : *(u16*)(data_ptr^2);
+	
+	rwt=mftb()-rwt;
+	time_rw_regs+=rwt;
+	return res;
 }
 
 u32 INLINE _vmem_ReadMem32(u32 addr)
 { 
+	u64 rwt=mftb();
 #ifdef MEM_VERBOSE	
 	printf("_vmem_ReadMem32 %08x\n",addr);
 #endif
@@ -143,11 +158,16 @@ u32 INLINE _vmem_ReadMem32(u32 addr)
 	if (addr&3) die("misaligned");
 #endif
 	unat data_ptr;
-	return (_vmem_translate(addr,data_ptr)) ? (u32)(*(_vmem_ReadMem32FP**)((u8*)_vmem_RF32+data_ptr))(addr) : *(u32*)data_ptr;
+	u32 res= (_vmem_translate(addr,data_ptr)) ? (u32)(*(_vmem_ReadMem32FP**)((u8*)_vmem_RF32+data_ptr))(addr) : *(u32*)data_ptr;
+
+	rwt=mftb()-rwt;
+	time_rw_regs+=rwt;
+	return res;
 }
 
 u64 INLINE _vmem_ReadMem64(u32 addr)
 {
+	u64 rwt=mftb();
 #ifdef MEM_VERBOSE	
 	printf("_vmem_ReadMem64 %08x\n",addr);
 #endif
@@ -161,6 +181,9 @@ u64 INLINE _vmem_ReadMem64(u32 addr)
 		return (u64)(handler(addr+4) | (((u64)handler(addr))<<32));
 	}
 
+	rwt=mftb()-rwt;
+	time_rw_regs+=rwt;
+	
 	return *(u64*)data_ptr;
 }
 
@@ -174,7 +197,10 @@ void INLINE _vmem_WriteMem8(u32 addr,u8 data)
 
 	if (_vmem_translate(addr,data_ptr))
 	{
+		u64 rwt=mftb();
 		(*(_vmem_WriteMem8FP**)((u8*)_vmem_WF8+data_ptr))(addr,data);
+		rwt=mftb()-rwt;
+		time_rw_regs+=rwt;
 		return;
 	}
 
@@ -193,7 +219,10 @@ void INLINE _vmem_WriteMem16(u32 addr,u16 data)
 	
 	if (_vmem_translate(addr,data_ptr))
 	{
+		u64 rwt=mftb();
 		(*(_vmem_WriteMem16FP**)((u8*)_vmem_WF16+data_ptr))(addr,data);
+		rwt=mftb()-rwt;
+		time_rw_regs+=rwt;
 		return;
 	}
 
@@ -212,7 +241,10 @@ void INLINE _vmem_WriteMem32(u32 addr,u32 data)
 
 	if (_vmem_translate(addr,data_ptr))
 	{
+		u64 rwt=mftb();
 		(*(_vmem_WriteMem32FP**)((u8*)_vmem_WF32+data_ptr))(addr,data);
+		rwt=mftb()-rwt;
+		time_rw_regs+=rwt;
 		return;
 	}
 
@@ -231,9 +263,12 @@ void INLINE _vmem_WriteMem64(u32 addr,u64 data)
 
 	if (_vmem_translate(addr,data_ptr))
 	{
+		u64 rwt=mftb();
 		_vmem_WriteMem32FP* handler=*(_vmem_WriteMem32FP**)((u8*)_vmem_WF32+data_ptr);
 		handler(addr+4,(u32)data);
 		handler(addr,data>>32);
+		rwt=mftb()-rwt;
+		time_rw_regs+=rwt;
 		return;
 	}
 

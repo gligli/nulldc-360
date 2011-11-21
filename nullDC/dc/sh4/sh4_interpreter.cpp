@@ -19,6 +19,7 @@
 #include <assert.h>
 
 #include <xenon_uart/xenon_uart.h>
+#include <ppc/timebase.h>
 
 #include "sh4r_rename.h"
 
@@ -673,11 +674,15 @@ void __fastcall MediumUpdate()
 		SlowUpdate();
 }
 
+u64 time_update_system=0;
+
 extern "C" {
 //448 Cycles
 //as of 7/2/2k8 this is fixed to 448 cycles
 int __fastcall UpdateSystem()
 {		
+	u64 ust=mftb();
+	
 	UpdateTMU(448);
 	UpdatePvr(448);
 
@@ -686,7 +691,12 @@ int __fastcall UpdateSystem()
 
 	update_cnt++;
 
-	return UpdateINTC();
+	int rv=UpdateINTC();
+	
+	ust=mftb()-ust;
+	time_update_system+=ust;
+	
+	return rv;
 }
 
 }

@@ -2538,7 +2538,7 @@ nl:
 			pvrrc.invW_max=bg_d.f;
 
 		RenderWasStarted=true;
-		DoRender();
+		do_render_pending=true;
 		FrameCount++;
 		
 	}
