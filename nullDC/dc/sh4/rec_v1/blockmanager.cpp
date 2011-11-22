@@ -816,7 +816,7 @@ bool RamLockedWrite(u8* address,u32* sp)
 
 		mem_b.UnLockRegion((u32)offset&(~(PAGE_SIZE-1)),PAGE_SIZE);
 
-		if (PageInfo[addr_hash].invalidates>=1)
+		if (PageInfo[addr_hash].invalidates>=10)
 			PageInfo[addr_hash].flags.ManualCheck=1;
 
 		return true;

@@ -653,13 +653,13 @@ void __fastcall MediumUpdate()
 	{
 		aica_sample_cycles+=3584*AICA_SAMPLE_GCM;
 
-		if (aica_sample_cycles>=AICA_SAMPLE_CYCLES)
+	/*	if (aica_sample_cycles>=AICA_SAMPLE_CYCLES)
 		{
 			UpdateArm(512);
 			UpdateAica(1);
 			aica_sample_cycles-=AICA_SAMPLE_CYCLES;
 		}
-
+*/
 		aica_periodical(3584);
 	}
 

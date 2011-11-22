@@ -84,6 +84,7 @@ extern u64 time_dr_start;
 extern u64 time_update_system;
 extern u64 time_rw_regs;
 extern u64 time_gdrom;
+extern u64 time_lookup;
 
 void spgVBL()
 {
@@ -177,6 +178,7 @@ void spgVBL()
 					time_update_system=0;
 					time_rw_regs=0;
 					time_gdrom=0;
+					time_lookup=0;
 					
 					for(i=0;i<0x10000;++i)
 					{
@@ -197,6 +199,7 @@ void spgVBL()
 					printf("UpdateSystem: %.3f%%\n",100.0f*(float)time_update_system/(mftb()-time_dr_start));
 					printf("RW regs: %.3f%%\n",100.0f*(float)time_rw_regs/(mftb()-time_dr_start));
 					printf("GDROM: %.3f%%\n",100.0f*(float)time_gdrom/(mftb()-time_dr_start));
+					printf("lookup: %.3f%%\n",100.0f*(float)time_lookup/(mftb()-time_dr_start));
 					break;
 			}
 		}

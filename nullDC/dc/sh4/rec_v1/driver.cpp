@@ -135,6 +135,8 @@ u32 Dynarec_Mainloop_no_update_fast;
 
 f32 float_one=1.0;
 
+u64 time_lookup=0;
+
 void naked DynaMainLoop()
 {
 #ifdef XENON
@@ -221,28 +223,18 @@ void naked DynaMainLoop()
 		"lwz 3,sh4r+0@l(3)						\n"
 		"mr 4,3									\n"
 				
-		"andi. 4,4," xstr(LOOKUP_HASH_MASK<<2)	"\n"
+		"rlwinm 4,4,0," xstr(LOOKUP_HASH_MASK<<2)	"\n"
 		"lis 5,BlockLookupGuess@h				\n"
 		"ori 5,5,BlockLookupGuess@l				\n"
 		"lwzx 4,5,4								\n"
 	
-		/*
-		if ((fastblock->start==address) && 
-			(fastblock->cpu_mode_tag ==fpscr.PR_SZ)
-			)
-		{
-			fastblock->lookups++;
-			return fastblock->Code;
-		}*/
-		
 		"lis 5,sh4r+4@ha						\n" //sh4r+4 is fpscr
 		"lwz 5,sh4r+4@l(5)						\n"
 		"lwz 6,0(4)								\n"
 		"cmp 0,6,3								\n"
 		"bne full_lookup						\n"
 
-//		"srwi 5,5,19							\n"
-//		"andi. 5,5,3							\n"
+/*usefull?
 		"rlwinm 5,5,32-19,30,31					\n"
 	
 		"lwz 6,12(4)							\n"
@@ -252,11 +244,12 @@ void naked DynaMainLoop()
 		"lwz 6,16(4)							\n"
 		"addi 6,6,1								\n"
 		"stw 6,16(4)							\n"
+*/
 #ifdef _BM_CACHE_STATS
 		add fast_lookups,1;
 #endif
-		"lwz 6,8(4)								\n"
-		"mtctr 6								\n"
+		"lwz 3,8(4)								\n"
+		"mtctr 3								\n"
 		"bctr									\n"
 		/*
 		else

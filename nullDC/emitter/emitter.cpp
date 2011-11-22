@@ -304,11 +304,12 @@ void ppc_block::ApplyPatches(u8* base)
 				// invert branch
 				int bo,bo_n=0;
 				bo=(op>>PPC_RD_SHIFT)&PPC_REG_MASK;
-				switch(bo){
+				switch(bo&~3){
 					case PPC_CC_F: bo_n=PPC_CC_T;break;
 					case PPC_CC_T: bo_n=PPC_CC_F;break;
 					default: verify(false);
 				}
+				bo_n|=bo&3;				
 				op&=~(PPC_REG_MASK<<PPC_RD_SHIFT);
 				PPC_SET_BO(op,bo_n);
 				
