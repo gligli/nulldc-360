@@ -138,8 +138,8 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	}
 	else  if  (flags==3)
 	{
-		ppce->emitBranchConditional((void*)cBB->TF_block->Code,PPC_CC_T,CR_T_COND_FLAG,0);
-		ppce->emitBranch((void*)cBB->TT_block->Code,0);
+		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,CR_T_COND_FLAG,0);
+		ppce->emitBranch((void*)cBB->TF_block->Code,0);
 	}
 	else
 	{
