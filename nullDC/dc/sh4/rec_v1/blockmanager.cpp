@@ -977,3 +977,18 @@ void dyna_profiler_tick(void* addr)
 	__debugbreak(); 
 	log("0x%X OMG! UNABLE TO MATCH BLOCK TEH NOES\n",addr);
 }
+
+
+
+void PrintBlocksRunCount()
+{
+	printf("------------ PrintBlocksRunCount\n");
+	for (u32 i=0;i<all_block_list.ItemCount;i++)
+	{
+		if (all_block_list[i]->run_count>1000)
+		{
+			printf("%10d %p %p\n",all_block_list[i]->run_count,all_block_list[i]->Code,all_block_list[i]->start);
+		}
+		all_block_list[i]->run_count=0;
+	}
+}

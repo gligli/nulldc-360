@@ -646,6 +646,8 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 
 		#define mov_flag_T_1   32
 		#define mov_flag_T_2   64
+		#define mov_flag_RPCTMP_1   128
+		#define mov_flag_RPCTMP_2   256
 
 		u32 flags = 0;
 
@@ -664,6 +666,16 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		if (((op->flags & FLAG_IMM1)==0) && IsSSEAllocReg(op->reg2)==false && ira->IsRegAllocated(op->reg2))
 			flags|=mov_flag_GRP_2;
 
+		if (op->reg1==reg_pc_temp)
+		{
+			flags|=mov_flag_RPCTMP_1;
+		}
+		
+		if (((op->flags & FLAG_IMM1)==0) && IsSSEAllocReg(op->reg2)==false && (op->reg2==reg_pc_temp))
+		{
+			flags|=mov_flag_RPCTMP_2;
+		}
+		
 		if (op->reg1==reg_sr_T)
 		{
 			flags&=~mov_flag_GRP_1;
@@ -675,7 +687,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 			flags&=~mov_flag_GRP_2;
 			flags|=mov_flag_T_2;
 		}
-		
+
 		#define XMMtoXMM (mov_flag_XMM_1 | mov_flag_XMM_2)
 		#define XMMtoGPR (mov_flag_GRP_1 | mov_flag_XMM_2)
 		#define XMMtoM32 (mov_flag_M32_1 | mov_flag_XMM_2)
@@ -695,6 +707,13 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		#define IMMtoT   (mov_flag_T_1   | mov_flag_imm_2)
 		#define TtoGPR   (mov_flag_GRP_1 | mov_flag_T_2  )
 		#define TtoM32   (mov_flag_M32_1 | mov_flag_T_2  )
+
+		#define RPCTMPtoGPR  (mov_flag_GRP_1 | mov_flag_RPCTMP_2)
+		#define RPCTMPtoM32  (mov_flag_M32_1 | mov_flag_RPCTMP_2)
+		#define GPRtoRPCTMP  (mov_flag_RPCTMP_1 | mov_flag_GRP_2)
+		#define M32toRPCTMP  (mov_flag_RPCTMP_1 | mov_flag_M32_2)
+		#define IMMtoRPCTMP  (mov_flag_RPCTMP_1 | mov_flag_imm_2)
+		
 		
 		ppc_fpr_reg fpr1=ERROR_REG;
 		ppc_fpr_reg fpr2=ERROR_REG;
@@ -725,7 +744,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 			assert(gpr2!=R4);
 		}
 
-//		printf("shil_compile_mov %d\n",flags);
+//		printf("shil_compile_mov %x\n",flags);
 		switch(flags)
 		{
 		case XMMtoXMM:
@@ -836,6 +855,35 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 				EMIT_BC(ppce,2,0,0,PPC_CC_T,PPC_CC_ZER);
 				EMIT_LI(ppce,R4,0);
 				ppce->emitStore32(GetRegPtr(op->reg1),R4);
+			}
+			break;
+
+		case RPCTMPtoGPR:
+			{
+				ppce->emitMoveRegister(gpr1,(ppc_reg)RPCTMPVAL);
+			}
+			break;
+			
+		case RPCTMPtoM32:
+			{
+				ppce->emitStore32(GetRegPtr(op->reg1),(ppc_reg)RPCTMPVAL);
+			}
+			break;
+
+		case GPRtoRPCTMP:
+			{
+				ppce->emitMoveRegister((ppc_reg)RPCTMPVAL,gpr2);
+			}
+			break;
+			
+		case M32toRPCTMP:
+			{
+				ppce->emitLoad32((ppc_reg)RPCTMPVAL,GetRegPtr(op->reg2));
+			}
+			break;
+		case IMMtoRPCTMP:
+			{
+				ppce->emitLoadImmediate32((ppc_reg)RPCTMPVAL,op->imm1);
 			}
 			break;
 
@@ -1809,6 +1857,17 @@ void __fastcall shil_compile_test(shil_opcode* op)
 //add-sub
 void __fastcall shil_compile_add(shil_opcode* op)
 {
+	if(op->reg1==reg_pc_temp)
+	{
+TR		assert(op->flags & FLAG_IMM1);
+		assert(0==(op->flags & FLAG_REG2));
+		/*EMIT_ADDIS(ppce,RPCTMPVAL,RPCTMPVAL,op->imm1>>16);
+		EMIT_ADDI(ppce,RPCTMPVAL,RPCTMPVAL,op->imm1);*/
+		ppce->emitLoadImmediate32(R4,op->imm1);
+		EMIT_ADD(ppce,RPCTMPVAL,RPCTMPVAL,R4);
+		return;
+	}
+	
 	PowerPC_instr ppc,ppc_imm;
 	GEN_ADD(ppc,0,0,0);
 	GEN_ADDI(ppc_imm,0,0,0);
@@ -2404,7 +2463,7 @@ void __fastcall shil_compile_fsqrt(shil_opcode* op)
 	}
 }
 
-//#define _FAST_fssra
+#define _FAST_fssra
 
 void __fastcall shil_compile_fsrra(shil_opcode* op)
 {
@@ -2425,32 +2484,24 @@ void __fastcall shil_compile_fsrra(shil_opcode* op)
 		//-> im using Approximate version , since this is an aproximate opcode on sh4 too
 		//i hope x86 isnt less accurate ..
 
-		if (fra->IsRegAllocated(op->reg1))
-		{
-			ppc_fpr_reg fr1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			verify(fr1!=FR0);
+		ppc_fpr_reg fr=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
 #ifdef _FAST_fssra
-			EMIT_FSQRTS(ppce,fr1,fr1);
-			EMIT_FRES(ppce,fr1,fr1);
+		// Using the frsqrte instruction for the initial estimate followed
+		// by 2 iterations of Newton-Raphson to get sufficient accuracy.
+		EMIT_FRSQRTE(ppce,FR1,fr);
+		EMIT_FMUL(ppce,FR3,FR1,fr,0);
+		EMIT_FMUL(ppce,FR2,FR1,FRHALF,0);
+		EMIT_FNMSUB(ppce,FR3,FR1,FR3,FRONE);
+		EMIT_FMADDS(ppce,FR1,FR2,FR3,FR1);		
+		EMIT_FMUL(ppce,FR3,FR1,fr,0);
+		EMIT_FMUL(ppce,FR2,FR1,FRHALF,0);
+		EMIT_FNMSUB(ppce,FR3,FR1,FR3,FRONE);
+		EMIT_FMADDS(ppce,fr,FR2,FR3,FR1);		
 #else
-			EMIT_FSQRTS(ppce,fr1,fr1);
-			EMIT_FDIV(ppce,fr1,FRONE,fr1,0);
+		EMIT_FSQRTS(ppce,fr,fr);
+		EMIT_FDIV(ppce,fr,FRONE,fr,0);
 #endif
-			fra->SaveRegister(op->reg1,fr1);
-		}
-		else
-		{
-			ppce->emitLoadFloat(FR0,GetRegPtr(op->reg1));
-#ifdef _FAST_fssra
-			EMIT_FSQRTS(ppce,FR0,FR0);
-			EMIT_FRES(ppce,FR0,FR0);
-#else
-			EMIT_FSQRTS(ppce,FR0,FR0);
-			EMIT_FDIV(ppce,FR0,FRONE,FR0,0);
-#endif
-			ppce->emitStoreFloat(GetRegPtr(op->reg1),FR0);	//fr1=XMM0
-		}
-		
+		fra->SaveRegister(op->reg1,fr);
 	}
 	else
 	{

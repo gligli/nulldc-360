@@ -4,6 +4,7 @@
 #include <emitter/emitter.h>
 
 #define FRONE 15
+#define FRHALF 14
 #define RCYCLES 14
 #define CPU_TIMESLICE	(BLOCKLIST_MAX_CYCLES)
 

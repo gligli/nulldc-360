@@ -70,4 +70,6 @@ public :
 	}Rewrite;
 	//Block link info
 	vector<CompiledBlockInfo*> blocks_to_clear;
+	
+	u32 run_count;
 };

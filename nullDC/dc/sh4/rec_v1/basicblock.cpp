@@ -58,6 +58,8 @@ void BasicBlock::SetCompiledBlockInfo(CompiledBlockInfo* cBl)
 	cBB->TT_next_addr=TT_next_addr;
 
 	cBB->TF_block=cBB->TT_block=0;
+	
+	cBB->run_count=0;
 }
 //BasicBlock compiler :D
 
@@ -492,6 +494,13 @@ bool BasicBlock::Compile()
 	ppce->Emit(op_call,ppc_ptr_imm(CheckBlock));
 	*/
 
+/*
+	// block run count tool
+	ppce->emitLoad32(R3,&cBB->run_count);
+	EMIT_ADDI(ppce,R3,R3,1);
+	ppce->emitStore32(&cBB->run_count,R3);
+*/
+	
 	verify(cycles<0x10000);
 	EMIT_ADDI(ppce,RCYCLES,RCYCLES,-cycles);
 	EMIT_CMPI(ppce,RCYCLES,0,0);

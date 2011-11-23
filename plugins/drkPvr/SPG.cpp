@@ -86,6 +86,8 @@ extern u64 time_rw_regs;
 extern u64 time_gdrom;
 extern u64 time_lookup;
 
+void PrintBlocksRunCount();
+
 void spgVBL()
 {
 	//Vblank counter
@@ -201,6 +203,10 @@ void spgVBL()
 					printf("GDROM: %.3f%%\n",100.0f*(float)time_gdrom/(mftb()-time_dr_start));
 					printf("lookup: %.3f%%\n",100.0f*(float)time_lookup/(mftb()-time_dr_start));
 					break;
+				case 'b':
+					PrintBlocksRunCount();
+					break;
+
 			}
 		}
 

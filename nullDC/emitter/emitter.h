@@ -38,7 +38,8 @@ extern int ppc_condition_flags[][3];
 #define CR_T_COND_FLAG 9
 
 #define RTMP 10
-#define RSH4R 15
+#define RPCTMPVAL 13
+#define RSH4R 2
 
 #include "PowerPC.h"
 extern "C" {
@@ -364,8 +365,10 @@ public:
 {PowerPC_instr ppc;GEN_FSEL(ppc,fd,fa,fb,fc);ppce->write32(ppc);}
 #define EMIT_FRES(ppce,fd,fs) \
 {PowerPC_instr ppc;GEN_FRES(ppc,fd,fs);ppce->write32(ppc);}
-#define EMIT_FNMSUB(ppce,fd,fa,fb,fc) \
-{PowerPC_instr ppc;GEN_FNMSUB(ppc,fd,fa,fb,fc);ppce->write32(ppc);}
+#define EMIT_FNMSUB(ppce,fd,fa,fc,fb) \
+{PowerPC_instr ppc;GEN_FNMSUB(ppc,fd,fa,fc,fb);ppce->write32(ppc);}
+#define EMIT_FNMSUBS(ppce,fd,fa,fc,fb) \
+{PowerPC_instr ppc;GEN_FNMSUBS(ppc,fd,fa,fc,fb);ppce->write32(ppc);}
 #define EMIT_FMADD(ppce,fd,fa,fc,fb) \
 {PowerPC_instr ppc;GEN_FMADD(ppc,fd,fa,fc,fb);ppce->write32(ppc);}
 #define EMIT_FMADDS(ppce,fd,fa,fc,fb) \
