@@ -625,7 +625,7 @@ void __fastcall VerySlowUpdate()
 	*(u16*)&mem_b.data[(0xC0196EC)& 0xFFFFFF] =9;
 	*(u16*)&mem_b.data[(0xD0196D8+2)& 0xFFFFFF]=9;
 	*/
-//gli	FreeSuspendedBlocks();
+	FreeSuspendedBlocks();
 }
 //7168 Cycles
 void __fastcall SlowUpdate()

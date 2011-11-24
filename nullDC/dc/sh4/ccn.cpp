@@ -72,15 +72,8 @@ void CCN_CCR_write(u32 value)
 		temp.ICI=0;
 		ici_count++;
 
-/*gli		bm_stats stats;
-		bm_GetStats(&stats);
-		if ((stats.manual_blocks*100/(stats.locked_blocks+1)>25))
-		{
-			log("i-cache invalidation requested! (%d total)\n",ici_count);
-
-			log("Reseting Dynarec Cache on ICI due to manual block count\n");
-			SuspendAllBlocks();
-		}*/
+		log("i-cache invalidation requested! (%d total)\n",ici_count);
+		SuspendAllBlocks();
 	}
 	CCN_CCR=temp;
 }

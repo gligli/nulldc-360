@@ -413,7 +413,7 @@ void FreeSuspendedBlocks()
 	if (BBBB>996666)
 	{
 		BBBB=0;
-		RelocateBlocks();
+//gli crashes		RelocateBlocks();
 	}
 	if (reset_cache)
 		_SuspendAllBlocks();

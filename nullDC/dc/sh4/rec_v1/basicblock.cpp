@@ -739,14 +739,8 @@ bool BasicBlock::Compile()
 	
 	ira->SaveRegister(reg_pc,start);
 	ira->FlushRegister(reg_pc);  // UpdateSystem needs pc ...
-	
-	ppce->emitBranch((void*)UpdateSystem,1);
-	EMIT_CMPI(ppce,R3,0,0);
-	ppce->emitBranchConditionalToLabel(block_begin,0,PPC_CC_T,PPC_CC_ZER);
-	
-	ppce->emitLoad32((ppc_reg)RPC,GetRegPtr(reg_pc)); // UpdateSystem can change pc ...
-	
-	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,0);
+	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,1);
+	ppce->emitBranchToLabel(block_begin,0);
 
 	//apply roml patches and generate needed code
 	apply_roml_patches();

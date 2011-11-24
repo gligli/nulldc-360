@@ -266,6 +266,13 @@ void naked DynaMainLoop()
 
 		".align 4								\n"
 "do_update:										\n"
+		"bl UpdateSystem						\n"
+		"cmp 0,3,0								\n"
+		"beqlr									\n"
+		
+		"lis 5,sh4r+0@ha						\n" //sh4r+0 is pc
+		"lwz " xstr(RPC) ",sh4r+0@l(5)			\n"
+		
 		//check for exit
 		"lis 6,rec_sh4_int_bCpuRun@ha			\n"
 		"lwz 6,rec_sh4_int_bCpuRun@l(6)			\n"
