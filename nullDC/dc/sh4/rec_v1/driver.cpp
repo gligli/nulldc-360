@@ -190,7 +190,7 @@ void naked DynaMainLoop()
 
 		//
 		"lis " xstr(RSH4R) ",sh4r@ha			\n"
-
+		"lwz " xstr(RPC) ",0(" xstr(RSH4R) ")	\n"//sh4r+0 is pc
 	
 		//Max cycle count :)
 		"li " xstr(RCYCLES) "," xstr(CPU_TIMESLICE*9/10)		"\n"
@@ -222,11 +222,7 @@ void naked DynaMainLoop()
 		fastblock=BlockLookupGuess[GetLookupHash(address)];
 		*/
 		
-		"lis 3,sh4r+0@ha						\n" //sh4r+0 is pc
-		"lwz 3,sh4r+0@l(3)						\n"
-		"mr 4,3									\n"
-				
-		"rlwinm 4,4,0," xstr(LOOKUP_HASH_MASK<<2)	"\n"
+		"rlwinm 4," xstr(RPC) ",0," xstr(LOOKUP_HASH_MASK<<2)	"\n"
 		"lis 5,BlockLookupGuess@h				\n"
 		"ori 5,5,BlockLookupGuess@l				\n"
 		"lwzx 4,5,4								\n"
@@ -234,10 +230,10 @@ void naked DynaMainLoop()
 		"lis 5,sh4r+4@ha						\n" //sh4r+4 is fpscr
 		"lwz 5,sh4r+4@l(5)						\n"
 		"lwz 6,0(4)								\n"
-		"cmp 0,6,3								\n"
+		"cmp 0,6," xstr(RPC) "					\n"
 		"bne full_lookup						\n"
 
-/*usefull?
+/*gli usefull?
 		"rlwinm 5,5,32-19,30,31					\n"
 	
 		"lwz 6,12(4)							\n"
@@ -260,6 +256,10 @@ void naked DynaMainLoop()
 			return FindCode_full(address,fastblock);
 		}*/
 "full_lookup:									\n"
+		"lis 5,sh4r+0@ha						\n" //sh4r+0 is pc
+		"stw " xstr(RPC) ",sh4r+0@l(5)			\n"
+		"mr 3," xstr(RPC) "						\n"
+
 		"bl FindCode_full						\n"
 		"mtctr 3								\n"
 		"bctr									\n"

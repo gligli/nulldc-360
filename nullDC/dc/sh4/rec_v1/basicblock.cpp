@@ -375,9 +375,8 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 
 	cBB->TF_block=new_block;
 #if 1
-	ppce->emitLoad32(R3,GetRegPtr(reg_pc));
 	ppce->emitLoadImmediate32(R4,sh4r.pc);
-	EMIT_CMP(ppce,R3,R4,0);
+	EMIT_CMP(ppce,(ppc_reg)RPC,R4,0);
 	ppce->emitBranchConditional((void*)new_block->Code,PPC_CC_T,PPC_CC_ZER,0);
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
 	ppce->emitBranch((void*)RewriteBasicBlockGuess_FLUT_stub,0);
@@ -385,7 +384,7 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
 	ppce->emitBranch((void*)RewriteBasicBlockGuess_FLUT_stub,0);
 #endif	
-	verify(ppce->ppc_indx<=36);
+	verify(ppce->ppc_indx<=32);
 	
 	ppce->Generate();
 	delete ppce;
@@ -424,6 +423,7 @@ void FASTCALL RewriteBasicBlockGuess_NULL(CompiledBlockInfo* cBB)
 	ppce->ppc_buff=(u8*)cBB->Code + cBB->Rewrite.Offset;
 	ppce->ppc_size=32;
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
+	ppce->emitStore32(GetRegPtr(reg_pc),(ppc_reg)RPC);
 	ppce->emitBranch((void*)RewriteBasicBlockGuess_TTG_stub,0);
 	ppce->Generate();
 	delete ppce;
@@ -563,8 +563,7 @@ bool BasicBlock::Compile()
 		verify(sz==0);
 
 		ppce->MarkLabel(exit_discard_block);
-		ppce->emitLoadImmediate32(R3,start);
-		ppce->emitStore32(GetRegPtr(reg_pc),R3);
+		ppce->emitLoadImmediate32((ppc_reg)RPC,start);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)SuspendBlock,1);
 		ppce->emitBranch((void*)Dynarec_Mainloop_no_update,0);
@@ -618,7 +617,7 @@ bool BasicBlock::Compile()
 			cBB->Rewrite.Offset=ppce->ppc_indx;
 			ppce->emitLoadImmediate32(R3,(u32)cBB);
 			ppce->emitBranch((void*)RewriteBasicBlockGuess_TTG_stub,0);
-			u32 extrasz=36-(ppce->ppc_indx-cBB->Rewrite.Offset);
+			u32 extrasz=32-(ppce->ppc_indx-cBB->Rewrite.Offset);
 			for (u32 i=0;i<extrasz/4;i++)
 				ppce->write32(PPC_NOP);
 		}
@@ -629,9 +628,8 @@ bool BasicBlock::Compile()
 			ppce->Emit(op_add32,ppc_ptr(&ret_cache_total),1);
 #endif
 
-			ira->GetRegister(R3,reg_pc,RA_FORCE);
 			EMIT_LWZ(ppce,R4,RET_CACHE_STACK_OFFSET_A,R1);
-			EMIT_CMP(ppce,R3,R4,0);
+			EMIT_CMP(ppce,(ppc_reg)RPC,R4,0);
 			
 #ifndef RET_CACHE_PROF
 			ppce->emitBranchConditional(Dynarec_Mainloop_no_update,PPC_CC_F,PPC_CC_ZER,0);
@@ -739,12 +737,14 @@ bool BasicBlock::Compile()
 
 	EMIT_ADDI(ppce,RCYCLES,RCYCLES,cycles+CPU_TIMESLICE);
 	
-	ppce->emitLoadImmediate32(R3,start);
-	ppce->emitStore32(GetRegPtr(reg_pc),R3);
-
+	ira->SaveRegister(reg_pc,start);
+	ira->FlushRegister(reg_pc);  // UpdateSystem needs pc ...
+	
 	ppce->emitBranch((void*)UpdateSystem,1);
 	EMIT_CMPI(ppce,R3,0,0);
 	ppce->emitBranchConditionalToLabel(block_begin,0,PPC_CC_T,PPC_CC_ZER);
+	
+	ppce->emitLoad32((ppc_reg)RPC,GetRegPtr(reg_pc)); // UpdateSystem can change pc ...
 	
 	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,0);
 

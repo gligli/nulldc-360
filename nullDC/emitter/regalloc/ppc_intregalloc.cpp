@@ -1,5 +1,7 @@
 #include "ppc_intregalloc.h"
 
+#include "dc/sh4/rec_v1/driver.h"
+
 /*
 //implement register allocators on a class , so we can swap em around?
 //methods needed
@@ -41,7 +43,7 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 		bool InReg;
 		bool Dirty;
 	};
-	RegAllocInfo r_alloced[16];
+	RegAllocInfo r_alloced[sh4_reg_count];
 	struct sort_temp
 	{
 		int cnt;
@@ -93,9 +95,17 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 	virtual void DoAllocation(BasicBlock* block,ppc_block* ppce)
 	{
 		this->ppce=ppce;
-		for (int i=0;i<16;i++)
+		for (int i=0;i<sh4_reg_count;i++)
 		{
-			r_alloced[i].ppcreg=reg_to_alloc[i];
+			r_alloced[i].ppcreg=ERROR_REG;
+
+			if (i<REG_ALLOC_COUNT)
+				r_alloced[i].ppcreg=reg_to_alloc[i];
+			else if (i==reg_pc_temp)
+				r_alloced[i].ppcreg=(ppc_reg)RPCTMPVAL;
+			else if (i==reg_pc)
+				r_alloced[i].ppcreg=(ppc_reg)RPC;
+				
 			r_alloced[i].InReg=true;
 			r_alloced[i].Dirty=true;
 		}
@@ -107,9 +117,12 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 	//BeforeTrail		: generate any code needed after the main emittion has ended (other register allocators may emit code after that tho)
 	virtual void BeforeTrail()
 	{
-		for (int i=0;i<16;i++)
+		for (int i=0;i<sh4_reg_count;i++)
 		{
-			GetRegister(R3,i,RA_DEFAULT);
+			if (IsRegAllocated(i))
+			{
+				GetRegister(R3,i,RA_DEFAULT);
+			}
 		}
 	}
 	//AfterTrail		: generate code after the native block end (after the ret) , can be used to emit helper functions (other register allocators may emit code after that tho)
@@ -120,10 +133,7 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 	virtual bool IsRegAllocated(u32 sh4_reg)
 	{
 		checkvr(sh4_reg);
-		if (sh4_reg<=r15)
-			return r_alloced[sh4_reg].ppcreg!=ERROR_REG;
-		else 
-			return false;
+		return r_alloced[sh4_reg].ppcreg!=ERROR_REG;
 	}
 	//Carefull w/ register state , we may need to implement state push/pop
 	//GetRegister		: Get the register , needs flag for mode
@@ -276,7 +286,7 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 	//Flush all regs
 	virtual void FlushRegCache()
 	{
-		for (int i=0;i<16;i++)
+		for (int i=0;i<sh4_reg_count;i++)
 		{
 			FlushRegister(i);
 		}

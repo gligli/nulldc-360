@@ -646,8 +646,6 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 
 		#define mov_flag_T_1   32
 		#define mov_flag_T_2   64
-		#define mov_flag_RPCTMP_1   128
-		#define mov_flag_RPCTMP_2   256
 
 		u32 flags = 0;
 
@@ -666,16 +664,6 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		if (((op->flags & FLAG_IMM1)==0) && IsSSEAllocReg(op->reg2)==false && ira->IsRegAllocated(op->reg2))
 			flags|=mov_flag_GRP_2;
 
-		if (op->reg1==reg_pc_temp)
-		{
-			flags|=mov_flag_RPCTMP_1;
-		}
-		
-		if (((op->flags & FLAG_IMM1)==0) && IsSSEAllocReg(op->reg2)==false && (op->reg2==reg_pc_temp))
-		{
-			flags|=mov_flag_RPCTMP_2;
-		}
-		
 		if (op->reg1==reg_sr_T)
 		{
 			flags&=~mov_flag_GRP_1;
@@ -708,13 +696,6 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		#define TtoGPR   (mov_flag_GRP_1 | mov_flag_T_2  )
 		#define TtoM32   (mov_flag_M32_1 | mov_flag_T_2  )
 
-		#define RPCTMPtoGPR  (mov_flag_GRP_1 | mov_flag_RPCTMP_2)
-		#define RPCTMPtoM32  (mov_flag_M32_1 | mov_flag_RPCTMP_2)
-		#define GPRtoRPCTMP  (mov_flag_RPCTMP_1 | mov_flag_GRP_2)
-		#define M32toRPCTMP  (mov_flag_RPCTMP_1 | mov_flag_M32_2)
-		#define IMMtoRPCTMP  (mov_flag_RPCTMP_1 | mov_flag_imm_2)
-		
-		
 		ppc_fpr_reg fpr1=ERROR_REG;
 		ppc_fpr_reg fpr2=ERROR_REG;
 		if (flags & mov_flag_XMM_1)
@@ -855,35 +836,6 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 				EMIT_BC(ppce,2,0,0,PPC_CC_T,PPC_CC_ZER);
 				EMIT_LI(ppce,R4,0);
 				ppce->emitStore32(GetRegPtr(op->reg1),R4);
-			}
-			break;
-
-		case RPCTMPtoGPR:
-			{
-				ppce->emitMoveRegister(gpr1,(ppc_reg)RPCTMPVAL);
-			}
-			break;
-			
-		case RPCTMPtoM32:
-			{
-				ppce->emitStore32(GetRegPtr(op->reg1),(ppc_reg)RPCTMPVAL);
-			}
-			break;
-
-		case GPRtoRPCTMP:
-			{
-				ppce->emitMoveRegister((ppc_reg)RPCTMPVAL,gpr2);
-			}
-			break;
-			
-		case M32toRPCTMP:
-			{
-				ppce->emitLoad32((ppc_reg)RPCTMPVAL,GetRegPtr(op->reg2));
-			}
-			break;
-		case IMMtoRPCTMP:
-			{
-				ppce->emitLoadImmediate32((ppc_reg)RPCTMPVAL,op->imm1);
 			}
 			break;
 
@@ -1857,17 +1809,6 @@ void __fastcall shil_compile_test(shil_opcode* op)
 //add-sub
 void __fastcall shil_compile_add(shil_opcode* op)
 {
-	if(op->reg1==reg_pc_temp)
-	{
-TR		assert(op->flags & FLAG_IMM1);
-		assert(0==(op->flags & FLAG_REG2));
-		/*EMIT_ADDIS(ppce,RPCTMPVAL,RPCTMPVAL,op->imm1>>16);
-		EMIT_ADDI(ppce,RPCTMPVAL,RPCTMPVAL,op->imm1);*/
-		ppce->emitLoadImmediate32(R4,op->imm1);
-		EMIT_ADD(ppce,RPCTMPVAL,RPCTMPVAL,R4);
-		return;
-	}
-	
 	PowerPC_instr ppc,ppc_imm;
 	GEN_ADD(ppc,0,0,0);
 	GEN_ADDI(ppc_imm,0,0,0);

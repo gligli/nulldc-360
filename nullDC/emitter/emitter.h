@@ -38,7 +38,6 @@ extern int ppc_condition_flags[][3];
 #define CR_T_COND_FLAG 9
 
 #define RTMP 10
-#define RPCTMPVAL 13
 #define RSH4R 2
 
 #include "PowerPC.h"
