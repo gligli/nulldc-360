@@ -20,6 +20,8 @@
 
 #include "sh4r_rename.h"
 
+#include <ppc/timebase.h>
+
 #define GetN(str) ((str>>8) & 0xf)
 #define GetM(str) ((str>>4) & 0xf)
 #define GetImm4(str) ((str>>0) & 0xf)
@@ -151,15 +153,18 @@ sh4op(i0000_nnnn_1011_0011)
 	//log("ocbwb @0x%08X \n",r[n]);
 } 
 
+u64 time_pref=0;
+
 //pref @<REG_N>                 
 void __fastcall do_pref(u32 addr)
 {
+	u64 prt=mftb();
+	
 	u32* sq = (u32*)&sq_both[addr& 0x20];
 
 	if (!mmu_TranslateSQW(addr))
 	{
-		//log("Read Exeption From SQ WRITE \n");
-		return;
+		log("Read Exeption From SQ WRITE \n");
 	}
 
 	if (((addr >> 26) & 0x7) == 4)//Area 4 !11!!
@@ -170,6 +175,9 @@ void __fastcall do_pref(u32 addr)
 	{
 		WriteMemBlock_nommu_ptr(addr,sq,8*4);
 	}
+	
+	prt=mftb()-prt;
+	time_pref+=prt;
 }
 sh4op(i0000_nnnn_1000_0011)
 {

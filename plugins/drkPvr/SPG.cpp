@@ -85,6 +85,7 @@ extern u64 time_update_system;
 extern u64 time_rw_regs;
 extern u64 time_gdrom;
 extern u64 time_lookup;
+extern u64 time_pref;
 
 void PrintBlocksRunCount();
 
@@ -181,6 +182,7 @@ void spgVBL()
 					time_rw_regs=0;
 					time_gdrom=0;
 					time_lookup=0;
+					time_pref=0;
 					
 					for(i=0;i<0x10000;++i)
 					{
@@ -199,6 +201,7 @@ void spgVBL()
 				}
 				case 't':
 					printf("UpdateSystem: %.3f%%\n",100.0f*(float)time_update_system/(mftb()-time_dr_start));
+					printf("pref: %.3f%%\n",100.0f*(float)time_pref/(mftb()-time_dr_start));
 					printf("RW regs: %.3f%%\n",100.0f*(float)time_rw_regs/(mftb()-time_dr_start));
 					printf("GDROM: %.3f%%\n",100.0f*(float)time_gdrom/(mftb()-time_dr_start));
 					printf("lookup: %.3f%%\n",100.0f*(float)time_lookup/(mftb()-time_dr_start));
