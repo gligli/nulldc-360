@@ -2637,6 +2637,7 @@ void __fastcall shil_compile_ftrv(shil_opcode* op)
 	u32 sz=op->flags & 3;
 	if (sz==FLAG_32)
 	{
+#if 0
 		fra->FlushRegister(op->reg1);
 		fra->FlushRegister(op->reg1+1);
 		fra->FlushRegister(op->reg1+2);
@@ -2653,6 +2654,54 @@ void __fastcall shil_compile_ftrv(shil_opcode* op)
 		fra->ReloadRegister(op->reg1+1);
 		fra->ReloadRegister(op->reg1+2);
 		fra->ReloadRegister(op->reg1+3);
+#else
+		ppc_reg v0=fra->GetRegister(FR1,op->reg1,RA_FORCE);
+		ppc_reg v1=fra->GetRegister(FR2,op->reg1+1,RA_FORCE);
+		ppc_reg v2=fra->GetRegister(FR3,op->reg1+2,RA_FORCE);
+		ppc_reg v3=fra->GetRegister(FR4,op->reg1+3,RA_FORCE);
+		
+		ppce->emitLoadFloat(FR5,GetRegPtr(xf_0));
+		ppce->emitLoadFloat(FR9,GetRegPtr(xf_1));
+		ppce->emitLoadFloat(FR6,GetRegPtr(xf_4));
+		ppce->emitLoadFloat(FR10,GetRegPtr(xf_5));
+		ppce->emitLoadFloat(FR7,GetRegPtr(xf_8));
+		ppce->emitLoadFloat(FR11,GetRegPtr(xf_9));
+		ppce->emitLoadFloat(FR8,GetRegPtr(xf_12));
+		ppce->emitLoadFloat(FR12,GetRegPtr(xf_13));
+
+		EMIT_FMUL(ppce,FR0,FR5,v0,0);
+		EMIT_FMUL(ppce,FR13,FR9,v0,0);
+		EMIT_FMADDS(ppce,FR0,FR6,v1,FR0);
+		EMIT_FMADDS(ppce,FR13,FR10,v1,FR13);
+		EMIT_FMADDS(ppce,FR0,FR7,v2,FR0);
+		EMIT_FMADDS(ppce,FR13,FR11,v2,FR13);
+		EMIT_FMADDS(ppce,FR0,FR8,v3,FR0);
+		EMIT_FMADDS(ppce,FR13,FR12,v3,FR13);
+
+		ppce->emitLoadFloat(FR5,GetRegPtr(xf_2));
+		ppce->emitLoadFloat(FR9,GetRegPtr(xf_3));
+		ppce->emitLoadFloat(FR6,GetRegPtr(xf_6));
+		ppce->emitLoadFloat(FR10,GetRegPtr(xf_7));
+		ppce->emitLoadFloat(FR7,GetRegPtr(xf_10));
+		ppce->emitLoadFloat(FR11,GetRegPtr(xf_11));
+		ppce->emitLoadFloat(FR8,GetRegPtr(xf_14));
+		ppce->emitLoadFloat(FR12,GetRegPtr(xf_15));
+		
+		fra->SaveRegister(op->reg1,FR0);
+		fra->SaveRegister(op->reg1+1,FR13);
+		
+		EMIT_FMUL(ppce,FR0,FR5,v0,0);
+		EMIT_FMUL(ppce,FR13,FR9,v0,0);
+		EMIT_FMADDS(ppce,FR0,FR6,v1,FR0);
+		EMIT_FMADDS(ppce,FR13,FR10,v1,FR13);
+		EMIT_FMADDS(ppce,FR0,FR7,v2,FR0);
+		EMIT_FMADDS(ppce,FR13,FR11,v2,FR13);
+		EMIT_FMADDS(ppce,FR0,FR8,v3,FR0);
+		EMIT_FMADDS(ppce,FR13,FR12,v3,FR13);
+
+		fra->SaveRegister(op->reg1+2,FR0);
+		fra->SaveRegister(op->reg1+3,FR13);
+#endif
 	}
 	else
 	{

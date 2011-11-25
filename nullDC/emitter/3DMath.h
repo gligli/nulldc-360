@@ -57,7 +57,7 @@ typedef float Vec3f[3] ALIGNED16;
 }
 
 #ifdef USE_ALTIVEC
-#if 0
+#if 1
 inline void Mat44TransformVector(Vec4f v,Mat44 m)
 {
 		vector float zero;
