@@ -1312,12 +1312,24 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 		case FLAG_8:  EMIT_XORI(ppce,R6,reg,3); reg=R6; break;
 		case FLAG_16: EMIT_XORI(ppce,R6,reg,2); reg=R6; break;
 	}
-	
+
+#if 0
 	ppce->emitLoadImmediate32(R5,0xE0000000);
 	EMIT_CMPL(ppce,reg,R5,0);
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
 	EMIT_RLWINM(ppce,R5,reg,0,3,31);
 	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
+#else	
+	ppce->emitLoadImmediate32(R7,0x20000000);
+	
+	PowerPC_instr ppc;
+	GEN_ADD(ppc,R5,R7,reg);
+	ppc|=1;
+	ppce->write32(ppc);
+	
+	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
+	EMIT_RLWIMI(ppce,R5,R7,1,0,2);
+#endif
 }
 //const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
 void __fastcall shil_compile_readm(shil_opcode* op)
@@ -1340,8 +1352,8 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 
 	u32 old_offset=ppce->ppc_indx;
 	ppc_reg fast_reg;
-	u32 fast_reg_offset;
-	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
+	u32 fast_offset=0;
+	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_offset);
 	
 	old_offset=ppce->ppc_indx-old_offset;
 	/*ppc_Label* patch_point=*/ ppce->CreateLabel(true,0);
@@ -1460,8 +1472,8 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 
 	u32 old_offset=ppce->ppc_indx;
 	ppc_reg fast_reg;
-	u32 fast_reg_offset;
-	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_reg_offset);
+	u32 fast_offset=0;
+	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_offset);
 
 	ppc_reg rsrc;
 	if (size==FLAG_64)
