@@ -1060,49 +1060,57 @@ void __fastcall shil_compile_and(shil_opcode* op)
 }
 //readm/writem 
 //Address calculation helpers
-void readwrteparams1(u8 reg1,u32 imm,ppc_reg* fast_nimm)
+ppc_reg readwrteparams1(u8 reg1,u32 imm,u32 size,s32* fast_imm)
 {
+	ppc_reg reg;
+	
 	if (ira->IsRegAllocated(reg1))
 	{
-		//lea ecx,[reg1+imm]
-		ppc_reg reg=LoadReg(R3,reg1);
+		reg=LoadReg(R3,reg1);
 		assert(reg!=R3);
-		*fast_nimm=reg;
 		
 		if((s32)imm>=-32768 && (s32)imm<=32767)
 		{
-//			printf("reg %d %08x lo\n",reg,imm);
-			EMIT_ADDI(ppce,R3,reg,imm);
+			if(size>=FLAG_32)
+			{
+				*fast_imm=(s32)imm;
+			}
+			else
+			{
+				EMIT_ADDI(ppce,R3,reg,imm);
+				reg=R3;
+			}
 		}
 		else
 		{
-//			printf("reg %d %08x\n",reg,imm);
-/*			ppce->emitLoadImmediate32(R3,imm);
-			EMIT_ADD(ppce,R3,R3,reg);*/
 			EMIT_ADDIS(ppce,R3,reg,HA(imm))
 			EMIT_ADDI(ppce,R3,R3,imm);
+			reg=R3;
 		}
 	}
 	else
 	{
-		//mov ecx,imm
-		//add ecx,reg1
 		ppce->emitLoad32(R3,GetRegPtr(reg1));
+		reg=R3;
 
 		if((s32)imm>=-32768 && (s32)imm<=32767)
 		{
-//			printf("reg %08x lo\n",imm);
-			EMIT_ADDI(ppce,R3,R3,imm);
+			if(size>=FLAG_32)
+			{
+				*fast_imm=(s32)imm;
+			}
+			else
+			{
+				EMIT_ADDI(ppce,R3,R3,imm);
+			}
 		}
 		else
 		{
-//			printf("reg %08x\n",imm);
-/*			ppce->emitLoadImmediate32(R9,imm);
-			EMIT_ADD(ppce,R3,R3,R9);*/
 			EMIT_ADDIS(ppce,R3,R3,HA(imm))
 			EMIT_ADDI(ppce,R3,R3,imm);
 		}
 	}
+	return reg;
 }
 void readwrteparams2(u8 reg1,u8 reg2)
 {
@@ -1142,7 +1150,7 @@ void readwrteparams2(u8 reg1,u8 reg2)
 		}
 	}
 }
-void readwrteparams3(u8 reg1,u8 reg2,u32 imm)
+void readwrteparams3(u8 reg1,u8 reg2,u32 imm,u32 size,s32* fast_imm)
 {
 	//verify((imm&0xffff)==imm);
 	verify((s32)imm>=-32768 && (s32)imm<=32767);
@@ -1158,7 +1166,14 @@ void readwrteparams3(u8 reg1,u8 reg2,u32 imm)
 			ppc_reg r2=LoadReg(R3,reg2);
 			assert(r2!=R3);
 			EMIT_ADD(ppce,R3,r1,r2);
-			EMIT_ADDI(ppce,R3,R3,imm);
+			if(size>=FLAG_32)
+			{
+TR				*fast_imm=(s32)imm;
+			}
+			else
+			{
+				EMIT_ADDI(ppce,R3,R3,imm);
+			}
 		}
 		else
 		{
@@ -1166,14 +1181,21 @@ void readwrteparams3(u8 reg1,u8 reg2,u32 imm)
 			//add ecx,[reg2]
 			ppce->emitLoad32(R3,GetRegPtr(reg2));
 			EMIT_ADD(ppce,R3,R3,r1);
-			EMIT_ADDI(ppce,R3,R3,imm);
+			if(size>=FLAG_32)
+			{
+TR				*fast_imm=(s32)imm;
+			}
+			else
+			{
+				EMIT_ADDI(ppce,R3,R3,imm);
+			}
 		}
 	}
 	else
 	{
 		if (ira->IsRegAllocated(reg2))
 		{
-			readwrteparams3(reg2,reg1,imm);
+			readwrteparams3(reg2,reg1,imm,size,fast_imm);
 		}
 		else
 		{
@@ -1182,12 +1204,19 @@ void readwrteparams3(u8 reg1,u8 reg2,u32 imm)
 			ppce->emitLoad32(R3,GetRegPtr(reg1));
 			ppce->emitLoad32(R4,GetRegPtr(reg2));
 			EMIT_ADD(ppce,R3,R3,R4);
-			EMIT_ADDI(ppce,R3,R3,imm);
+			if(size>=FLAG_32)
+			{
+TR				*fast_imm=(s32)imm;
+			}
+			else
+			{
+				EMIT_ADDI(ppce,R3,R3,imm);
+			}
 		}
 	}
 }
 //Emit needed calc. asm and return register that has the address :)
-ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,u32* fast_offset)
+ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,s32* fast_offset)
 {
 	assert(0==(op->flags & FLAG_IMM2));
 	assert(op->flags & FLAG_REG1);
@@ -1230,6 +1259,8 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,u32* fast_offset)
 	verify(flags!=0);
 	ppc_reg reg=ERROR_REG;
 
+	u32 size=op->flags&3;
+
 //	printf("readwrteparams flags %d\n",flags);
 	
 	switch(flags)
@@ -1255,21 +1286,15 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,u32* fast_offset)
 
 		//2 olny
 	case flag_imm | flag_r2:
-		*fast_offset=op->imm1;
-		readwrteparams1((u8)op->reg2,op->imm1,fast_reg);
-		reg=R3;
+		reg=readwrteparams1((u8)op->reg2,op->imm1,size,fast_offset);
 		break;
 
 	case flag_imm | flag_r0:
-		*fast_offset=op->imm1;
-		readwrteparams1((u8)r0,op->imm1,fast_reg);
-		reg=R3;
+		reg=readwrteparams1((u8)r0,op->imm1,size,fast_offset);
 		break;
 
 	case flag_imm | flag_gbr:
-		*fast_offset=op->imm1;
-		readwrteparams1((u8)reg_gbr,op->imm1,fast_reg);
-		reg=R3;
+		reg=readwrteparams1((u8)reg_gbr,op->imm1,size,fast_offset);
 		break;
 
 	case flag_r2 | flag_r0:
@@ -1284,12 +1309,12 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,u32* fast_offset)
 
 		//3 olny
 	case flag_imm | flag_r2 | flag_gbr:
-		readwrteparams3((u8)op->reg2,(u8)reg_gbr,op->imm1);
+		readwrteparams3((u8)op->reg2,(u8)reg_gbr,op->imm1,size,fast_offset);
 		reg=R3;
 		break;
 
 	case flag_imm | flag_r2 | flag_r0:
-		readwrteparams3((u8)op->reg2,(u8)r0,op->imm1);
+		readwrteparams3((u8)op->reg2,(u8)r0,op->imm1,size,fast_offset);
 		reg=R3;
 		break;
 
@@ -1352,7 +1377,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 
 	u32 old_offset=ppce->ppc_indx;
 	ppc_reg fast_reg;
-	u32 fast_offset=0;
+	s32 fast_offset=0;
 	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_offset);
 	
 	old_offset=ppce->ppc_indx-old_offset;
@@ -1394,8 +1419,8 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	{
 		switch(size)
 		{
-			case FLAG_32: EMIT_LFS(ppce,destreg,0,R5); break;
-			case FLAG_64: EMIT_LFD(ppce,destreg,0,R5); break;
+			case FLAG_32: EMIT_LFS(ppce,destreg,fast_offset,R5); break;
+			case FLAG_64: EMIT_LFD(ppce,destreg,fast_offset,R5); break;
 			default: verify(false);
 		}
 	}
@@ -1403,10 +1428,10 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	{
 		switch(size)
 		{
-			case FLAG_8:  EMIT_LBZ(ppce,destreg,0,R5); break;
-			case FLAG_16: EMIT_LHZ(ppce,destreg,0,R5); break;
-			case FLAG_32: EMIT_LWZ(ppce,destreg,0,R5); break;
-			case FLAG_64: EMIT_LFD(ppce,destreg,0,R5); break;
+			case FLAG_8:  EMIT_LBZ(ppce,destreg,fast_offset,R5); break;
+			case FLAG_16: EMIT_LHZ(ppce,destreg,fast_offset,R5); break;
+			case FLAG_32: EMIT_LWZ(ppce,destreg,fast_offset,R5); break;
+			case FLAG_64: EMIT_LFD(ppce,destreg,fast_offset,R5); break;
 			default: verify(false);
 		}
 	}
@@ -1444,6 +1469,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	t.type=0;
 	t.is_float=is_float;
 	t.reg_addr=reg_addr;
+	t.fast_imm=fast_offset;
 	if (size!=FLAG_64)
 	{
 		t.reg_data=destreg;
@@ -1472,7 +1498,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 
 	u32 old_offset=ppce->ppc_indx;
 	ppc_reg fast_reg;
-	u32 fast_offset=0;
+	s32 fast_offset=0;
 	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_offset);
 
 	ppc_reg rsrc;
@@ -1515,18 +1541,18 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	{
 		switch(size)
 		{
-			case FLAG_32: EMIT_STFS(ppce,rsrc,0,R5); break;
-			case FLAG_64: EMIT_STFD(ppce,rsrc,0,R5); break;
+			case FLAG_32: EMIT_STFS(ppce,rsrc,fast_offset,R5); break;
+			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,R5); break;
 		}
 	}
 	else
 	{
 		switch(size)
 		{
-			case FLAG_8:  EMIT_STB(ppce,rsrc,0,R5); break;
-			case FLAG_16: EMIT_STH(ppce,rsrc,0,R5); break;
-			case FLAG_32: EMIT_STW(ppce,rsrc,0,R5); break;
-			case FLAG_64: EMIT_STFD(ppce,rsrc,0,R5); break;
+			case FLAG_8:  EMIT_STB(ppce,rsrc,fast_offset,R5); break;
+			case FLAG_16: EMIT_STH(ppce,rsrc,fast_offset,R5); break;
+			case FLAG_32: EMIT_STW(ppce,rsrc,fast_offset,R5); break;
+			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,R5); break;
 		}
 	}
 
@@ -1542,6 +1568,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	t.type=1;
 	t.is_float=was_float != 0;
 	t.reg_addr=reg_addr;
+	t.fast_imm=fast_offset;
 	if (size!=FLAG_64)
 	{
 		t.reg_data=rsrc;
@@ -1563,7 +1590,7 @@ void apply_roml_patches()
 	{
 //		printf("apply_roml_patches %d %d\n",roml_patch_list[i].type,roml_patch_list[i].asz);
 		void * function=roml_patch_list[i].type==1 ?nvw_lut[roml_patch_list[i].asz]:nvr_lut[roml_patch_list[i].asz];
-	
+		
 		ppc_Label* normal_write=ppce->CreateLabel(false,8);
 
 		ppce->emitBranchToLabel(normal_write,0);
@@ -1572,8 +1599,8 @@ void apply_roml_patches()
 
 		if (roml_patch_list[i].type==1 && (roml_patch_list[i].asz>=FLAG_32))
 		{
-			if(roml_patch_list[i].reg_addr!=R3)
-				ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
+			if(roml_patch_list[i].reg_addr!=R3 || roml_patch_list[i].fast_imm)
+				EMIT_ADDI(ppce,R3,roml_patch_list[i].reg_addr,roml_patch_list[i].fast_imm);
 
 			//check for SQ write
 			ppce->emitLoadImmediate32(R5,0xE4000000);
@@ -1602,9 +1629,9 @@ void apply_roml_patches()
 		}
 		
 		ppce->MarkLabel(normal_write);
-
-		if(roml_patch_list[i].reg_addr!=R3)
-			ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
+		
+		if(roml_patch_list[i].reg_addr!=R3 || roml_patch_list[i].fast_imm)
+			EMIT_ADDI(ppce,R3,roml_patch_list[i].reg_addr,roml_patch_list[i].fast_imm);
 		
 		if (roml_patch_list[i].asz!=FLAG_64)
 		{

@@ -19,6 +19,7 @@ struct roml_patch
 
 	ppc_reg reg_addr;
 	ppc_reg reg_data;
+	s32 fast_imm;
 	bool is_float;
 };
 
