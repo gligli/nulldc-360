@@ -113,27 +113,34 @@ extern u32 pc;
 
 //#define CHECK_ALIGN
 //#define MEM_VERBOSE
+//#define MEM_PROF
 
 u64 time_rw_regs=0;
 
 
 u8 INLINE _vmem_ReadMem8(u32 addr) 
 {
+#ifdef MEM_PROF
 	u64 rwt=mftb();
+#endif
 #ifdef MEM_VERBOSE	
 	printf("_vmem_ReadMem8 %08x\n",addr);
 #endif
 	unat data_ptr;
 	u8 res= (_vmem_translate(addr,data_ptr)) ? (u8)(*(_vmem_ReadMem8FP**)((u8*)_vmem_RF8+data_ptr))(addr) : *(u8*)(data_ptr^3);
 	
+#ifdef MEM_PROF
 	rwt=mftb()-rwt;
 	time_rw_regs+=rwt;
+#endif
 	return res;
 }
 
 u16 INLINE _vmem_ReadMem16(u32 addr)
 { 
+#ifdef MEM_PROF
 	u64 rwt=mftb();
+#endif
 #ifdef MEM_VERBOSE	
 	printf("_vmem_ReadMem16 %08x\n",addr);
 #endif
@@ -143,14 +150,18 @@ u16 INLINE _vmem_ReadMem16(u32 addr)
 	unat data_ptr;
 	u16 res= (_vmem_translate(addr,data_ptr)) ? (u16)(*(_vmem_ReadMem16FP**)((u8*)_vmem_RF16+data_ptr))(addr) : *(u16*)(data_ptr^2);
 	
+#ifdef MEM_PROF
 	rwt=mftb()-rwt;
 	time_rw_regs+=rwt;
+#endif
 	return res;
 }
 
 u32 INLINE _vmem_ReadMem32(u32 addr)
 { 
+#ifdef MEM_PROF
 	u64 rwt=mftb();
+#endif
 #ifdef MEM_VERBOSE	
 	printf("_vmem_ReadMem32 %08x\n",addr);
 #endif
@@ -160,14 +171,18 @@ u32 INLINE _vmem_ReadMem32(u32 addr)
 	unat data_ptr;
 	u32 res= (_vmem_translate(addr,data_ptr)) ? (u32)(*(_vmem_ReadMem32FP**)((u8*)_vmem_RF32+data_ptr))(addr) : *(u32*)data_ptr;
 
+#ifdef MEM_PROF
 	rwt=mftb()-rwt;
 	time_rw_regs+=rwt;
+#endif
 	return res;
 }
 
 u64 INLINE _vmem_ReadMem64(u32 addr)
 {
+#ifdef MEM_PROF
 	u64 rwt=mftb();
+#endif
 #ifdef MEM_VERBOSE	
 	printf("_vmem_ReadMem64 %08x\n",addr);
 #endif
@@ -181,8 +196,10 @@ u64 INLINE _vmem_ReadMem64(u32 addr)
 		return (u64)(handler(addr+4) | (((u64)handler(addr))<<32));
 	}
 
+#ifdef MEM_PROF
 	rwt=mftb()-rwt;
 	time_rw_regs+=rwt;
+#endif
 	
 	return *(u64*)data_ptr;
 }
@@ -197,10 +214,14 @@ void INLINE _vmem_WriteMem8(u32 addr,u8 data)
 
 	if (_vmem_translate(addr,data_ptr))
 	{
+#ifdef MEM_PROF
 		u64 rwt=mftb();
+#endif
 		(*(_vmem_WriteMem8FP**)((u8*)_vmem_WF8+data_ptr))(addr,data);
+#ifdef MEM_PROF
 		rwt=mftb()-rwt;
 		time_rw_regs+=rwt;
+#endif
 		return;
 	}
 
@@ -219,10 +240,14 @@ void INLINE _vmem_WriteMem16(u32 addr,u16 data)
 	
 	if (_vmem_translate(addr,data_ptr))
 	{
+#ifdef MEM_PROF
 		u64 rwt=mftb();
+#endif
 		(*(_vmem_WriteMem16FP**)((u8*)_vmem_WF16+data_ptr))(addr,data);
+#ifdef MEM_PROF
 		rwt=mftb()-rwt;
 		time_rw_regs+=rwt;
+#endif
 		return;
 	}
 
@@ -241,10 +266,14 @@ void INLINE _vmem_WriteMem32(u32 addr,u32 data)
 
 	if (_vmem_translate(addr,data_ptr))
 	{
+#ifdef MEM_PROF
 		u64 rwt=mftb();
+#endif
 		(*(_vmem_WriteMem32FP**)((u8*)_vmem_WF32+data_ptr))(addr,data);
+#ifdef MEM_PROF
 		rwt=mftb()-rwt;
 		time_rw_regs+=rwt;
+#endif
 		return;
 	}
 
@@ -263,12 +292,16 @@ void INLINE _vmem_WriteMem64(u32 addr,u64 data)
 
 	if (_vmem_translate(addr,data_ptr))
 	{
+#ifdef MEM_PROF
 		u64 rwt=mftb();
+#endif
 		_vmem_WriteMem32FP* handler=*(_vmem_WriteMem32FP**)((u8*)_vmem_WF32+data_ptr);
 		handler(addr+4,(u32)data);
 		handler(addr,data>>32);
+#ifdef MEM_PROF
 		rwt=mftb()-rwt;
 		time_rw_regs+=rwt;
+#endif
 		return;
 	}
 
