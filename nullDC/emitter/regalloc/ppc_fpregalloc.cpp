@@ -4,11 +4,11 @@
 #include "ppc_fpregalloc.h"
 #include <assert.h>
 
-#define REG_ALLOC_COUNT (16)
+#define REG_ALLOC_COUNT (15)
 //FR0 is reserved for math/temp
-ppc_fpr_reg reg_to_alloc_fpr[16]=
+ppc_fpr_reg reg_to_alloc_fpr[15]=
 {
-	FR16,FR17,FR18,FR19,FR20,FR21,FR22,FR23,FR24,FR25,FR26,FR27,FR28,FR29,FR30,FR31
+	FR17,FR18,FR19,FR20,FR21,FR22,FR23,FR24,FR25,FR26,FR27,FR28,FR29,FR30,FR31
 };
 u32 alb=0;
 u32 nalb=0;

@@ -133,6 +133,7 @@ u32 Dynarec_Mainloop_no_update_fast;
 #define xstr(s) str(s)
 #define str(s) #s
 
+f32 float_zero=0.0f;
 f32 float_one=1.0f;
 f32 float_half=0.5f;
 
@@ -165,10 +166,12 @@ void naked DynaMainLoop()
 		"bl ret_cache_reset						\n"
 
 		// constant regs
+		"lis 3,float_zero@ha					\n"
+		"lfs " xstr(FRZERO) ",float_zero@l(3)	\n"
 		"lis 3,float_one@ha						\n"
-		"lfs 15,float_one@l(3)					\n"
+		"lfs " xstr(FRONE) ",float_one@l(3)		\n"
 		"lis 3,float_half@ha					\n"
-		"lfs 14,float_half@l(3)					\n"
+		"lfs " xstr(FRHALF) ",float_half@l(3)	\n"
 	
 		//misc pointers needed
 		"lis 3,block_stack_pointer@ha			\n"

@@ -82,10 +82,6 @@ u32* GetRegPtr(Sh4RegType reg)
 {
 	return GetRegPtr((u8)reg);
 }
-bool IsSSEAllocReg(u32 reg) //TODO: remove me
-{
-	return (reg >=fr_0 && reg<=fr_15);
-}
 bool IsFpuReg(u32 reg)
 {
 	return (reg >=fr_0 && reg<=xf_15);
@@ -93,7 +89,7 @@ bool IsFpuReg(u32 reg)
 //FPU !!! YESH
 u32 IsInFReg(u32 reg)
 {
-	if (IsSSEAllocReg(reg))
+	if (IsFpuReg(reg))
 	{
 		if (fra->IsRegAllocated(reg))
 			return 1;
@@ -494,7 +490,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 		case FLAG_32:
 			if (rw==0)
 			{
-				if (IsSSEAllocReg(reg))
+				if (IsFpuReg(reg))
 				{
 TR					fra->SaveRegister(reg,(float*)ptr);
 				}
@@ -505,7 +501,7 @@ TR					fra->SaveRegister(reg,(float*)ptr);
 			}
 			else
 			{
-				if (IsSSEAllocReg(reg))
+				if (IsFpuReg(reg))
 				{
 					ppce->emitLoad32(R4,GetRegPtr(reg));
 					ppce->emitStore32((u32*)ptr,R4);
@@ -546,7 +542,7 @@ TR					fra->SaveRegister(reg,(float*)ptr);
 
 			if (rw==1)
 			{
-				if (IsSSEAllocReg(reg))
+				if (IsFpuReg(reg))
 				{
 					ppce->emitLoad32(R4,GetRegPtr(reg));
 				}
@@ -584,7 +580,7 @@ TR					fra->SaveRegister(reg,(float*)ptr);
 					}
 					break;
 				case FLAG_32:
-					if (IsSSEAllocReg(reg))
+					if (IsFpuReg(reg))
 					{
 TR						ppce->emitStore32(GetRegPtr(reg),R3);
 					}
@@ -658,10 +654,10 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		if (((op->flags & FLAG_IMM1)==0) && IsInFReg(op->reg2))
 			flags|=mov_flag_XMM_2;
 
-		if (IsSSEAllocReg(op->reg1)==false && ira->IsRegAllocated(op->reg1))
+		if (IsFpuReg(op->reg1)==false && ira->IsRegAllocated(op->reg1))
 			flags|=mov_flag_GRP_1;
 
-		if (((op->flags & FLAG_IMM1)==0) && IsSSEAllocReg(op->reg2)==false && ira->IsRegAllocated(op->reg2))
+		if (((op->flags & FLAG_IMM1)==0) && IsFpuReg(op->reg2)==false && ira->IsRegAllocated(op->reg2))
 			flags|=mov_flag_GRP_2;
 
 		if (op->reg1==reg_sr_T)
@@ -789,13 +785,26 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 			break;
 		case IMMtoXMM:
 			{
-				//log("impossible mov IMMtoXMM [%X]\n",flags);
-				//__asm int 3;
-				//write back to ram
-				ppce->emitLoadImmediate32(R4,op->imm1);
-				ppce->emitStore32(GetRegPtr(op->reg1),R4);
-				//mark reload on next use
-				fra->ReloadRegister(op->reg1);
+				if(op->imm1==0x00000000) // 0.0f
+				{
+					EMIT_FMR(ppce,fpr1,FRZERO);
+					fra->SaveRegister(op->reg1,fpr1);
+				}
+				else if(op->imm1==0x3f800000) // 1.0f
+				{
+					EMIT_FMR(ppce,fpr1,FRONE);
+					fra->SaveRegister(op->reg1,fpr1);
+				}
+				else
+				{
+					//log("impossible mov IMMtoXMM [%X]\n",flags);
+					//__asm int 3;
+					//write back to ram
+TR					ppce->emitLoadImmediate32(R4,op->imm1);
+					ppce->emitStore32(GetRegPtr(op->reg1),R4);
+					//mark reload on next use
+					fra->ReloadRegister(op->reg1);
+				}
 			}
 			break;
 
@@ -1298,28 +1307,16 @@ const u32 m_unpack_sz[4]={1,2,4,8};
 //Ram Only Mem Lookup
 void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 {
-	//mov ecx,reg_addr
-	if (reg!=R3)
-	{
-		u32 old=ppce->ppc_indx;
-		ppce->emitMoveRegister(R3,reg);
-		old=ppce->ppc_indx-old;
-		*offset_Edit+=old;
-	}
-
-	//if(rw && size==FLAG_8) ppce->emitDebugReg(R3);
-	// endianess
-	//if(!rw)
 	switch(size)
 	{
-		case FLAG_8:  EMIT_XORI(ppce,R3,R3,3); break;
-		case FLAG_16: EMIT_XORI(ppce,R3,R3,2); break;
+		case FLAG_8:  EMIT_XORI(ppce,R6,reg,3); reg=R6; break;
+		case FLAG_16: EMIT_XORI(ppce,R6,reg,2); reg=R6; break;
 	}
 	
 	ppce->emitLoadImmediate32(R5,0xE0000000);
-	EMIT_CMPL(ppce,R3,R5,0);
+	EMIT_CMPL(ppce,reg,R5,0);
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
-	EMIT_RLWINM(ppce,R5,R3,0,3,31);
+	EMIT_RLWINM(ppce,R5,reg,0,3,31);
 	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 }
 //const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
@@ -1364,7 +1361,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	{
 		if (is_float)
 		{
-			destreg=R4;
+			destreg=fra->GetRegister(FR0,op->reg1,RA_NODATA);
 		}
 		else
 		{
@@ -1381,13 +1378,25 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	}
 
 //	printf("destreg %d %d\n",destreg,reg_addr);
-	
-	switch(size)
+	if(is_float)
 	{
-		case FLAG_8:  EMIT_LBZ(ppce,destreg,0,R5); break;
-		case FLAG_16: EMIT_LHZ(ppce,destreg,0,R5); break;
-		case FLAG_32: EMIT_LWZ(ppce,destreg,0,R5); break;
-		case FLAG_64: EMIT_LFD(ppce,destreg,0,R5); break;
+		switch(size)
+		{
+			case FLAG_32: EMIT_LFS(ppce,destreg,0,R5); break;
+			case FLAG_64: EMIT_LFD(ppce,destreg,0,R5); break;
+			default: verify(false);
+		}
+	}
+	else
+	{
+		switch(size)
+		{
+			case FLAG_8:  EMIT_LBZ(ppce,destreg,0,R5); break;
+			case FLAG_16: EMIT_LHZ(ppce,destreg,0,R5); break;
+			case FLAG_32: EMIT_LWZ(ppce,destreg,0,R5); break;
+			case FLAG_64: EMIT_LFD(ppce,destreg,0,R5); break;
+			default: verify(false);
+		}
 	}
 	
 	roml_patch t;
@@ -1409,7 +1418,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 
 		if (is_float)
 		{
-			fra->SaveRegisterGPR(op->reg1,destreg);
+			fra->SaveRegister(op->reg1,destreg);
 		}
 		else
 		{
@@ -1421,8 +1430,8 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	t.resume_offset=(u8)old_offset;
 	t.asz=size;
 	t.type=0;
-	t.is_float=false;
-	t.reg_addr=R3;//reg_addr;
+	t.is_float=is_float;
+	t.reg_addr=reg_addr;
 	if (size!=FLAG_64)
 	{
 		t.reg_data=destreg;
@@ -1520,7 +1529,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	t.asz=size;
 	t.type=1;
 	t.is_float=was_float != 0;
-	t.reg_addr=R3;//reg_addr;
+	t.reg_addr=reg_addr;
 	if (size!=FLAG_64)
 	{
 		t.reg_data=rsrc;
@@ -1549,10 +1558,11 @@ void apply_roml_patches()
 		
 		ppce->MarkLabel(roml_patch_list[i].p4_access);
 
-		verify(roml_patch_list[i].reg_addr==R3);
-		
 		if (roml_patch_list[i].type==1 && (roml_patch_list[i].asz>=FLAG_32))
 		{
+			if(roml_patch_list[i].reg_addr!=R3)
+				ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
+
 			//check for SQ write
 			ppce->emitLoadImmediate32(R5,0xE4000000);
 			EMIT_CMPL(ppce,R3,R5,0);
@@ -1581,25 +1591,20 @@ void apply_roml_patches()
 		
 		ppce->MarkLabel(normal_write);
 
-		// endianess
-		if (roml_patch_list[i].asz==0)
-		{
-			EMIT_XORI(ppce,R3,R3,3);
-		}
-		else if (roml_patch_list[i].asz==1)
-		{
-			EMIT_XORI(ppce,R3,R3,2);
-		}
-
+		if(roml_patch_list[i].reg_addr!=R3)
+			ppce->emitMoveRegister(R3,roml_patch_list[i].reg_addr);
+		
 		if (roml_patch_list[i].asz!=FLAG_64)
 		{
 			if (roml_patch_list[i].is_float)
 			{
 				//meh ?
-				if (!roml_patch_list[i].type) dbgbreak;
-				static u32 tmp;
-				ppce->emitStoreFloat(&tmp,roml_patch_list[i].reg_data);
-				ppce->emitLoad32(R4,&tmp);
+				if (roml_patch_list[i].type==1)
+				{
+					static u32 tmp;
+					ppce->emitStoreFloat(&tmp,roml_patch_list[i].reg_data);
+					ppce->emitLoad32(R4,&tmp);
+				}
 			}
 			else
 			{
@@ -2404,7 +2409,7 @@ void __fastcall shil_compile_fsqrt(shil_opcode* op)
 	}
 }
 
-#define _FAST_fssra
+//#define _FAST_fssra
 
 void __fastcall shil_compile_fsrra(shil_opcode* op)
 {

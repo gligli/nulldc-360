@@ -3,6 +3,7 @@
 
 #include <emitter/emitter.h>
 
+#define FRZERO 16
 #define FRONE 15
 #define FRHALF 14
 #define RCYCLES 13
