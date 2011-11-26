@@ -509,13 +509,12 @@ void EXPORT_CALL drkPvrGetInterface(plugin_interface* info)
 	p.ReadReg=ReadPvrRegister;
 	p.WriteReg=WritePvrRegister;
 
+	p.UpdatePvr=spgUpdatePvr;
+
 #if 1
-	p.UpdatePvr=threaded_spgUpdatePvr;
-	
 	p.TaDMA=threaded_TADma;
 	p.TaSQ=threaded_TASQ;
 #else
-	p.UpdatePvr=spgUpdatePvr;
 	
 	p.TaDMA=TASplitter::Dma;
 	p.TaSQ=TASplitter::SQ;

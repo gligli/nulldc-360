@@ -6,20 +6,21 @@
 #include <xenon_soc/xenon_power.h>
 #include <ppc/atomic.h>
 
+#include "Renderer_if.h"
 #include "ta.h"
 #include "spg.h"
 
 static volatile bool running=false;
-static unsigned int spinlock=0;
-
-static volatile u32 spgUpdatePvr_cycles;
-static volatile bool spgUpdatePvr_pending=false;
 
 #define TA_DMA_MAX_SIZE 1048576
 
 static __attribute__((aligned(128))) u32 ta_data[2][TA_DMA_MAX_SIZE/4];
 static volatile int ta_cur=0;
 static volatile bool ta_pending=false;
+
+volatile bool do_render_pending=false;
+volatile bool rend_end_render_call_pending=false;
+
 
 void threaded_TADma(u32* data,u32 size)
 {
@@ -51,22 +52,6 @@ void threaded_TASQ(u32* data)
 	time_pref+=prt;*/
 }
 
-void threaded_spgUpdatePvr(u32 cycles)
-{
-	spgUpdatePvr(cycles);
-	return;
-	
-	if (!spgNeedUpdatePvr(cycles))
-		return;
-
-	lock(&spinlock);
-
-	spgUpdatePvr_cycles=cycles;
-	spgUpdatePvr_pending=true;
-
-	unlock(&spinlock);
-}
-
 static void threaded_task()
 {
 	while(running)
@@ -80,18 +65,21 @@ static void threaded_task()
 			
 			TASplitter::SQ(data);
 		}
-
-		if(spgUpdatePvr_pending)
-		{
-			lock(&spinlock);
-			
-			spgUpdatePvr(spgUpdatePvr_cycles);
-			
-			spgUpdatePvr_pending=false;
-			
-			unlock(&spinlock);
-		}
 		
+		if(do_render_pending){
+				DoRender();
+				do_render_pending=false;
+		}
+
+		if (rend_end_render_call_pending)
+		{
+			params.RaiseInterrupt(holly_RENDER_DONE);
+			params.RaiseInterrupt(holly_RENDER_DONE_isp);
+			params.RaiseInterrupt(holly_RENDER_DONE_vd);
+			rend_end_render();
+			render_end_pending=false;
+			rend_end_render_call_pending=false;
+		}
 	}
 }
 

@@ -39,7 +39,8 @@ extern struct XenosDevice * xe;
 
 	void VramLockedWrite(vram_block* bl);
 	
-	extern bool do_render_pending;
+	extern volatile bool do_render_pending;
+	extern volatile bool rend_end_render_call_pending;
 
 
 #define rend_init         InitRenderer

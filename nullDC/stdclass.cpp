@@ -11,6 +11,8 @@ extern "C"{
 #include <ppc/vm.h>
 }
 
+#include <newlib/malloc_lock.h>
+
 //comonly used classes across the project
 
 //bah :P since it's template needs to be on .h pfftt
@@ -318,7 +320,7 @@ bool RamLockedWrite(u8* address,u32* sp);
 extern u8* sh4_mem_marks;
 extern u8* DynarecCache;
 extern u32 DynarecCacheSize;
-void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
+void * ExeptionHandler(int pir_,void * srr0,void * dar,int write)
 {
 	u8* address=(u8*)dar;
 

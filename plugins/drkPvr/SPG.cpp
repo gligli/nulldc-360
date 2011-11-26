@@ -16,6 +16,9 @@ u32 vblk_cnt=0;
 
 u32 last_fps=0;
 
+volatile bool render_end_pending=false;
+u32 render_end_pending_cycles;
+
 //54 mhz pixel clock :)
 #define PIXEL_CLOCK (54*1000*1000/2)
 u32 Line_Cycles=0;
@@ -72,10 +75,6 @@ void CalculateSync()
 	
 	Frame_Cycles=pvr_numscanlines*Line_Cycles;
 }
-
-bool do_render_pending=false;
-bool render_end_pending=false;
-u32 render_end_pending_cycles;
 
 extern u32 op_usage[0x10000];
 #define DYNA_MEM_POOL_SIZE 32*1024*1024
@@ -222,20 +221,6 @@ void spgVBL()
 	}
 }
 
-bool spgNeedUpdatePvr(u32 cycles)
-{
-	if (Line_Cycles==0)
-		return false;
-	
-	if (clc_pvr_scanline+cycles >  Line_Cycles)
-		return true;
-	
-	if(do_render_pending || render_end_pending)
-		return true;
-	
-	return false;
-}
-
 //called from sh4 context , should update pvr/ta state and everything else
 void FASTCALL spgUpdatePvr(u32 cycles)
 {
@@ -278,21 +263,12 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 		}
 	}
 	
-	if(do_render_pending){
-			DoRender();
-			do_render_pending=false;
-	}
-
-
 	if (render_end_pending)
 	{
 		if (render_end_pending_cycles<cycles)
 		{
-			params.RaiseInterrupt(holly_RENDER_DONE);
-			params.RaiseInterrupt(holly_RENDER_DONE_isp);
-			params.RaiseInterrupt(holly_RENDER_DONE_vd);
-			rend_end_render();
-			render_end_pending=false;
+			while(rend_end_render_call_pending);
+			rend_end_render_call_pending=true;
 		}
 		render_end_pending_cycles-=cycles;
 	}

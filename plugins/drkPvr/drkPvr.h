@@ -43,7 +43,7 @@ float GetSeconds();
 
 #include "helper_classes.h"
 
-extern bool render_end_pending;
+extern volatile bool render_end_pending;
 extern u32 render_end_pending_cycles;
 
 extern pvr_init_params params;
