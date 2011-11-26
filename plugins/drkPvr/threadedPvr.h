@@ -1,0 +1,9 @@
+#pragma once
+
+#include <xetypes.h>
+
+void threaded_TADma(u32* data,u32 size);
+void threaded_TASQ(u32* data);
+void threaded_spgUpdatePvr(u32 cycles);
+void threaded_init();
+void threaded_term();
