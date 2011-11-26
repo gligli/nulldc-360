@@ -18,6 +18,8 @@
 #include "regs.h"
 #include "Renderer_if.h"
 
+#include "threadedPvr.h"
+
 //RaiseInterruptFP* RaiseInterrupt;
 
 //void* Hwnd;
@@ -455,6 +457,8 @@ s32 FASTCALL InitPvr(pvr_init_params* param)
 		return rv_error;
 	}
 
+	threaded_init();
+	
 	return rv_ok;
 }
 
@@ -466,6 +470,8 @@ void FASTCALL TermPvr()
 	rend_term();
 	spg_Term();
 	Regs_Term();
+	
+	threaded_term();
 }
 
 //Helper functions
@@ -502,10 +508,19 @@ void EXPORT_CALL drkPvrGetInterface(plugin_interface* info)
 	
 	p.ReadReg=ReadPvrRegister;
 	p.WriteReg=WritePvrRegister;
-	p.UpdatePvr=spgUpdatePvr;
 
+#if 1
+	p.UpdatePvr=threaded_spgUpdatePvr;
+	
+	p.TaDMA=threaded_TADma;
+	p.TaSQ=threaded_TASQ;
+#else
+	p.UpdatePvr=spgUpdatePvr;
+	
 	p.TaDMA=TASplitter::Dma;
 	p.TaSQ=TASplitter::SQ;
+#endif	
+	
 	p.LockedBlockWrite=vramLockCB;
 	
 #undef c

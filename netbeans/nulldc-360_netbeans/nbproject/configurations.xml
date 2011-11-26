@@ -217,6 +217,8 @@
         <in>ta.h</in>
         <in>ta_const_df.h</in>
         <in>ta_structs.h</in>
+        <in>threadedPvr.cpp</in>
+        <in>threadedPvr.h</in>
         <in>xenosRend.cpp</in>
         <in>xenosRend.h</in>
       </df>

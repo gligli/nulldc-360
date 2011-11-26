@@ -1,6 +1,7 @@
 #include "spg.h"
 #include "Renderer_if.h"
 #include "regs.h"
+#include "threadedPvr.h"
 
 #include <dc/sh4/sh4_opcode_list.h>
 
@@ -145,6 +146,7 @@ void spgVBL()
 			switch(getch())
 			{
 				case 'x':
+					threaded_term();
 					exit(0);
 					break;
 				case 'o': 
@@ -220,6 +222,19 @@ void spgVBL()
 	}
 }
 
+bool spgNeedUpdatePvr(u32 cycles)
+{
+	if (Line_Cycles==0)
+		return false;
+	
+	if (clc_pvr_scanline+cycles >  Line_Cycles)
+		return true;
+	
+	if(do_render_pending || render_end_pending)
+		return true;
+	
+	return false;
+}
 
 //called from sh4 context , should update pvr/ta state and everything else
 void FASTCALL spgUpdatePvr(u32 cycles)
@@ -273,11 +288,11 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 	{
 		if (render_end_pending_cycles<cycles)
 		{
-			render_end_pending=false;
 			params.RaiseInterrupt(holly_RENDER_DONE);
 			params.RaiseInterrupt(holly_RENDER_DONE_isp);
 			params.RaiseInterrupt(holly_RENDER_DONE_vd);
 			rend_end_render();
+			render_end_pending=false;
 		}
 		render_end_pending_cycles-=cycles;
 	}

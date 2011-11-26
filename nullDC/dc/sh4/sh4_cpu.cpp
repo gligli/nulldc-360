@@ -158,10 +158,17 @@ u64 time_pref=0;
 //pref @<REG_N>                 
 void __fastcall do_pref(u32 addr)
 {
-	u64 prt=mftb();
+//	u64 prt=mftb();
 	
 	u32* sq = (u32*)&sq_both[addr& 0x20];
-
+/*
+    u32 oa=CCN_QACR_TR[(addr>>5)&1];
+	if(CCN_MMUCR.AT==0 && ((oa>>26)&7)==4)
+	{
+		libPvr.TaSQ(sq);
+		return;
+	}
+*/
 	if (!mmu_TranslateSQW(addr))
 	{
 		log("Read Exeption From SQ WRITE \n");
@@ -176,8 +183,8 @@ void __fastcall do_pref(u32 addr)
 		WriteMemBlock_nommu_ptr(addr,sq,8*4);
 	}
 	
-	prt=mftb()-prt;
-	time_pref+=prt;
+/*	prt=mftb()-prt;
+	time_pref+=prt;*/
 }
 sh4op(i0000_nnnn_1000_0011)
 {

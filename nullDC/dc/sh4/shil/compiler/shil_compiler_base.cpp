@@ -2326,6 +2326,9 @@ void __fastcall shil_compile_fabs(shil_opcode* op)
 
 //pref !
 void __fastcall do_pref(u32 Dest);
+
+void threaded_TASQ(u32* data);
+
 void __fastcall shil_compile_pref(shil_opcode* op)
 {
 	assert(0==(op->flags & (FLAG_REG2|FLAG_IMM2)));
@@ -2342,7 +2345,38 @@ void __fastcall shil_compile_pref(shil_opcode* op)
 		EMIT_RLWINM(ppce,R4,R3,6,26,31);
 		EMIT_CMPLI(ppce,R4,0xe0>>2,0);
 
-		ppce->emitBranchConditional((void*)do_pref,PPC_CC_T,PPC_CC_ZER,1);
+		ppc_Label* after=ppce->CreateLabel(false,8);		
+		ppce->emitBranchConditionalToLabel(after,0,PPC_CC_F,PPC_CC_ZER);
+
+		if(CCN_MMUCR.AT==0)
+		{
+			ppc_Label* else_=ppce->CreateLabel(false,0);		
+		
+			EMIT_LIS(ppce,R4,(u32)CCN_QACR_TR>>16);
+			EMIT_RLWIMI(ppce,R4,R3,32-3,29,29);		
+			
+			EMIT_LWZ(ppce,R4,0,R4);
+			EMIT_RLWINM(ppce,R4,R4,32-26,29,31);
+			EMIT_CMPLI(ppce,R4,4,0);			
+			
+			ppce->emitBranchConditionalToLabel(else_,0,PPC_CC_F,PPC_CC_ZER);
+			
+			EMIT_RLWINM(ppce,R3,R3,0,26,26);		
+			EMIT_ORIS(ppce,R3,R3,(u32)sq_both>>16);
+			
+			ppce->emitBranch((void*)threaded_TASQ,1);
+			ppce->emitBranchToLabel(after,0);
+			
+			ppce->MarkLabel(else_);
+			
+			ppce->emitBranch((void*)do_pref,1);
+		}
+		else
+		{
+			ppce->emitBranch((void*)do_pref,1);
+		}
+
+		ppce->MarkLabel(after);
 		
 /*		ppc_Label* after=ppce->CreateLabel(false,8);
 		ppce->emitBranchConditionalToLabel(after,0,PPC_CC_F,PPC_CC_ZER);

@@ -320,8 +320,6 @@ extern u8* DynarecCache;
 extern u32 DynarecCacheSize;
 void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 {
-	printf("ExeptionHandler %d %p %p %d ",pir,srr0,dar,write);
-
 	u8* address=(u8*)dar;
 
 	if (VramLockedWrite(address))
@@ -336,14 +334,9 @@ void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 	}
 	else if (((u32)(address-sh4_reserved_mem))<(512*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
 	{
-		printf("Rewrite\n");
-		//k
-		//
-		//cmp ecx,mask1
-		//jae full_lookup
-		//and ecx,mask2
-		//the write 
-		u32 pos=(u32)srr0; //<- the write
+		//printf("Rewrite %d %p %p %d ",pir,srr0,dar,write);
+		
+		u32 pos=(u32)srr0;
 		CompiledBlockInfo* cbi=bm_ReverseLookup((void*)pos);
 
 		if (!cbi)

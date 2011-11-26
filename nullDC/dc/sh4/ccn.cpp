@@ -22,7 +22,7 @@ u32 CCN_EXPEVT;
 u32 CCN_INTEVT;
 CCN_PTEA_type CCN_PTEA;
 CCN_QACR_type CCN_QACR[2];
-u32			  CCN_QACR_TR[2];
+__attribute__((aligned(65536))) u32 CCN_QACR_TR[2];
 
 template<int idx>
 void CCN_QACR_write(u32 value)
