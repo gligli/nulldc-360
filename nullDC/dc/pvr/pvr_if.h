@@ -29,7 +29,7 @@ void pvr_Term();
 //Reset -> Reset - Initialise
 void pvr_Reset(bool Manual);
 
-void FASTCALL TAWrite(u32 address,u32* data,u32 count);
+bool FASTCALL TAWrite(u32 address,u32* data,u32 count);
 void FASTCALL TAWriteSQ(u32 address,u32* data);
 
 //

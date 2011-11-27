@@ -21,8 +21,15 @@ DMAC_CHCR_type DMAC_CHCR[4];
 
 DMAC_DMAOR_type DMAC_DMAOR;
 
+u32 dmac_ch2_src;
+volatile bool dmac_ch2_end_pending=false;
+
+void dmac_ch2_end();
+		
 void DMAC_Ch2St()
 {
+	bool delayed=false;
+	
 	//u32 chcr	= DMAC_CHCR[2].full,
 	u32 dmaor	= DMAC_DMAOR.full;//,
 		//dmatcr	= DMAC_DMATCR[2];
@@ -55,7 +62,7 @@ void DMAC_Ch2St()
 			{
 				u32 *sys_buf=(u32 *)GetMemPtr(src,len);//(&mem_b[src&RAM_MASK]);
 				u32 new_len=RAM_SIZE-p_addr;
-				TAWrite(dst,sys_buf,(new_len/32));
+				delayed=TAWrite(dst,sys_buf,(new_len/32));
 				len-=new_len;
 				src+=new_len;
 				//dst+=new_len;
@@ -63,7 +70,7 @@ void DMAC_Ch2St()
 			else
 			{
 				u32 *sys_buf=(u32 *)GetMemPtr(src,len);//(&mem_b[src&RAM_MASK]);
-				TAWrite(dst,sys_buf,(len/32));
+				delayed=TAWrite(dst,sys_buf,(len/32));
 				src+=len;
 				break;
 			}
@@ -114,23 +121,36 @@ void DMAC_Ch2St()
 		log("\n!\tDMAC: SB_C2DSTAT has invalid address (%X) !\n", dst); 
 		src+=len;
 	}
+	
+	
+	dmac_ch2_src=src;
+	
+	if(!delayed)
+	{
+		dmac_ch2_end();
+	}
+}
 
-
+void dmac_ch2_end()
+{
 	// Setup some of the regs so it thinks we've finished DMA
 
-	DMAC_SAR[2] = (src);
+	DMAC_SAR[2] = (dmac_ch2_src);
 //    printf("DMAC_CHCR[2].full %08x\n",DMAC_CHCR[2].full);
 	DMAC_CHCR[2].full &= 0xFFFFFFFE;
 	DMAC_DMATCR[2] = 0x00000000;
 
 	SB_C2DST = 0x00000000;
 	SB_C2DLEN = 0x00000000;
-	SB_C2DSTAT = (src );
+	SB_C2DSTAT = (dmac_ch2_src );
 
 	// The DMA end interrupt flag (SB_ISTNRM - bit 19: DTDE2INT) is set to "1."
 	//-> fixed , holly_PVR_DMA is for diferent use now (fixed the interrupts enum too)
 	asic_RaiseInterrupt(holly_CH2_DMA);
+
+	dmac_ch2_end_pending=false;
 }
+
 
 //on demand data transfer
 //ch0/on demand data transfer request
@@ -145,20 +165,10 @@ void dmac_ddt_ch2_direct(u32 dst,u32 count)
 //transfer 22kb chunks (or less) [704 x 32] (22528)
 void UpdateDMA()
 {
-	/*if (DMAC_DMAOR.AE==1 || DMAC_DMAOR.DME==0)
-		return;//DMA disabled
-
-	//DMAC _must_ be on DDT mode
-	verify(DMAC_DMAOR.DDT==1);
-
-	for (int ch=0;ch<4;ch++)
+	if(dmac_ch2_end_pending)
 	{
-		if (DMAC_CHCR[ch].DE==1 && DMAC_CHCR[ch].TE==0)
-		{
-			verify(DMAC_CHCR[ch].RS<0x8);
-			verify(DMAC_CHCR[ch].RS<0x4);
-		}
-	}*/
+		dmac_ch2_end();
+	}
 }
 template<u32 ch>
 void WriteCHCR(u32 data)

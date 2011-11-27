@@ -15,19 +15,30 @@ static volatile bool running=false;
 #define TA_DMA_MAX_SIZE 1048576
 
 static __attribute__((aligned(128))) u32 ta_data[2][TA_DMA_MAX_SIZE/4];
+static int ta_size[2];
 static volatile int ta_cur=0;
 static volatile bool ta_pending=false;
 
 volatile bool do_render_pending=false;
 volatile bool rend_end_render_call_pending=false;
 
+extern volatile bool dmac_ch2_end_pending;
 
 void threaded_TADma(u32* data,u32 size)
 {
 	while(ta_pending);
 
-	TASplitter::Dma((u32*)data,size);
-	return;
+	//printf("threaded_TADma %08x %d\n",data,size);
+
+	verify(size*32<=TA_DMA_MAX_SIZE);
+	
+	u64 * d=(u64*)ta_data[ta_cur];
+	
+	memcpy(d,data,size*32);
+	
+	ta_size[ta_cur]=size;
+	
+	ta_pending=true;
 }
 
 extern u64 time_pref;
@@ -46,6 +57,8 @@ void threaded_TASQ(u32* data)
 	d[2]=s[2];
 	d[3]=s[3];
 	
+	ta_size[ta_cur]=0;
+	
 	ta_pending=true;
 
 /*	prt=mftb()-prt;
@@ -59,11 +72,20 @@ static void threaded_task()
 		if(ta_pending)
 		{
 			u32 * data=ta_data[ta_cur];
+			u32 size = ta_size[ta_cur];
 			
 			ta_cur=1-ta_cur;
 			ta_pending=false;
 			
-			TASplitter::SQ(data);
+			if (!size)
+			{
+				TASplitter::SQ(data);
+			}
+			else
+			{
+				TASplitter::Dma(data,size);
+				dmac_ch2_end_pending=true;
+			}
 		}
 		
 		if(do_render_pending){
