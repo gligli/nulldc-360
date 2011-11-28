@@ -1592,6 +1592,7 @@ void apply_roml_patches()
 		void * function=roml_patch_list[i].type==1 ?nvw_lut[roml_patch_list[i].asz]:nvr_lut[roml_patch_list[i].asz];
 		
 		ppc_Label* normal_write=ppce->CreateLabel(false,8);
+		ppc_Label* normal_write_nosq=ppce->CreateLabel(false,8);
 
 		ppce->emitBranchToLabel(normal_write,0);
 		
@@ -1606,7 +1607,7 @@ void apply_roml_patches()
 			ppce->emitLoadImmediate32(R5,0xE4000000);
 			EMIT_CMPL(ppce,R3,R5,0);
 			
-			ppce->emitBranchConditionalToLabel(normal_write,0,PPC_CC_F, PPC_CC_NEG);
+			ppce->emitBranchConditionalToLabel(normal_write_nosq,0,PPC_CC_F, PPC_CC_NEG);
 
 			EMIT_RLWINM(ppce,R3,R3,0,26,29); // & 0x3c
 			EMIT_ORIS(ppce,R3,R3,((u32)sq_both)>>16);
@@ -1632,6 +1633,8 @@ void apply_roml_patches()
 		
 		if(roml_patch_list[i].reg_addr!=R3 || roml_patch_list[i].fast_imm)
 			EMIT_ADDI(ppce,R3,roml_patch_list[i].reg_addr,roml_patch_list[i].fast_imm);
+		
+		ppce->MarkLabel(normal_write_nosq);
 		
 		if (roml_patch_list[i].asz!=FLAG_64)
 		{
