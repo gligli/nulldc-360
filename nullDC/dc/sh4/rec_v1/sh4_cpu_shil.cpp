@@ -556,7 +556,12 @@ rsh4op(i0100_nnnn_mmmm_1100)
 //shld <REG_M>,<REG_N>          
 rsh4op(i0100_nnnn_mmmm_1101)
 {
-	shil_interpret(op);
+	u32 n = GetN(op);
+	u32 m = GetM(op);
+
+	ilst->shld(r[n],r[m]);
+
+	//shil_interpret(op);
 }
 
 //rotcl <REG_N>                 

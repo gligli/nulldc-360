@@ -983,6 +983,32 @@ void __fastcall shil_compile_shr(shil_opcode* op)
 	GEN_RLWINM(ppc,0,0,0,0,0);
 	op_imm_to_reg(op,ppc,true,true);
 }
+
+//shld reg32,reg32
+void __fastcall shil_compile_shld(shil_opcode* op)
+{
+	ppc_gpr_reg r = LoadReg(R3,op->reg1);
+	ppc_gpr_reg s = LoadReg(R4,op->reg2);
+
+	ppc_Label* else_ = ppce->CreateLabel(false,0);
+	ppc_Label* end_ = ppce->CreateLabel(false,0);
+	
+	EMIT_CMPI(ppce,s,0,0);
+	ppce->emitBranchConditionalToLabel(else_,0,PPC_CC_F,PPC_CC_NEG);
+	
+	EMIT_NEG(ppce,R5,s);
+	EMIT_SRW(ppce,r,r,R5);
+	ppce->emitBranchToLabel(end_,0);
+
+	ppce->MarkLabel(else_);
+	
+	EMIT_SLW(ppce,r,r,s);
+
+	ppce->MarkLabel(end_);
+
+	SaveReg(op->reg1,r);
+}
+
 //sar reg32,imm , set flags
 void __fastcall shil_compile_sar(shil_opcode* op)
 {
@@ -1338,22 +1364,52 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 		case FLAG_16: EMIT_XORI(ppce,R6,reg,2); reg=R6; break;
 	}
 
-#if 0
+#if 1
 	ppce->emitLoadImmediate32(R5,0xE0000000);
 	EMIT_CMPL(ppce,reg,R5,0);
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
 	EMIT_RLWINM(ppce,R5,reg,0,3,31);
 	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 #else	
-	ppce->emitLoadImmediate32(R7,0x20000000);
+	EMIT_RLWINM(ppce,R7,reg,32-1,2,2);
+	EMIT_ANDC(ppce,R5,reg,R7);
+	EMIT_RLWIMI(R5,RSH4R,32-1,0,1); // RSH4R is for sure 8xxx.xxx0
+/*
+	EMIT_RLWINM(ppce,R5,R5,0,3,31);
+	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 	
-	PowerPC_instr ppc;
-	GEN_ADD(ppc,R5,R7,reg);
-	ppc|=1;
-	ppce->write32(ppc);
 	
+	EMIT_RLWINM(ppce,R7,reg,16,17,31);
+	EMIT_SUBFIC(ppce,R8,R7,0x5fff);
+	EMIT_ORIS(ppce,R5,reg,(u32)sh4_reserved_mem>>16);
+	EMIT_RLWIMI(ppce,R5,R7,16,0,
+	
+	
+	
+	EMIT_LIS(ppce,R7,0xDFFF);
+	EMIT_SUBF(ppce,R8,reg,R7);
+	EMIT_RLWINM(ppce,R5,reg,0,3,31);
+	EMIT_RLWIMI(ppce,R5,R8,32-3,2,2);
+	
+	
+	
+	
+	EMIT_ADDIS(ppce,R7,reg,0x2000);
+	EMIT_RLWINM(ppce,R5,reg,0,3,31);
+	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
+	
+*/	
+	
+/*
+	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
+	
+	
+	
+	EMIT_LIS(ppce,R7,0xdffd);
+	EMIT_CMPL(ppce,reg,R7,0);
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
-	EMIT_RLWIMI(ppce,R5,R7,1,0,2);
+	ppce->emitMoveRegister(R5,reg);
+	EMIT_RLWIMI(ppce,R5,R7,14,0,2);*/
 #endif
 }
 //const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
@@ -2794,11 +2850,6 @@ void __fastcall shil_compile_fipr(shil_opcode* op)
 	}
 }
 
-extern "C" {
-	void tain(){
-	}
-}
-
 //Default handler , should never be called
 void __fastcall shil_compile_nimp(shil_opcode* op)
 {
@@ -2818,7 +2869,41 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	if (OpTyp[op->imm1] !=Normal)
 		SaveReg(reg_pc,op->imm2);
 	
+#if 1
+	// bunch of heuristics to lower the number of flushed regs per ifb ops
+	
+	if (OpTyp[op->imm1] !=Normal)
+		ira->FlushRegister(reg_pc);
+
+	ira->FlushRegister(r0);
+	
+	if (OpDesc[op->imm1])
+	{
+		switch(OpDesc[op->imm1]->mask)
+		{
+			case Mask_imm8:
+				break;
+
+			case Mask_n_m:
+			case Mask_n_m_imm4:
+			case Mask_n_ml3bit:
+				ira->FlushRegister(GetN(op->imm1));
+				ira->FlushRegister(GetM(op->imm1));
+				break;
+
+			default:
+				ira->FlushRegCache();
+				break;
+		}
+	}
+	else
+	{
+		ira->FlushRegCache();
+	}
+#else
 	ira->FlushRegCache();
+#endif
+	
 	fra->FlushRegCache();
 
 #ifdef PROF_IFB
@@ -2860,7 +2945,7 @@ shil_compileFP* sclt[shilop_count]=
 	shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,
 	shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,
 	shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,
-	shil_compile_nimp
+	shil_compile_nimp,shil_compile_nimp
 };
 
 void SetH(shil_opcodes op,shil_compileFP* ha)
@@ -2891,6 +2976,7 @@ void sclt_Init()
 	SetH(shilop_sar,shil_compile_sar);
 	SetH(shilop_shl,shil_compile_shl);
 	SetH(shilop_shr,shil_compile_shr);
+	SetH(shilop_shld,shil_compile_shld);
 	SetH(shilop_SaveT,shil_compile_SaveT);
 	SetH(shilop_cmp,shil_compile_cmp);
 	SetH(shilop_test,shil_compile_test);

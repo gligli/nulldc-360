@@ -266,6 +266,8 @@ public:
 {PowerPC_instr ppc;GEN_ORI(ppc,rd,ra,immed);ppce->write32(ppc);}
 #define EMIT_XORI(ppce,rd,ra,immed) \
 {PowerPC_instr ppc;GEN_XORI(ppc,rd,ra,immed);ppce->write32(ppc);}
+#define EMIT_XORIS(ppce,rd,ra,immed) \
+{PowerPC_instr ppc;GEN_XORIS(ppc,rd,ra,immed);ppce->write32(ppc);}
 #define EMIT_MULLW(ppce,rd,ra,rb) \
 {PowerPC_instr ppc;GEN_MULLW(ppc,rd,ra,rb);ppce->write32(ppc);}
 #define EMIT_MULHW(ppce,rd,ra,rb) \
@@ -290,6 +292,8 @@ public:
 {PowerPC_instr ppc;GEN_SUB(ppc,rd,ra,rb);ppce->write32(ppc);}
 #define EMIT_AND(ppce,rd,ra,rb) \
 {PowerPC_instr ppc;GEN_AND(ppc,rd,ra,rb);ppce->write32(ppc);}
+#define EMIT_ANDC(ppce,rd,ra,rb) \
+{PowerPC_instr ppc;GEN_ANDC(ppc,rd,ra,rb);ppce->write32(ppc);}
 #define EMIT_NOR(ppce,rd,ra,rb) \
 {PowerPC_instr ppc;GEN_NOR(ppc,rd,ra,rb);ppce->write32(ppc);}
 #define EMIT_OR(ppce,rd,ra,rb) \

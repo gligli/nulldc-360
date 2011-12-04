@@ -151,6 +151,8 @@ enum shil_opcodes
 	//shr reg,const [8]
 	shilop_shr,
 
+	shilop_shld,
+
 	//arithmetic shifts
 
 	//sal reg,const [8]
@@ -405,6 +407,7 @@ public :
 	//logical shifts
 	void shl(Sh4RegType to,u8 count);
 	void shr(Sh4RegType to,u8 count);
+	void shld(Sh4RegType to,Sh4RegType amt);
 
 	//arithmetic shifts
 	void sal(Sh4RegType to,u8 count);//<- is this used ?

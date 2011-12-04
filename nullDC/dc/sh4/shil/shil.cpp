@@ -465,6 +465,11 @@ void shil_stream::shr(Sh4RegType to,u8 count)
 	emit32(shilop_shr,to,count);
 }
 
+void shil_stream::shld(Sh4RegType to,Sh4RegType amt)
+{
+	emit32(shilop_shld,to,amt);
+}
+
 //arithmetic shifts
 void shil_stream::sal(Sh4RegType to,u8 count)
 {//<- is this used ?
@@ -756,6 +761,8 @@ char* shil_names[]=
 	//shr reg,const [8]
 	"shr",
 
+	"shld",
+	
 	//arithmetic shifts
 
 	//sal reg,const [8]

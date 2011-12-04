@@ -29,7 +29,7 @@ shil_ce_FP* shil_ce_lut[shilop_count]=
 	shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,
 	shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,
 	shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,
-	shil_ce_nimp
+	shil_ce_nimp,shil_ce_nimp
 };
 void SetShilHanlder(shil_opcodes op,shil_ce_FP* ha)
 {
@@ -75,6 +75,7 @@ shilh(SaveT);
 shilh(shil_ifb);
 shilh(shl);
 shilh(shr);
+shilh(shld);
 shilh(sub);
 shilh(swap);
 shilh(test);
@@ -147,6 +148,7 @@ void Init_ce()
 	SetShilHanlder(shilop_ifb,shil_ce_shil_ifb);
 	SetShilHanlder(shilop_shl,shil_ce_shl);
 	SetShilHanlder(shilop_shr,shil_ce_shr);
+	SetShilHanlder(shilop_shld,shil_ce_shld);
 	SetShilHanlder(shilop_sub,shil_ce_sub);
 	SetShilHanlder(shilop_swap,shil_ce_swap);
 	SetShilHanlder(shilop_test,shil_ce_test);
@@ -476,7 +478,7 @@ if ((op->flags & FLAG_REG2) && (ce_IsConst(op->reg2)))\
 	//	ce_WriteBack(op->reg2,il);
 		//reg1 has to be writen back , and its no more const 
 		//-> its not const to start with :p not realy needed here
-		//----*----\
+		//----*----
 		//reg2 has to be writen back , but it will remain constant ;)
 		//-> not needed , if const , the reg1,imm1 form is used
 shilh(pref)
@@ -831,6 +833,13 @@ shilh(shl)
 		DefHanlder(op,bb,il);
 	return false;
 }
+
+shilh(shld)
+{
+	DefHanlder(op,bb,il);
+	return false;
+}
+
 //sets T if imm ==1
 shilh(shr)
 {
