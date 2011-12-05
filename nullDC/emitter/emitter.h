@@ -292,6 +292,8 @@ public:
 {PowerPC_instr ppc;GEN_SUB(ppc,rd,ra,rb);ppce->write32(ppc);}
 #define EMIT_AND(ppce,rd,ra,rb) \
 {PowerPC_instr ppc;GEN_AND(ppc,rd,ra,rb);ppce->write32(ppc);}
+#define EMIT_NAND(ppce,rd,ra,rb) \
+{PowerPC_instr ppc;GEN_NAND(ppc,rd,ra,rb);ppce->write32(ppc);}
 #define EMIT_ANDC(ppce,rd,ra,rb) \
 {PowerPC_instr ppc;GEN_ANDC(ppc,rd,ra,rb);ppce->write32(ppc);}
 #define EMIT_NOR(ppce,rd,ra,rb) \

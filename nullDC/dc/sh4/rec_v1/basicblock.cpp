@@ -505,14 +505,9 @@ bool BasicBlock::Compile()
 	EMIT_ADDI(ppce,RCYCLES,RCYCLES,-cycles);
 	EMIT_CMPI(ppce,RCYCLES,0,0);
 	
-/*	
-	// debug tool
-	ppce->emitLoadImmediate32(R3,(cBB->start&0x1FFFFFFF)|0x70000000);
-	EMIT_LBZ(ppce,R3,0,R3);	
-*/
-	
 	ppce->emitBranchConditionalToLabel(block_exit,0,PPC_CC_T,PPC_CC_NEG);
 
+#if 0 //gli not needed (blocks invalidation done using icache invalidation info)
 	if (flags.ProtectionType==BLOCK_PROTECTIONTYPE_MANUAL)
 	{
 #ifdef COUNT_BLOCK_LOCKTYPE_USAGE
@@ -572,6 +567,7 @@ bool BasicBlock::Compile()
 #ifdef COUNT_BLOCK_LOCKTYPE_USAGE
 	else
 		ppce->Emit(op_add32,&lockbs,1);
+#endif
 #endif
 
 	fra=GetFloatAllocator();

@@ -492,7 +492,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 			{
 				if (IsFpuReg(reg))
 				{
-TR					fra->SaveRegister(reg,(float*)ptr);
+					fra->SaveRegister(reg,(float*)ptr);
 				}
 				else
 				{
@@ -503,8 +503,8 @@ TR					fra->SaveRegister(reg,(float*)ptr);
 			{
 				if (IsFpuReg(reg))
 				{
-					ppce->emitLoad32(R4,GetRegPtr(reg));
-					ppce->emitStore32((u32*)ptr,R4);
+					ppc_reg rs= fra->GetRegister(FR0,reg,RA_DEFAULT);
+					ppce->emitStoreFloat(ptr,rs);
 				}
 				else
 				{
@@ -582,11 +582,12 @@ TR					fra->SaveRegister(reg,(float*)ptr);
 				case FLAG_32:
 					if (IsFpuReg(reg))
 					{
-TR						ppce->emitStore32(GetRegPtr(reg),R3);
+						ppce->emitStore32(GetRegPtr(reg),R3);
+						fra->ReloadRegister(reg);
 					}
 					else
 					{
-TR						ira->SaveRegister(reg,R3);
+						ira->SaveRegister(reg,R3);
 					}
 					break;
 				case FLAG_64:
@@ -800,7 +801,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 					//log("impossible mov IMMtoXMM [%X]\n",flags);
 					//__asm int 3;
 					//write back to ram
-TR					ppce->emitLoadImmediate32(R4,op->imm1);
+					ppce->emitLoadImmediate32(R4,op->imm1);
 					ppce->emitStore32(GetRegPtr(op->reg1),R4);
 					//mark reload on next use
 					fra->ReloadRegister(op->reg1);
@@ -1371,45 +1372,15 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 	EMIT_RLWINM(ppce,R5,reg,0,3,31);
 	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 #else	
-	EMIT_RLWINM(ppce,R7,reg,32-1,2,2);
-	EMIT_ANDC(ppce,R5,reg,R7);
-	EMIT_RLWIMI(R5,RSH4R,32-1,0,1); // RSH4R is for sure 8xxx.xxx0
-/*
-	EMIT_RLWINM(ppce,R5,R5,0,3,31);
-	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
+	ppce->emitLoadImmediate32(R7,0x20000000);
 	
+	PowerPC_instr ppc;
+	GEN_ADD(ppc,R5,R7,reg);
+	ppc|=1;
+	ppce->write32(ppc);
 	
-	EMIT_RLWINM(ppce,R7,reg,16,17,31);
-	EMIT_SUBFIC(ppce,R8,R7,0x5fff);
-	EMIT_ORIS(ppce,R5,reg,(u32)sh4_reserved_mem>>16);
-	EMIT_RLWIMI(ppce,R5,R7,16,0,
-	
-	
-	
-	EMIT_LIS(ppce,R7,0xDFFF);
-	EMIT_SUBF(ppce,R8,reg,R7);
-	EMIT_RLWINM(ppce,R5,reg,0,3,31);
-	EMIT_RLWIMI(ppce,R5,R8,32-3,2,2);
-	
-	
-	
-	
-	EMIT_ADDIS(ppce,R7,reg,0x2000);
-	EMIT_RLWINM(ppce,R5,reg,0,3,31);
-	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
-	
-*/	
-	
-/*
-	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
-	
-	
-	
-	EMIT_LIS(ppce,R7,0xdffd);
-	EMIT_CMPL(ppce,reg,R7,0);
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
-	ppce->emitMoveRegister(R5,reg);
-	EMIT_RLWIMI(ppce,R5,R7,14,0,2);*/
+	EMIT_RLWIMI(ppce,R5,R7,1,0,2);
 #endif
 }
 //const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
