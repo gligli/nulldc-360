@@ -396,3 +396,14 @@ int msgboxf(char* text,unsigned int type,...)
 		return MessageBox(NULL,temp,VER_SHORTNAME,type | MB_TASKMODAL);*/
 	return 0;
 }
+
+void bswap_block(void * addr,int size)
+{
+	verify(!(size&3));
+	verify(!((u32)addr&3));
+	
+	u32 * p= (u32*) addr;
+	
+	for(int i=0;i<size/4;++i)
+		p[i]=__builtin_bswap32(p[i]);
+}

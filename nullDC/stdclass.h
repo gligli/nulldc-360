@@ -266,6 +266,7 @@ public:
 void * ExeptionHandler(int pir,void * srr0,void * dar,int write);
 int msgboxf(wchar* text,unsigned int type,...);
 
+void bswap_block(void * addr,int size);
 
 #define MBX_OK                       0x00000000L
 #define MBX_OKCANCEL                 0x00000001L

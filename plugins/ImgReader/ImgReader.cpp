@@ -55,7 +55,9 @@ void irLoadSettings()
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/sonic/Sonic Adventure International v1.003 (1999)(Sega)(NTSC)(JP)(M5)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/ct/Crazy Taxi v1.004 (1999)(Sega)(NTSC)(US)[!][10S 51035].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/powerstone/Power Stone v1.001 (1999)(Capcom)(NTSC)(US)[!].gdi");
-//	irsettings.PatchRegion=true;
+//	strcpy(irsettings.DefaultImage,"sda:/dcisos/pj/Project Justice v1.001 (2001)(Capcom)(NTSC)(US)[!].gdi");
+//	strcpy(irsettings.DefaultImage,"sda:/dcisos/ikaruga/Ikaruga v1.002 (2002)(ESP)(NTSC)(JP)[!].gdi");
+	irsettings.PatchRegion=true;
 }
 void irSaveSettings()
 {

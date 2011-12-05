@@ -55,6 +55,8 @@ void PatchRegion_0(u8* sector,int size)
 	//patch meta info
 	u8* p_area_symbol=&usersect[0x30];
 	memcpy(p_area_symbol,"JUE        ",8);
+	
+	bswap_block(p_area_symbol,8);
 }
 void PatchRegion_6(u8* sector,int size)
 {
@@ -73,6 +75,10 @@ void PatchRegion_6(u8* sector,int size)
 	memcpy(&p_area_text[4],"For JAPAN,TAIWAN,PHILIPINES.",28);
 	memcpy(&p_area_text[4 + 32],"For USA and CANADA.         ",28);
 	memcpy(&p_area_text[4 + 32 + 32],"For EUROPE.                 ",28);
+
+	bswap_block(&p_area_text[4],28);
+	bswap_block(&p_area_text[4 + 32],28);
+	bswap_block(&p_area_text[4 + 32 + 32],28);
 }
 bool ConvertSector(u8* in_buff , u8* out_buff , int from , int to,int sector)
 {
@@ -216,20 +222,20 @@ void TermDrive()
 u32 CreateTrackInfo(u32 ctrl,u32 addr,u32 fad)
 {
 	u8 p[4];
-	p[0]=(ctrl<<4)|(addr<<0);
-	p[1]=fad>>16;
-	p[2]=fad>>8;
-	p[3]=fad>>0;
+	p[3]=(ctrl<<4)|(addr<<0);
+	p[2]=fad>>16;
+	p[1]=fad>>8;
+	p[0]=fad>>0;
 
 	return *(u32*)p;
 }
 u32 CreateTrackInfo_se(u32 ctrl,u32 addr,u32 tracknum)
 {
 	u8 p[4];
-	p[0]=(ctrl<<4)|(addr<<0);
-	p[1]=tracknum;
-	p[2]=0;
-	p[3]=0;
+	p[3]=(ctrl<<4)|(addr<<0);
+	p[2]=tracknum;
+	p[1]=0;
+	p[0]=0;
 	return *(u32*)p;
 }
 
@@ -292,22 +298,22 @@ void GetDriveSessionInfo(u8* to,u8 session)
 {
 	if (!disc)
 		return;
-	to[0]=2;//status , will get overwrited anyway
-	to[1]=0;//0's
+	to[3]=2;//status , will get overwrited anyway
+	to[2]=0;//0's
 	
 	if (session==0)
 	{
-		to[2]=disc->sessions.size();//count of sessions
-		to[3]=disc->EndFAD>>16;//fad is sessions end
-		to[4]=disc->EndFAD>>8;
-		to[5]=disc->EndFAD>>0;
+		to[1]=disc->sessions.size();//count of sessions
+		to[0]=disc->EndFAD>>16;//fad is sessions end
+		to[7]=disc->EndFAD>>8;
+		to[6]=disc->EndFAD>>0;
 	}
 	else
 	{
-		to[2]=disc->sessions[session-1].FirstTrack;//start track of this session
-		to[3]=disc->sessions[session-1].StartFAD>>16;//fad is session start
-		to[4]=disc->sessions[session-1].StartFAD>>8;
-		to[5]=disc->sessions[session-1].StartFAD>>0;
+		to[1]=disc->sessions[session-1].FirstTrack;//start track of this session
+		to[0]=disc->sessions[session-1].StartFAD>>16;//fad is session start
+		to[7]=disc->sessions[session-1].StartFAD>>8;
+		to[6]=disc->sessions[session-1].StartFAD>>0;
 	}
 }
 
