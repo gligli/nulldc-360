@@ -5,6 +5,7 @@
 #include "emitter/emitter.h"
 #include "emitter/regalloc/ppc_fpregalloc.h"
 #include <memory>
+#include <stdbool.h>
 #include "recompiler.h"
 #include "dc/sh4/sh4_interpreter.h"
 #include "dc/sh4/rec_v1/blockmanager.h"
@@ -126,25 +127,25 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	
 	if (flags==1)
 	{
-		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,CR_T_COND_FLAG,0);
+		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,CR_T_COND_FLAG,0,false);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TF_stub,0);
 	}
 	else if  (flags==2)
 	{
-		ppce->emitBranchConditional((void*)cBB->TF_block->Code,PPC_CC_T,CR_T_COND_FLAG,0);
+		ppce->emitBranchConditional((void*)cBB->TF_block->Code,PPC_CC_T,CR_T_COND_FLAG,0,false);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	else  if  (flags==3)
 	{
-		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,CR_T_COND_FLAG,0);
+		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,CR_T_COND_FLAG,0,false);
 		ppce->emitBranch((void*)cBB->TF_block->Code,0);
 	}
 	else
 	{
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
-		ppce->emitBranchConditional((void*)bb_link_compile_inject_TF_stub,PPC_CC_T,CR_T_COND_FLAG,0);
+		ppce->emitBranchConditional((void*)bb_link_compile_inject_TF_stub,PPC_CC_T,CR_T_COND_FLAG,0,false);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	ppce->Generate();
@@ -377,7 +378,7 @@ void* FASTCALL RewriteBasicBlockGuess_TTG(CompiledBlockInfo* cBB)
 #if 1
 	ppce->emitLoadImmediate32(R4,sh4r.pc);
 	EMIT_CMP(ppce,(ppc_reg)RPC,R4,0);
-	ppce->emitBranchConditional((void*)new_block->Code,PPC_CC_T,PPC_CC_ZER,0);
+	ppce->emitBranchConditional((void*)new_block->Code,PPC_CC_T,PPC_CC_ZER,0,false);
 	ppce->emitLoadImmediate32(R3,(u32)cBB);
 	ppce->emitBranch((void*)RewriteBasicBlockGuess_FLUT_stub,0);
 #else
@@ -620,18 +621,10 @@ bool BasicBlock::Compile()
 		break;
 	case BLOCK_EXITTYPE_RET:			//guess
 		{
-#ifdef RET_CACHE_PROF
-			ppce->Emit(op_add32,ppc_ptr(&ret_cache_total),1);
-#endif
-
 			EMIT_LWZ(ppce,R4,RET_CACHE_STACK_OFFSET_A,R1);
 			EMIT_CMP(ppce,(ppc_reg)RPC,R4,0);
 			
-#ifndef RET_CACHE_PROF
-			ppce->emitBranchConditional(Dynarec_Mainloop_no_update,PPC_CC_F,PPC_CC_ZER,0);
-#else
-			ppce->Emit(op_jne ,ppc_ptr_imm(ret_cache_misscall));
-#endif
+			ppce->emitBranchConditional(Dynarec_Mainloop_no_update,PPC_CC_F,PPC_CC_ZER,0,false);
 
 			//Get the block ptr
 			EMIT_LWZ(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
@@ -640,10 +633,6 @@ bool BasicBlock::Compile()
 			EMIT_RLWIMI(ppce,R1,R1,10,23,23);
 			EMIT_ORI(ppce,R1,R1,RET_CACHE_PTR_MASK_OR);
 			
-#ifdef RET_CACHE_PROF
-			ppce->Emit(op_add32,ppc_ptr(&ret_cache_hits),1);
-#endif
-
 			EMIT_LWZ(ppce,R4,offsetof(CompiledBlockInfo,pTT_next_addr),R3);
 			EMIT_MTCTR(ppce,R4);
 			EMIT_BCTR(ppce);
