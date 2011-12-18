@@ -33,16 +33,20 @@ INCLUDES	:=	files nullDC . nullDC/dc/sh4
 # options for code generation
 #---------------------------------------------------------------------------------
 
+OPTIFLAGS = -fvisibility=default -flto -fuse-linker-plugin -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 
+
 ASFLAGS	= -Wa,$(INCLUDE) -Wa,-a32
-CFLAGS	= -pipe -g -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 -Wall -Wno-format -Wno-write-strings -Wno-strict-aliasing $(MACHDEP) $(INCLUDE) -D__POWERPC__
+CFLAGS	= $(OPTIFLAGS) -g -pipe -Wall -Wno-format -Wno-write-strings -Wno-strict-aliasing $(MACHDEP) $(INCLUDE) -D__POWERPC__
 CXXFLAGS	=	$(CFLAGS)
 
-LDFLAGS	=	 -g $(MACHDEP) -Wl,-Map,$(notdir $@).map
+MACHDEP_LD =  -DXENON -m32 -maltivec -fno-pic -mhard-float -L$(DEVKITXENON)/xenon/lib/32 -u read -u _start -u exc_base
+
+LDFLAGS	= -g $(OPTIFLAGS) $(MACHDEP_LD)
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lpng -lxenon -lm -lz 
+LIBS	:=	-lpng -lz -lxenon -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

@@ -680,7 +680,7 @@ u64 time_update_system=0;
 extern "C" {
 //448 Cycles
 //as of 7/2/2k8 this is fixed to 448 cycles
-int __fastcall UpdateSystem()
+int __attribute__((externally_visible)) __fastcall UpdateSystem()
 {		
 	u64 ust=mftb();
 	

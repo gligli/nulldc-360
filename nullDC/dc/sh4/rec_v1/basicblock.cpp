@@ -156,7 +156,7 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 extern "C" { // called from asm
 
 //Compile block and return pointer to it's code
-void* __fastcall bb_link_compile_inject_TF(CompiledBlockInfo* ptr)
+void* __attribute__((externally_visible)) __fastcall bb_link_compile_inject_TF(CompiledBlockInfo* ptr)
 {
 	CompiledBlockInfo* target= FindOrRecompileBlock(ptr->TF_next_addr);
 
@@ -173,7 +173,7 @@ void* __fastcall bb_link_compile_inject_TF(CompiledBlockInfo* ptr)
 	return (void*)target->Code;
 }
 
-void* __fastcall bb_link_compile_inject_TT(CompiledBlockInfo* ptr)
+void* __attribute__((externally_visible)) __fastcall bb_link_compile_inject_TT(CompiledBlockInfo* ptr)
 {
 	CompiledBlockInfo* target= FindOrRecompileBlock(ptr->TT_next_addr);
 
@@ -242,7 +242,7 @@ struct
 u32* call_ret_cache_ptr=ret_cache.data;
 */
 
-ret_cache_entry* ret_cache_base;
+ret_cache_entry* __attribute__((externally_visible)) ret_cache_base;
 //new idea : build the BRT on the stack
 //
 //
@@ -287,7 +287,7 @@ void CBBs_BlockSuspended(CompiledBlockInfo* block,u32* sp)
 
 extern "C" { // called from asm
 
-void ret_cache_reset()
+void __attribute__((externally_visible)) ret_cache_reset()
 {
 	printf("ret_cache_base %08x\n",ret_cache_base);
 	if (ret_cache_base==0)
@@ -622,18 +622,20 @@ bool BasicBlock::Compile()
 	case BLOCK_EXITTYPE_RET:			//guess
 		{
 			EMIT_LWZ(ppce,R4,RET_CACHE_STACK_OFFSET_A,R1);
+			EMIT_LWZ(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
 			EMIT_CMP(ppce,(ppc_reg)RPC,R4,0);
 			
 			ppce->emitBranchConditional(Dynarec_Mainloop_no_update,PPC_CC_F,PPC_CC_ZER,0,false);
 
 			//Get the block ptr
-			EMIT_LWZ(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
 
 			EMIT_ADDI(ppce,R1,R1,-8);
 			EMIT_RLWIMI(ppce,R1,R1,10,23,23);
+
+			EMIT_LWZ(ppce,R4,offsetof(CompiledBlockInfo,pTT_next_addr),R3);
+
 			EMIT_ORI(ppce,R1,R1,RET_CACHE_PTR_MASK_OR);
 			
-			EMIT_LWZ(ppce,R4,offsetof(CompiledBlockInfo,pTT_next_addr),R3);
 			EMIT_MTCTR(ppce,R4);
 			EMIT_BCTR(ppce);
 		}

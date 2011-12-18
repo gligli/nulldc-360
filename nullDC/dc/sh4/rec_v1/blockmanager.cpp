@@ -56,7 +56,7 @@ void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB);
 #define BLOCK_NONE (&BLOCK_NONE_B)
 CompiledBlockInfo BLOCK_NONE_B;
 
-u32* block_stack_pointer;
+u32* __attribute__((externally_visible)) block_stack_pointer;
 
 u32 full_lookups;
 u32 fast_lookups;
@@ -498,7 +498,7 @@ CompiledBlockInfo* __fastcall FindBlock_full_compile(u32 address,CompiledBlockIn
 #endif
 	return thisblock;
 }
-CompiledBlockInfo* __fastcall FindBlock_full(u32 address,CompiledBlockInfo* fastblock)
+CompiledBlockInfo* __attribute__((externally_visible)) __fastcall FindBlock_full(u32 address,CompiledBlockInfo* fastblock)
 {
 	CompiledBlockInfo* thisblock;
 
@@ -565,7 +565,7 @@ BasicBlockEP* __fastcall FindCode_fast(u32 address)
 #endif
 
 }
-BasicBlockEP* __fastcall FindCode_full(u32 address,CompiledBlockInfo* fastblock)
+BasicBlockEP* __attribute__((externally_visible)) __fastcall FindCode_full(u32 address,CompiledBlockInfo* fastblock)
 {
 	CompiledBlockInfo* thisblock;
 

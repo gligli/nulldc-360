@@ -213,7 +213,7 @@ u32 no_interrupts,yes_interrupts;
 //#endif
 
 extern "C" { // called from ASM
-int UpdateINTCDoINT()
+int __attribute__((externally_visible)) UpdateINTCDoINT()
 {
 	u32 ecx=intr.interrupt_vpend&intr.interrupt_vmask;
 
@@ -230,11 +230,10 @@ int UpdateINTCDoINT()
 	}
 }
 }
-#define ASM_INTC
+//#define ASM_INTC
 
 int UpdateINTC()
 {
-#ifdef XENON
 #ifndef ASM_INTC
 	u32 ecx=intr.interrupt_vpend&intr.interrupt_vmask;
 
@@ -249,49 +248,16 @@ int UpdateINTC()
 #else
 	asm volatile (
 		"lis 7,intr@ha					\n"
-#if 1
+
 		"lwz 4,intr+0@l(7)				\n" // vpend
 		"lwz 5,intr+4@l(7)				\n" // vmask
-#else	
-		"ld 4,intr+0@l(7)				\n" // vpend+vmask at once :)
-		"srdi 5,4,32					\n"
-#endif
-		"and 4,4,5						\n"
 		"lwz 6,intr+8@l(7)				\n" // sri
+		"and 4,4,5						\n"
 		"cmplw 4,6						\n"
-		"bgt UpdateINTCDoINT			\n"
+		"ble 1f\n"
+		"b UpdateINTCDoINT			\n"
+		"1:\n"
 	);
-#endif
-#else
-	__asm
-	{
-		mov ecx,interrupt_vpend;
-		and ecx,interrupt_vmask;	//calculate enabled interrupts
-		cmp ecx,decoded_srimask;	//If any of em isnt masked
-		ja handle_inerrupt;			//handle em
-		//else exit
-		xor eax,eax;
-#ifdef COUNT_INTERRUPT_UPDATES
-		add no_interrupts,1;
-#endif
-		ret;
-
-handle_inerrupt:
-#ifdef COUNT_INTERRUPT_UPDATES
-		add yes_interrupts,1;
-#endif
-		test ecx,0xF0000000;
-		jnz  virtual_interrupt;
-		bsr eax,ecx;							//find first interrupt
-		movsx ecx,WORD PTR InterruptEnvId[eax*2];
-		jmp Do_Interrupt;
-
-virtual_interrupt:
-		//handle virtual interrupts
-		shr ecx,28;
-		call VirtualInterrupt;
-		jmp UpdateINTC;
-	}
 #endif
 	return 0;
 }

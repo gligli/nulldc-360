@@ -38,11 +38,11 @@ u32 avg_bc=0;
 
 u32 sb_count=0;
 u32 nb_count=0;
-u32 rec_cycles=0;
+u32 __attribute__((externally_visible)) rec_cycles=0;
 
-void* Dynarec_Mainloop_no_update;
-void* Dynarec_Mainloop_do_update;
-void* Dynarec_Mainloop_end;
+void* __attribute__((externally_visible)) Dynarec_Mainloop_no_update;
+void* __attribute__((externally_visible)) Dynarec_Mainloop_do_update;
+void* __attribute__((externally_visible)) Dynarec_Mainloop_end;
 
 void DynaPrintLinkStart();
 void DynaPrintLinkEnd();
@@ -78,7 +78,7 @@ CompiledBlockInfo*  __fastcall CompileCode(u32 pc)
 }
 
 extern "C" { // called from asm
-BasicBlockEP* __fastcall CompileCodePtr()
+BasicBlockEP* __attribute__((externally_visible)) __fastcall CompileCodePtr()
 {
 	return CompileCode(sh4r.pc)->Code;
 }
@@ -127,15 +127,15 @@ void rec_sh4_ResetCache()
 BasicBlockEP* __fastcall FindCode_full(u32 address,CompiledBlockInfo* fastblock);
 
 extern u32 fast_lookups;
-u32 old_esp;
-u32 Dynarec_Mainloop_no_update_fast;
+u32 __attribute__((externally_visible)) old_esp;
+u32 __attribute__((externally_visible)) Dynarec_Mainloop_no_update_fast;
 
 #define xstr(s) str(s)
 #define str(s) #s
 
-f32 float_zero=0.0f;
-f32 float_one=1.0f;
-f32 float_half=0.5f;
+f32 __attribute__((externally_visible)) float_zero=0.0f;
+f32 __attribute__((externally_visible)) float_one=1.0f;
+f32 __attribute__((externally_visible)) float_half=0.5f;
 
 u64 time_lookup=0;
 
