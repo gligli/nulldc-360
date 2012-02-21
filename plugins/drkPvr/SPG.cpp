@@ -175,6 +175,17 @@ void spgVBL()
 						}
 					}
 					break;
+				case 's': 
+					printf("---- shil op usage\n");
+
+					for(i=0;i<0x10000;++i)
+					{
+						if (op_usage[i])
+						{
+							printf("%12d\t%4d\n",op_usage[i],i);
+						}
+					}
+					break;
 				case 'z':
 					printf("---- stats reset\n");
 					

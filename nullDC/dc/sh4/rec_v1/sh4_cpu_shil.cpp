@@ -18,6 +18,9 @@ shil_stream* ilst;
 #define rsh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 #define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { ilst->shil_ifb(op,pc); }; void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 
+#define handle_stids {if (bb->flags.IsDelaySlot) { bb->flags.SaveTInDelaySlot=true; ilst->LoadT(jcond_flag); } }
+
+
 //#define tmu_underflow  0x0100
 #define iNimp(info) rec_shil_iNimp(pc,op,info)
 
@@ -147,7 +150,7 @@ rsh4op(i0100_nnnn_0001_0001)
 	u32 n = GetN(op);
 
 	ilst->cmp(r[n],(s8)0);			//singed compare
-	ilst->SaveT(CC_NL);
+	handle_stids; ilst->SaveT(CC_NL);
 }
 
 //cmp/pl <REG_N>                
@@ -156,14 +159,14 @@ rsh4op(i0100_nnnn_0001_0101)
 	u32 n = GetN(op);
 
 	ilst->cmp(r[n],(s8)0);			//singed compare
-	ilst->SaveT(CC_NLE);
+	handle_stids; ilst->SaveT(CC_NLE);
 }
 
 //cmp/eq #<imm>,R0              
 rsh4op(i1000_1000_iiii_iiii)
 {
 	ilst->cmp(r[0],GetSImm8(op));
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //cmp/eq <REG_M>,<REG_N>        
@@ -173,7 +176,7 @@ rsh4op(i0011_nnnn_mmmm_0000)
 	u32 m = GetM(op);
 
 	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_E][2]);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //cmp/hs <REG_M>,<REG_N>        
@@ -183,7 +186,7 @@ rsh4op(i0011_nnnn_mmmm_0010)
 	u32 m = GetM(op);
 
 	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_AE][2]);
-	ilst->SaveT(CC_AE);
+	handle_stids; ilst->SaveT(CC_AE);
 }
 
 //cmp/ge <REG_M>,<REG_N>        
@@ -193,7 +196,7 @@ rsh4op(i0011_nnnn_mmmm_0011)
 	u32 m = GetM(op);
 
 	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_GE][2]);
-	ilst->SaveT(CC_GE);
+	handle_stids; ilst->SaveT(CC_GE);
 }
 
 //cmp/hi <REG_M>,<REG_N>        
@@ -203,7 +206,7 @@ rsh4op(i0011_nnnn_mmmm_0110)
 	u32 m = GetM(op);
 
 	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_A][2]);
-	ilst->SaveT(CC_A);
+	handle_stids; ilst->SaveT(CC_A);
 }
 
 //cmp/gt <REG_M>,<REG_N>        
@@ -213,7 +216,7 @@ rsh4op(i0011_nnnn_mmmm_0111)
 	u32 m = GetM(op);
 
 	ilst->cmp(r[n],r[m],ppc_condition_flags[CC_G][2]);
-	ilst->SaveT(CC_G);
+	handle_stids; ilst->SaveT(CC_G);
 }
 
 //cmp/str <REG_M>,<REG_N>       
@@ -226,7 +229,7 @@ rsh4op(i0010_nnnn_mmmm_1100)
 rsh4op(i1100_1000_iiii_iiii)
 {
 	ilst->test(r[0],GetImm8(op));
-	ilst->SaveT(CC_Z);
+	handle_stids; ilst->SaveT(CC_Z);
 }
 //tst <REG_M>,<REG_N>           
 rsh4op(i0010_nnnn_mmmm_1000)
@@ -235,7 +238,7 @@ rsh4op(i0010_nnnn_mmmm_1000)
 	u32 m = GetM(op);
 
 	ilst->test(r[n],r[m]);
-	ilst->SaveT(CC_Z);
+	handle_stids; ilst->SaveT(CC_Z);
 }
 //************************ mulls! ************************ 
 //mulu.w <REG_M>,<REG_N>          
@@ -461,7 +464,7 @@ rsh4op(i0011_nnnn_mmmm_1010)
 	ilst->neg(r[n]);			//dest=-dest
 	ilst->LoadT(CF);			//load T to carry flag
 	ilst->adc(r[n],r[m]);		//add w/ carry
-	ilst->SaveT(SaveCF);//save CF to T
+	handle_stids; ilst->SaveT(SaveCF);//save CF to T
 */
 	shil_interpret(op);
 }
@@ -478,7 +481,7 @@ rsh4op(i0100_nnnn_0001_0000)
 	u32 n = GetN(op);
 
 	ilst->dec(r[n]);
-	ilst->SaveT(CC_Z);
+	handle_stids; ilst->SaveT(CC_Z);
 }
 
 //negc <REG_M>,<REG_N>          
@@ -517,7 +520,7 @@ rsh4op(i0100_nnnn_0000_0000)
 	u32 n = GetN(op);
 
 	ilst->shl(r[n],1);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //shal <REG_N>                  
@@ -526,7 +529,7 @@ rsh4op(i0100_nnnn_0010_0000)
 	u32 n=GetN(op);
 
 	ilst->shl(r[n],1);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //shlr <REG_N>                  
@@ -535,7 +538,7 @@ rsh4op(i0100_nnnn_0000_0001)
 	u32 n = GetN(op);
 	
 	ilst->shr(r[n],1);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //shar <REG_N>                  
@@ -544,7 +547,7 @@ rsh4op(i0100_nnnn_0010_0001)
 	u32 n = GetN(op);
 
 	ilst->sar(r[n],1);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //shad <REG_M>,<REG_N>          
@@ -570,7 +573,7 @@ rsh4op(i0100_nnnn_0010_0100)
 	u32 n = GetN(op);
 
 	ilst->rcl(r[n]);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //rotl <REG_N>                  
@@ -579,7 +582,7 @@ rsh4op(i0100_nnnn_0000_0100)
 	u32 n = GetN(op);
 
 	ilst->rol(r[n]);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //rotcr <REG_N>                 
@@ -588,7 +591,7 @@ rsh4op(i0100_nnnn_0010_0101)
 	u32 n = GetN(op);
 
 	ilst->rcr(r[n]);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }
 
 //rotr <REG_N>                  
@@ -597,7 +600,7 @@ rsh4op(i0100_nnnn_0000_0101)
 	u32 n = GetN(op);
 
 	ilst->ror(r[n]);
-	ilst->SaveT(CC_E);
+	handle_stids; ilst->SaveT(CC_E);
 }					
 //************************ byte reorder/sign ************************
 //swap.b <REG_M>,<REG_N>        
@@ -828,7 +831,7 @@ rsh4op(i1111_nnnn_mmmm_0100)
 
 		//sr.T = (fr[m] == fr[n]) ? 1 : 0;
 		ilst->fcmp(fr[n],fr[m]);
-		ilst->SaveT(CC_FPU_E);
+		handle_stids; ilst->SaveT(CC_FPU_E);
 	}
 	else
 	{
@@ -855,7 +858,7 @@ rsh4op(i1111_nnnn_mmmm_0101)
 		else
 			sr.T = 0;*/
 		ilst->fcmp(fr[n],fr[m]);
-		ilst->SaveT(CC_NBE);
+		handle_stids; ilst->SaveT(CC_NBE);
 	}
 	else
 	{
@@ -1424,8 +1427,9 @@ void DoDslot(u32 pc,BasicBlock* bb)
 	if (opcode==0 || opcode==0)
 		log("0 on delayslot , ingoring it ..\n");
 	else{
+		bb->flags.IsDelaySlot=true;
 		RecOpPtr[opcode](opcode,pc+2,bb);
-		bb->flags.HasDelaySlot=true;
+		bb->flags.IsDelaySlot=false;
 	}
 }
 
@@ -1534,8 +1538,6 @@ rsh4op(i0000_nnnn_0010_0011)
 	bb->TF_next_addr=pc+2;
 	bb->TT_next_addr=(u32)((GetSImm8(op))*2 + 4 + pc );
 
-	ilst->LoadT(jcond_flag);
-	
 	bb->flags.EndAnalyse=true;
 	bb->flags.ExitType=BLOCK_EXITTYPE_COND;
 }
@@ -1562,7 +1564,6 @@ rsh4op(i0000_nnnn_0010_0011)
 	bb->TF_next_addr=pc+4;
 	bb->TT_next_addr=(u32)((GetSImm8(op))*2 + 4 + pc );
 
-	ilst->LoadT(jcond_flag);
 	DoDslot(pc,bb);
 	bb->flags.EndAnalyse = true;
 	bb->flags.ExitType = BLOCK_EXITTYPE_COND;
@@ -1584,8 +1585,6 @@ rsh4op(i0000_nnnn_0010_0011)
 	bb->TF_next_addr=(u32)((GetSImm8(op))*2 + 4 + pc );
 	bb->TT_next_addr=pc+2;
 
-	ilst->LoadT(jcond_flag);
-	
 	bb->flags.EndAnalyse=true;
 	bb->flags.ExitType=BLOCK_EXITTYPE_COND;
 }
@@ -1610,7 +1609,6 @@ rsh4op(i0000_nnnn_0010_0011)
 	bb->TF_next_addr=(u32)((GetSImm8(op))*2 + 4 + pc );
 	bb->TT_next_addr=pc+4;
 
-	ilst->LoadT(jcond_flag);
 	DoDslot(pc,bb);
 	
 	bb->flags.EndAnalyse=true;

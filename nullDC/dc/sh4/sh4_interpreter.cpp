@@ -677,6 +677,9 @@ void __fastcall MediumUpdate()
 
 u64 time_update_system=0;
 
+
+void FASTCALL spgUpdatePvr(u32 cycles); // quicker to use direct plugin call
+
 extern "C" {
 //448 Cycles
 //as of 7/2/2k8 this is fixed to 448 cycles
@@ -685,7 +688,7 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 	u64 ust=mftb();
 	
 	UpdateTMU(448);
-	UpdatePvr(448);
+	spgUpdatePvr(448);
 
 	if (!(update_cnt&0x7))
 		MediumUpdate();

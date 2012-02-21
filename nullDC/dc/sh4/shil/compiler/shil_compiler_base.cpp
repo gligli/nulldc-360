@@ -2996,6 +2996,8 @@ void sclt_Init()
 }
 
 
+//#define PROF_SHIL
+
 void shil_compile(shil_opcode* op)
 {
 	if (op->opcode>(shilop_count-1))
@@ -3003,6 +3005,13 @@ void shil_compile(shil_opcode* op)
 		log("SHIL COMPILER ERROR\n");
 	}
 //	log("SHIL %s\n",GetShilName((shil_opcodes)op->opcode));
+
+#ifdef PROF_SHIL 
+	ppce->emitLoad32(R3,&op_usage[op->opcode]);
+	EMIT_ADDI(ppce,R3,R3,1);
+	ppce->emitStore32(&op_usage[op->opcode],R3);
+#endif
+ 
 	sclt[op->opcode](op);
 }
 

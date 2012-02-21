@@ -67,6 +67,7 @@ public :
 		u8 Type:2;		//Type (0-> none, 1 -> COND, 2-> Fixed, 3 -> wtf
 		u8 RCFlags:6;	//rewrite code flags (values: private to handler, default = 0)
 		u8 Last;		//last rewrite parameters (values: private to handler,default 0xFF)
+		u8 TFlag;
 	}Rewrite;
 	//Block link info
 	vector<CompiledBlockInfo*> blocks_to_clear;

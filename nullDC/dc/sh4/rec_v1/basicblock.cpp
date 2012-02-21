@@ -127,25 +127,25 @@ void RewriteBasicBlockCond(CompiledBlockInfo* cBB)
 	
 	if (flags==1)
 	{
-		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,CR_T_COND_FLAG,0,false);
+		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,cBB->Rewrite.TFlag,0,false);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TF_stub,0);
 	}
 	else if  (flags==2)
 	{
-		ppce->emitBranchConditional((void*)cBB->TF_block->Code,PPC_CC_T,CR_T_COND_FLAG,0,false);
+		ppce->emitBranchConditional((void*)cBB->TF_block->Code,PPC_CC_T,cBB->Rewrite.TFlag,0,false);
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	else  if  (flags==3)
 	{
-		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,CR_T_COND_FLAG,0,false);
+		ppce->emitBranchConditional((void*)cBB->TT_block->Code,PPC_CC_F,cBB->Rewrite.TFlag,0,false);
 		ppce->emitBranch((void*)cBB->TF_block->Code,0);
 	}
 	else
 	{
 		ppce->emitLoadImmediate32(R3,(u32)cBB);
-		ppce->emitBranchConditional((void*)bb_link_compile_inject_TF_stub,PPC_CC_T,CR_T_COND_FLAG,0,false);
+		ppce->emitBranchConditional((void*)bb_link_compile_inject_TF_stub,PPC_CC_T,cBB->Rewrite.TFlag,0,false);
 		ppce->emitBranch((void*)bb_link_compile_inject_TT_stub,0);
 	}
 	ppce->Generate();
@@ -671,7 +671,10 @@ bool BasicBlock::Compile()
 
 			cBB->Rewrite.Type=1;
 			cBB->Rewrite.Offset=ppce->ppc_indx;
-			
+
+			cBB->Rewrite.TFlag=CR_T_FLAG;
+			if (flags.SaveTInDelaySlot) cBB->Rewrite.TFlag=CR_T_COND_FLAG;
+						
 			/* gli 8 ops max for cond rewrite */
 			for(int i=0;i<8;++i) ppce->write32(PPC_NOP);
 		} 

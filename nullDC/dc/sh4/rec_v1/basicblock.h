@@ -79,8 +79,8 @@ class BasicBlock: public CodeRegion
 
 			u32 EndAnalyse:1;
 
-			//Set if it has delayslot
-			u32 HasDelaySlot:1;
+			u32 IsDelaySlot:1;
+			u32 SaveTInDelaySlot:1;
 		};
 	}flags;	//compiled block flags :)
 
