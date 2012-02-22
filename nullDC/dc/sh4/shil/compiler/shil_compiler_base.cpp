@@ -1365,22 +1365,21 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 		case FLAG_16: EMIT_XORI(ppce,R6,reg,2); reg=R6; break;
 	}
 
-#if 1
+
+#if 0
 	ppce->emitLoadImmediate32(R5,0xE0000000);
 	EMIT_CMPL(ppce,reg,R5,0);
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
 	EMIT_RLWINM(ppce,R5,reg,0,3,31);
 	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
-#else	
-	ppce->emitLoadImmediate32(R7,0x20000000);
-	
+#else		
 	PowerPC_instr ppc;
-	GEN_ADD(ppc,R5,R7,reg);
+	GEN_SUBF(ppc,R5,RROML,reg);
 	ppc|=1;
 	ppce->write32(ppc);
-	
+
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
-	EMIT_RLWIMI(ppce,R5,R7,1,0,2);
+	EMIT_RLWIMI(ppce,R5,RSH4R,31,0,2); // RSH4R is 0x8xxxxxxx, it's the only reason it's used here
 #endif
 }
 //const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
@@ -1667,7 +1666,6 @@ void apply_roml_patches()
 		{
 			if (roml_patch_list[i].is_float)
 			{
-				//meh ?
 				if (roml_patch_list[i].type==1)
 				{
 					static u32 tmp;
@@ -2875,7 +2873,7 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	ira->FlushRegCache();
 #endif
 	
-	fra->FlushRegCache();
+	if (op->imm1>=0xf000) fra->FlushRegCache();
 
 #ifdef PROF_IFB
 	ppce->emitLoad32(R3,&op_usage[op->imm1]);

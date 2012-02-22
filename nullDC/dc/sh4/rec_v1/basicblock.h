@@ -81,6 +81,8 @@ class BasicBlock: public CodeRegion
 
 			u32 IsDelaySlot:1;
 			u32 SaveTInDelaySlot:1;
+			u32 CouldNeedPCtmp:1;
+			u32 NeedPCtmp:1;
 		};
 	}flags;	//compiled block flags :)
 

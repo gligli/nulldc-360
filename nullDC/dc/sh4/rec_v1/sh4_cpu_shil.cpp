@@ -20,11 +20,14 @@ shil_stream* ilst;
 
 #define handle_stids {if (bb->flags.IsDelaySlot) { bb->flags.SaveTInDelaySlot=true; ilst->LoadT(jcond_flag); } }
 
+#define need_rpctmp {if (bb->flags.IsDelaySlot && bb->flags.CouldNeedPCtmp) { printf("need_rpctmp\n"); bb->flags.NeedPCtmp=true; ilst->mov(reg_pc_temp, reg_pc); } }
+#define handle_rpctmp {if (bb->flags.NeedPCtmp) { printf("handle_rpctmp\n"); ilst->mov(reg_pc, reg_pc_temp); } }
+
 
 //#define tmu_underflow  0x0100
 #define iNimp(info) rec_shil_iNimp(pc,op,info)
 
-#define shil_interpret(str)  ilst->shil_ifb(str,pc);
+#define shil_interpret(str) { need_rpctmp; ilst->shil_ifb(str,pc); }
 
 Sh4RegType dyna_reg_id_r[16];
 Sh4RegType dyna_reg_id_r_bank[8];
@@ -1420,7 +1423,7 @@ rsh4op(icpu_nimp)
 
 //Branches
 
-void DoDslot(u32 pc,BasicBlock* bb)
+void DoDslot(u32 pc,BasicBlock* bb, bool CouldNeedPCtmp)
 {
 	u16 opcode=ReadMem16(pc+2);
 
@@ -1428,6 +1431,8 @@ void DoDslot(u32 pc,BasicBlock* bb)
 		log("0 on delayslot , ingoring it ..\n");
 	else{
 		bb->flags.IsDelaySlot=true;
+		bb->flags.CouldNeedPCtmp=CouldNeedPCtmp;
+		bb->flags.NeedPCtmp=false;
 		RecOpPtr[opcode](opcode,pc+2,bb);
 		bb->flags.IsDelaySlot=false;
 	}
@@ -1436,6 +1441,8 @@ void DoDslot(u32 pc,BasicBlock* bb)
 //braf <REG_N>                  
 rsh4op(i0000_nnnn_0010_0011)
 {
+	need_rpctmp;
+	
 	u32 n = GetN(op);
 	/*
 	u32 newpc = r[n] + pc + 2;//pc +2 is done after
@@ -1448,14 +1455,16 @@ rsh4op(i0000_nnnn_0010_0011)
 	//return;
 	bb->flags.ExitType = BLOCK_EXITTYPE_DYNAMIC;
 	bb->flags.EndAnalyse=true;
-	ilst->mov(reg_pc_temp,r[n]);
-	ilst->add(reg_pc_temp,pc+4);
-	DoDslot(pc,bb);
-	ilst->mov(reg_pc,reg_pc_temp);
+	ilst->mov(reg_pc,r[n]);
+	ilst->add(reg_pc,pc+4);
+	DoDslot(pc,bb,true);
+	handle_rpctmp;
 } 
 //bsrf <REG_N>                  
  rsh4op(i0000_nnnn_0000_0011)
 {
+	need_rpctmp;
+
 	u32 n = GetN(op);
 	/*
 	u32 newpc = r[n] + pc +2;//pc +2 is done after
@@ -1473,10 +1482,10 @@ rsh4op(i0000_nnnn_0010_0011)
 	bb->flags.EndAnalyse=true;
 	bb->flags.ExitType=BLOCK_EXITTYPE_DYNAMIC_CALL;
 	ilst->mov(reg_pr,pc+4);
-	ilst->mov(reg_pc_temp,r[n]);
-	ilst->add(reg_pc_temp,pc+4);
-	DoDslot(pc,bb);
-	ilst->mov(reg_pc,reg_pc_temp);
+	ilst->mov(reg_pc,r[n]);
+	ilst->add(reg_pc,pc+4);
+	DoDslot(pc,bb,true);
+	handle_rpctmp;
 	bb->TT_next_addr=pc+4;
 } 
 
@@ -1484,6 +1493,8 @@ rsh4op(i0000_nnnn_0010_0011)
  //rte                           
  rsh4op(i0000_0000_0010_1011)
 {
+	need_rpctmp;
+
 	/*
 	//iNimp("rte");
 	sr.SetFull(ssr);
@@ -1505,6 +1516,8 @@ rsh4op(i0000_nnnn_0010_0011)
 //rts                           
  rsh4op(i0000_0000_0000_1011)
 {
+	need_rpctmp;
+
 	/*
 	//TODO Check new delay slot code [28/1/06]
 	u32 newpc=pr;//+2 is added after instruction
@@ -1517,9 +1530,9 @@ rsh4op(i0000_nnnn_0010_0011)
 	//return;
 	bb->flags.EndAnalyse = true;
 	bb->flags.ExitType= BLOCK_EXITTYPE_RET;
-	ilst->mov(reg_pc_temp,reg_pr);
-	DoDslot(pc,bb);
-	ilst->mov(reg_pc,reg_pc_temp);
+	ilst->mov(reg_pc,reg_pr);
+	DoDslot(pc,bb,true);
+	handle_rpctmp;
 } 
 
 
@@ -1564,7 +1577,7 @@ rsh4op(i0000_nnnn_0010_0011)
 	bb->TF_next_addr=pc+4;
 	bb->TT_next_addr=(u32)((GetSImm8(op))*2 + 4 + pc );
 
-	DoDslot(pc,bb);
+	DoDslot(pc,bb,false);
 	bb->flags.EndAnalyse = true;
 	bb->flags.ExitType = BLOCK_EXITTYPE_COND;
 }
@@ -1609,7 +1622,7 @@ rsh4op(i0000_nnnn_0010_0011)
 	bb->TF_next_addr=(u32)((GetSImm8(op))*2 + 4 + pc );
 	bb->TT_next_addr=pc+4;
 
-	DoDslot(pc,bb);
+	DoDslot(pc,bb,false);
 	
 	bb->flags.EndAnalyse=true;
 	bb->flags.ExitType=BLOCK_EXITTYPE_COND;
@@ -1630,7 +1643,7 @@ rsh4op(i1010_iiii_iiii_iiii)
 	bb->TF_next_addr=(u32) ((  ((s16)((GetImm12(op))<<4)) >>3)  + pc + 4);
 	bb->flags.EndAnalyse=true;
 	bb->flags.ExitType=BLOCK_EXITTYPE_FIXED;
-	DoDslot(pc,bb);
+	DoDslot(pc,bb,false);
 }
 // bsr <bdisp12>
 rsh4op(i1011_iiii_iiii_iiii)
@@ -1650,13 +1663,15 @@ rsh4op(i1011_iiii_iiii_iiii)
 	bb->flags.ExitType=BLOCK_EXITTYPE_FIXED_CALL;
 
 	ilst->mov(reg_pr,pc+4);
-	DoDslot(pc,bb);
+	DoDslot(pc,bb,false);
 	bb->TT_next_addr=pc+4;
 }
 
 // trapa #<imm>                  
 rsh4op(i1100_0011_iiii_iiii)
 {
+	need_rpctmp;
+
 	/*
 	CCN_TRA = (GetImm8(op) << 2);
 	Do_Exeption(0,0x160,0x100);
@@ -1670,6 +1685,8 @@ rsh4op(i1100_0011_iiii_iiii)
 //jmp @<REG_N>                  
  rsh4op(i0100_nnnn_0010_1011)
 {   //ToDo : Check Me [26/4/05] | Check new delay slot code [28/1/06]
+	need_rpctmp;
+
 	u32 n = GetN(op);
 	/*
 	//delay 1 instruction
@@ -1683,24 +1700,26 @@ rsh4op(i1100_0011_iiii_iiii)
 	//return;
 	bb->flags.EndAnalyse=true;
 	bb->flags.ExitType=BLOCK_EXITTYPE_DYNAMIC;
-	ilst->mov(reg_pc_temp,r[n]);
-	DoDslot(pc,bb);
-	ilst->mov(reg_pc,reg_pc_temp);
+	ilst->mov(reg_pc,r[n]);
+	DoDslot(pc,bb,true);
+	handle_rpctmp;
 }
 
 
 //jsr @<REG_N>                  
  rsh4op(i0100_nnnn_0000_1011)
 {//ToDo : Check This [26/4/05] | Check new delay slot code [28/1/06]
+	need_rpctmp;
+
 	u32 n = GetN(op);
 	
 
 	bb->flags.EndAnalyse=true;
 	bb->flags.ExitType=BLOCK_EXITTYPE_DYNAMIC_CALL;
 	ilst->mov(reg_pr,pc+4);
-	ilst->mov(reg_pc_temp,r[n]);
-	DoDslot(pc,bb);
-	ilst->mov(reg_pc,reg_pc_temp);
+	ilst->mov(reg_pc,r[n]);
+	DoDslot(pc,bb,true);
+	handle_rpctmp;
 	bb->TT_next_addr=pc+4;
 }
 
@@ -1714,6 +1733,8 @@ rsh4op(sh4_bpt_op)
 //sleep                         
  rsh4op(i0000_0000_0001_1011)
 {
+	need_rpctmp;
+
 	shil_interpret(op);	
 	ilst->add(reg_pc,2);
 	bb->flags.EndAnalyse=true;

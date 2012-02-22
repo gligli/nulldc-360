@@ -232,13 +232,13 @@ void LoadSettings()
 	settings.dynarec.Enable=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.Enabled",1)!=0;
 	settings.dynarec.CPpass=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.DoConstantPropagation",1)!=0;
 	settings.dynarec.Safe=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.SafeMode",1)!=0;
-	settings.dynarec.UnderclockFpu=cfgLoadInt(_T"nullDC",_T"Dynarec.UnderclockFpu",0)!=0;
+	settings.dynarec.UnderclockFpu=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.UnderclockFpu",0)!=0;
 	
 	settings.dreamcast.cable=0; //gli cfgLoadInt(_T"nullDC",_T"Dreamcast.Cable",3);
 	settings.dreamcast.RTC=cfgLoadInt(_T"nullDC",_T"Dreamcast.RTC",GetRTC_now());
 
 	settings.dreamcast.region=1; //gli USA cfgLoadInt(_T"nullDC",_T"Dreamcast.Region",3);
-	settings.dreamcast.broadcast=4; //hli cfgLoadInt(_T"nullDC",_T"Dreamcast.Broadcast",4);
+	settings.dreamcast.broadcast=4; //gli cfgLoadInt(_T"nullDC",_T"Dreamcast.Broadcast",4);
 
 	settings.emulator.AutoStart=1; //gli cfgLoadInt(_T"nullDC",_T"Emulator.AutoStart",0)!=0;
 	settings.emulator.NoConsole=cfgLoadInt(_T"nullDC",_T"Emulator.NoConsole",0)!=0;

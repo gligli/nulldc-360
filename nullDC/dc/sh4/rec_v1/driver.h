@@ -7,7 +7,7 @@
 #define FRONE 15
 #define FRHALF 14
 #define RCYCLES 13
-#define RPCTMPVAL 14
+#define RROML 14
 #define RPC 15
 #define CPU_TIMESLICE	(BLOCKLIST_MAX_CYCLES)
 

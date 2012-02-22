@@ -101,8 +101,6 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 
 			if (i<REG_ALLOC_COUNT)
 				r_alloced[i].ppcreg=reg_to_alloc[i];
-			else if (i==reg_pc_temp)
-				r_alloced[i].ppcreg=(ppc_reg)RPCTMPVAL;
 			else if (i==reg_pc)
 				r_alloced[i].ppcreg=(ppc_reg)RPC;
 				
