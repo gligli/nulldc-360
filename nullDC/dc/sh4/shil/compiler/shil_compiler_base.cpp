@@ -1357,8 +1357,10 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,s32* fast_offset)
 
 const u32 m_unpack_sz[4]={1,2,4,8};
 //Ram Only Mem Lookup
-void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
+ppc_reg roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 {
+	ppc_reg addr_reg=R5;
+	
 	switch(size)
 	{
 		case FLAG_8:  EMIT_XORI(ppce,R6,reg,3); reg=R6; break;
@@ -1373,14 +1375,20 @@ void roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 	EMIT_RLWINM(ppce,R5,reg,0,3,31);
 	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 #else		
-	PowerPC_instr ppc;
-	GEN_SUBF(ppc,R5,RROML,reg);
-	ppc|=1;
-	ppce->write32(ppc);
-
+	EMIT_CMPL(ppce,reg,RROML,0);
+	if (reg==R3 || reg==R6)
+		addr_reg=reg;
+	else
+	{
+		ppce->emitMoveRegister(R5,reg);
+		addr_reg=R5;
+	}
+		
+	EMIT_RLWIMI(ppce,addr_reg,RSH4R,31,0,2); // RSH4R is 0x8xxxxxxx, it's the only reason it's used here
 	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
-	EMIT_RLWIMI(ppce,R5,RSH4R,31,0,2); // RSH4R is 0x8xxxxxxx, it's the only reason it's used here
 #endif
+	
+	return addr_reg;
 }
 //const ppc_opcode_class rm_table[4]={op_movsx8to32,op_movsx16to32,op_mov32,op_movlps};
 void __fastcall shil_compile_readm(shil_opcode* op)
@@ -1411,7 +1419,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
 
 	//Ram Only Mem Lookup
-	roml(reg_addr,p4_handler,&old_offset,size,0);
+	ppc_reg addr_reg=roml(reg_addr,p4_handler,&old_offset,size,0);
 
 	//mov to dest or temp
 	u32 is_float=IsInFReg(op->reg1);
@@ -1445,8 +1453,8 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	{
 		switch(size)
 		{
-			case FLAG_32: EMIT_LFS(ppce,destreg,fast_offset,R5); break;
-			case FLAG_64: EMIT_LFD(ppce,destreg,fast_offset,R5); break;
+			case FLAG_32: EMIT_LFS(ppce,destreg,fast_offset,addr_reg); break;
+			case FLAG_64: EMIT_LFD(ppce,destreg,fast_offset,addr_reg); break;
 			default: verify(false);
 		}
 	}
@@ -1454,10 +1462,10 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	{
 		switch(size)
 		{
-			case FLAG_8:  EMIT_LBZ(ppce,destreg,fast_offset,R5); break;
-			case FLAG_16: EMIT_LHZ(ppce,destreg,fast_offset,R5); break;
-			case FLAG_32: EMIT_LWZ(ppce,destreg,fast_offset,R5); break;
-			case FLAG_64: EMIT_LFD(ppce,destreg,fast_offset,R5); break;
+			case FLAG_8:  EMIT_LBZ(ppce,destreg,fast_offset,addr_reg); break;
+			case FLAG_16: EMIT_LHZ(ppce,destreg,fast_offset,addr_reg); break;
+			case FLAG_32: EMIT_LWZ(ppce,destreg,fast_offset,addr_reg); break;
+			case FLAG_64: EMIT_LFD(ppce,destreg,fast_offset,addr_reg); break;
 			default: verify(false);
 		}
 	}
@@ -1560,25 +1568,25 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	//ppc_Label* patch_point= ppce->CreateLabel(true,0);
 	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
 	//Ram Only Mem Lookup
-	roml(reg_addr,p4_handler,&old_offset,size,1);
+	ppc_reg addr_reg = roml(reg_addr,p4_handler,&old_offset,size,1);
 	//mov [ecx],src
 
 	if (was_float)
 	{
 		switch(size)
 		{
-			case FLAG_32: EMIT_STFS(ppce,rsrc,fast_offset,R5); break;
-			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,R5); break;
+			case FLAG_32: EMIT_STFS(ppce,rsrc,fast_offset,addr_reg); break;
+			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,addr_reg); break;
 		}
 	}
 	else
 	{
 		switch(size)
 		{
-			case FLAG_8:  EMIT_STB(ppce,rsrc,fast_offset,R5); break;
-			case FLAG_16: EMIT_STH(ppce,rsrc,fast_offset,R5); break;
-			case FLAG_32: EMIT_STW(ppce,rsrc,fast_offset,R5); break;
-			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,R5); break;
+			case FLAG_8:  EMIT_STB(ppce,rsrc,fast_offset,addr_reg); break;
+			case FLAG_16: EMIT_STH(ppce,rsrc,fast_offset,addr_reg); break;
+			case FLAG_32: EMIT_STW(ppce,rsrc,fast_offset,addr_reg); break;
+			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,addr_reg); break;
 		}
 	}
 
