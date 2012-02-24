@@ -352,6 +352,9 @@ void * ExeptionHandler(int pir_,void * srr0,void * dar,int write)
 		else
 			log("Except in block %X | %X\n",cbi->Code,cbi);
 #endif
+
+#if 0
+		
 		//cbb->Rewrite
 		// find last branch and make it always branch (never load directly)
 		PowerPC_instr * branch=(PowerPC_instr*)pos;
@@ -369,6 +372,36 @@ void * ExeptionHandler(int pir_,void * srr0,void * dar,int write)
 		*branch=branch_op;
 		memicbi(branch,4);
 		return branch+((branch_op>>2)&0x3fff);
+	
+#else
+		
+		PowerPC_instr * memop=(PowerPC_instr*)pos;
+		PowerPC_instr * branch;
+		PowerPC_instr supposed_branch_op;
+		PowerPC_instr cur_op;
+		PowerPC_instr branch_op;
+		
+		branch=memop;
+		do{
+
+			++branch;
+			
+			cur_op=*branch;
+			
+			GEN_B(supposed_branch_op,-((u32)branch-pos)>>2,0,0);
+
+		}while(cur_op!=supposed_branch_op);
+		
+		++branch; // skip dummy reverse branch
+		
+		GEN_B(branch_op,((u32)branch-pos)>>2,0,0);
+		
+		*memop=branch_op;
+		memicbi(memop,4);
+		return branch;
+		
+#endif
+
 	}
 	else
 	{

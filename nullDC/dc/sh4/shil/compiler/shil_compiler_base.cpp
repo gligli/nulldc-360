@@ -1375,8 +1375,7 @@ ppc_reg roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 	EMIT_RLWINM(ppce,R5,reg,0,3,31);
 	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 #else		
-	EMIT_CMPL(ppce,reg,RROML,0);
-	if (reg==R3 || reg==R6)
+	if ((reg==R3 && rw==0) || reg==R6)
 		addr_reg=reg;
 	else
 	{
@@ -1385,7 +1384,6 @@ ppc_reg roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 	}
 		
 	EMIT_RLWIMI(ppce,addr_reg,RSH4R,31,0,2); // RSH4R is 0x8xxxxxxx, it's the only reason it's used here
-	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
 #endif
 	
 	return addr_reg;
@@ -1417,6 +1415,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	old_offset=ppce->ppc_indx-old_offset;
 	/*ppc_Label* patch_point=*/ ppce->CreateLabel(true,0);
 	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
+	ppc_Label* roml_search_lbl = ppce->CreateLabel(false,0);
 
 	//Ram Only Mem Lookup
 	ppc_reg addr_reg=roml(reg_addr,p4_handler,&old_offset,size,0);
@@ -1449,6 +1448,9 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	}
 
 //	printf("destreg %d %d\n",destreg,reg_addr);
+	
+	ppce->MarkLabel(roml_search_lbl);
+	
 	if(is_float)
 	{
 		switch(size)
@@ -1510,6 +1512,9 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	}
 	else
 		t.reg_data=(ppc_reg)GetSingleFromDouble((u8)op->reg1);
+	
+
+	t.roml_search_lbl=roml_search_lbl;
 
 	//emit_vmem_read(reg_addr,op->reg1,m_unpack_sz[size]);
 	roml_patch_list.push_back(t);
@@ -1571,6 +1576,8 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	ppc_reg addr_reg = roml(reg_addr,p4_handler,&old_offset,size,1);
 	//mov [ecx],src
 
+	ppc_Label* roml_search_lbl = ppce->CreateLabel(true,0);
+	
 	if (was_float)
 	{
 		switch(size)
@@ -1610,6 +1617,8 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	else
 		t.reg_data=(ppc_reg)GetSingleFromDouble((u8)op->reg1);
 
+	t.roml_search_lbl=roml_search_lbl;
+	
 	roml_patch_list.push_back(t);
 	
 	//emit_vmem_write(reg_addr,op->reg1,m_unpack_sz[size]);
@@ -1625,22 +1634,22 @@ void apply_roml_patches()
 //		printf("apply_roml_patches %d %d\n",roml_patch_list[i].type,roml_patch_list[i].asz);
 		void * function=roml_patch_list[i].type==1 ?nvw_lut[roml_patch_list[i].asz]:nvr_lut[roml_patch_list[i].asz];
 		
-		ppc_Label* normal_write=ppce->CreateLabel(false,8);
 		ppc_Label* normal_write_nosq=ppce->CreateLabel(false,8);
 
-		ppce->emitBranchToLabel(normal_write,0);
+		ppce->emitBranchToLabel(roml_patch_list[i].roml_search_lbl,0);
 		
 		ppce->MarkLabel(roml_patch_list[i].p4_access);
 
+		if(roml_patch_list[i].reg_addr!=R3 || roml_patch_list[i].fast_imm)
+			EMIT_ADDI(ppce,R3,roml_patch_list[i].reg_addr,roml_patch_list[i].fast_imm);
+		
 		if (roml_patch_list[i].type==1 && (roml_patch_list[i].asz>=FLAG_32))
 		{
-			if(roml_patch_list[i].reg_addr!=R3 || roml_patch_list[i].fast_imm)
-				EMIT_ADDI(ppce,R3,roml_patch_list[i].reg_addr,roml_patch_list[i].fast_imm);
-
 			//check for SQ write
-			ppce->emitLoadImmediate32(R5,0xE4000000);
-			EMIT_CMPL(ppce,R3,R5,0);
-			
+			EMIT_RLWINM(ppce,R6,R3,16,16,31);
+			EMIT_CMPLI(ppce,R6,0xe000,0);
+			ppce->emitBranchConditionalToLabel(normal_write_nosq,0,PPC_CC_T, PPC_CC_NEG);
+			EMIT_CMPLI(ppce,R6,0xe400,0);
 			ppce->emitBranchConditionalToLabel(normal_write_nosq,0,PPC_CC_F, PPC_CC_NEG);
 
 			EMIT_RLWINM(ppce,R3,R3,0,26,29); // & 0x3c
@@ -1662,11 +1671,6 @@ void apply_roml_patches()
 			}
 			ppce->emitBranchToLabel(roml_patch_list[i].exit_point,0);
 		}
-		
-		ppce->MarkLabel(normal_write);
-		
-		if(roml_patch_list[i].reg_addr!=R3 || roml_patch_list[i].fast_imm)
-			EMIT_ADDI(ppce,R3,roml_patch_list[i].reg_addr,roml_patch_list[i].fast_imm);
 		
 		ppce->MarkLabel(normal_write_nosq);
 		

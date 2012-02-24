@@ -499,8 +499,9 @@ bool _vmem_reserve()
 	//i wonder, aica ram warps here ?.?
 	//i realy should check teh docs before codin ;p
 	//[0x00800000,0x00A00000);
-	map_buffer(0x00800000,0x01000000,MAP_ARAM_START_OFFSET,ARAM_SIZE);
+	unused_buffer(0x00000000,0x01000000);
 	
+	ptr=_nvmem_map_buffer(0x20000000 | 0x00800000,0x00800000,MAP_ARAM_START_OFFSET,ARAM_SIZE);
 	aica_ram.size=ARAM_SIZE;
 	aica_ram.data=(u8*)ptr;
 	//[0x01000000 ,0x04000000) -> unused

@@ -21,6 +21,8 @@ struct roml_patch
 	ppc_reg reg_data;
 	s32 fast_imm;
 	bool is_float;
+
+	ppc_Label* roml_search_lbl;
 };
 
 extern vector<roml_patch> roml_patch_list;
