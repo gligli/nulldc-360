@@ -2872,16 +2872,17 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 				ira->FlushRegCache();
 				break;
 		}
+		
+		if ((OpDesc[op->imm1]->type & WritesFPSCR) || (op->imm1>=0xf000)) fra->FlushRegCache();
 	}
 	else
 	{
 		ira->FlushRegCache();
+		fra->FlushRegCache();
 	}
 #else
 	ira->FlushRegCache();
 #endif
-	
-	if (op->imm1>=0xf000) fra->FlushRegCache();
 
 #ifdef PROF_IFB
 	ppce->emitLoad32(R3,&op_usage[op->imm1]);
