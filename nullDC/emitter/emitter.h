@@ -39,6 +39,7 @@ extern int ppc_condition_flags[][3];
 
 #define RTMP 10
 #define RSH4R 2
+#define RLIS 14
 
 #include "PowerPC.h"
 extern "C" {
@@ -128,6 +129,9 @@ public:
 	bool do_realloc;
 	bool do_disasm;
 	bool do_disasm_imm;
+	
+	bool last_lis_valid;
+	u16 last_lis;
 
 	ppc_block();
 	~ppc_block();

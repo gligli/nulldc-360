@@ -193,7 +193,6 @@ void naked DynaMainLoop()
 
 		//
 		"lis " xstr(RSH4R) ",sh4r@ha			\n"
-		"lis " xstr(RROML) ",0xe000				\n"
 		"lwz " xstr(RPC) ",0(" xstr(RSH4R) ")	\n"//sh4r+0 is pc
 	
 		//Max cycle count :)

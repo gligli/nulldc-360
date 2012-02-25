@@ -2886,6 +2886,7 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	}
 #else
 	ira->FlushRegCache();
+	fra->FlushRegCache();
 #endif
 
 #ifdef PROF_IFB

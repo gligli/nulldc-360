@@ -83,6 +83,7 @@ void ppc_block::Init(dyna_reallocFP* ral,dyna_finalizeFP* alf)
 	ppc_size=0;
 	do_realloc=true;
 	bc_tab_next_idx=0;
+	last_lis_valid=false;
 }
 #define patches (*(vector<code_patch>*) _patches)
 #define labels (*(vector<ppc_Label*>*) _labels)
@@ -429,8 +430,13 @@ ppc_gpr_reg ppc_block::getHighReg(u16 value)
 		return (ppc_reg)RSH4R;
 	}
 	
-	EMIT_LIS(this,RTMP,value);
-	return (ppc_reg)RTMP;
+	if (!last_lis_valid || last_lis!=value)
+	{
+		last_lis_valid=true;
+		last_lis=value;
+		EMIT_LIS(this,RLIS,value);
+	}
+	return (ppc_reg)RLIS;
 }
 
 void ppc_block::emitBranch(void * addr, int lk)
