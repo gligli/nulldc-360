@@ -4,11 +4,11 @@
 #include "ppc_fpregalloc.h"
 #include <assert.h>
 
-#define REG_ALLOC_COUNT (15)
+#define REG_ALLOC_COUNT (16)
 //FR0 is reserved for math/temp
-ppc_fpr_reg reg_to_alloc_fpr[15]=
+ppc_fpr_reg reg_to_alloc_fpr[16]=
 {
-	FR17,FR18,FR19,FR20,FR21,FR22,FR23,FR24,FR25,FR26,FR27,FR28,FR29,FR30,FR31
+	FR16,FR17,FR18,FR19,FR20,FR21,FR22,FR23,FR24,FR25,FR26,FR27,FR28,FR29,FR30,FR31
 };
 u32 alb=0;
 u32 nalb=0;
@@ -19,7 +19,6 @@ struct fprinfo
 	bool Loaded;
 	bool WritenBack;
 };
-
 
 class SimpleFPRRegAlloc:public FloatRegAllocator
 {
@@ -84,73 +83,26 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 	virtual void DoAllocation(BasicBlock* block,ppc_block* ppce)
 	{
 		this->ppce=ppce;
-		DoAlloc= (block->flags.FpuMode==0);
-		
-		sort_temp used[16];
+
 		for (int i=0;i<16;i++)
 		{
-			used[i].cnt=0;
-			used[i].reg=r0+i;
-			used[i].no_load=false;
 			reginf[i].reg=ERROR_REG;
 			reginf[i].Loaded=false;
 			reginf[i].WritenBack=false;
-		}
 
-		if (DoAlloc)
-		{
-			u32 op_count=block->ilst.op_count;
-			shil_opcode* curop;
-			
-			for (u32 j=0;j<op_count;j++)
+			if (i<REG_ALLOC_COUNT)
 			{
-				curop=&block->ilst.opcodes[j];
-				for (int i = 0;i<16;i++)
-				{
-					Sh4RegType reg = (Sh4RegType) (fr_0+i);
-
-					if ((curop->WritesReg(reg)==true) && (curop->ReadsReg(reg)==false) && (used[i].cnt==0) )
-					{
-						used[i].no_load=true;
-					}
-					//both reads and writes , give it one more ;P
-					if ( curop->UpdatesReg(reg) )
-						used[i].cnt+=12;	//3+mem rw latency (9)
-					else if (curop->ReadsReg(reg))
-						used[i].cnt+=6;		//3 + mem latecny  (3)
-					else if (curop->WritesReg(reg))
-						used[i].cnt+=9;		//3 + mem w latency (6)
-				}
+				reginf[i].Loaded=true;
+				reginf[i].reg=reg_to_alloc_fpr[i];
 			}
-
-			bubble_sort(used,16);
-			u32 i;
-			for (i=0;i<REG_ALLOC_COUNT;i++)
-			{
-				//reg alloc minimum cost is 1 read + 1 write = 6+9=15, so <14
-				if (used[i].cnt<14)
-					break;
-				reginf[used[i].reg].reg=reg_to_alloc_fpr[i];
-				if (used[i].no_load)
-				{
-					reginf[used[i].reg].Loaded = true;
-					reginf[used[i].reg].WritenBack = true;
-				}
-			}
-			if (i)
-			{
-				alb++;
-				//log("Allocaded %d xmm regs, %d%%\n",i,alb*100/(alb+nalb));
-				//if (getchar()=='n')
-				//	memset(reginf,0xFF,sizeof(reginf));
-			}
-			else
-				nalb++;
-			//
 		}
 	}
 	//BeforeEmit		: generate any code needed before the main emittion begins (other register allocators may have emited code tho)
 	virtual void BeforeEmit()
+	{
+	}
+	//BeforeTrail		: generate any code needed after the main emittion has ended (other register allocators may emit code after that tho)
+	virtual void BeforeTrail()
 	{
 		for (int i=0;i<16;i++)
 		{
@@ -160,11 +112,6 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 			}
 		}
 	}
-	//BeforeTrail		: generate any code needed after the main emittion has ended (other register allocators may emit code after that tho)
-	virtual void BeforeTrail()
-	{
-		FlushRegCache();
-	}
 	//AfterTrail		: generate code after the native block end (after the ret) , can be used to emit helper functions (other register allocators may emit code after that tho)
 	virtual void AfterTrail()
 	{
@@ -173,7 +120,6 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 	//IsRegAllocated	: *couh* yea .. :P
 	virtual bool IsRegAllocated(u32 sh4_reg)
 	{
-		ensure_valid(sh4_reg);
 		return GetInfo(sh4_reg)!=0;
 	}
 	//Carefull w/ register state , we may need to implement state push/pop

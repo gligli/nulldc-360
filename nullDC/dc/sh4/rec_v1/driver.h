@@ -3,9 +3,8 @@
 
 #include <emitter/emitter.h>
 
-#define FRZERO 16
+#define FRZERO 14
 #define FRONE 15
-#define FRHALF 14
 #define RCYCLES 13
 #define RPC 15
 #define CPU_TIMESLICE	(BLOCKLIST_MAX_CYCLES)

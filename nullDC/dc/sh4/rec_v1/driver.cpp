@@ -135,7 +135,6 @@ u32 __attribute__((externally_visible)) Dynarec_Mainloop_no_update_fast;
 
 f32 __attribute__((externally_visible)) float_zero=0.0f;
 f32 __attribute__((externally_visible)) float_one=1.0f;
-f32 __attribute__((externally_visible)) float_half=0.5f;
 
 u64 time_lookup=0;
 
@@ -170,8 +169,6 @@ void naked DynaMainLoop()
 		"lfs " xstr(FRZERO) ",float_zero@l(3)	\n"
 		"lis 3,float_one@ha						\n"
 		"lfs " xstr(FRONE) ",float_one@l(3)		\n"
-		"lis 3,float_half@ha					\n"
-		"lfs " xstr(FRHALF) ",float_half@l(3)	\n"
 	
 		//misc pointers needed
 		"lis 3,block_stack_pointer@ha			\n"
@@ -290,7 +287,7 @@ void naked DynaMainLoop()
 		"stw " xstr(RCYCLES) ",rec_cycles@l(6)	\n"
 		"blr									\n"
 	::: "15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"
-		/* TODO FPR clobber "f15","f16","f17","f18","f19","f20","f21","f22","f23","f24","f25","f26","f27","f28","f29","f30","f31" */);
+		,"%fr16","%fr17","%fr18","%fr19","%fr20","%fr21","%fr22","%fr23","%fr24","%fr25","%fr26","%fr27","%fr28","%fr29","%fr30","%fr31");
 
 	// ecx 3 edx 4 eax 5
 				

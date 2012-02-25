@@ -13,21 +13,20 @@
 
 shil_stream* ilst;
 
-#undef sh4op
-#undef rsh4op
-#define rsh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
-#define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { ilst->shil_ifb(op,pc); }; void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
-
 #define handle_stids {if (bb->flags.IsDelaySlot) { bb->flags.SaveTInDelaySlot=true; ilst->LoadT(jcond_flag); } }
 
 #define need_rpctmp {if (bb->flags.IsDelaySlot && bb->flags.CouldNeedPCtmp) { printf("need_rpctmp\n"); bb->flags.NeedPCtmp=true; ilst->mov(reg_pc_temp, reg_pc); } }
 #define handle_rpctmp {if (bb->flags.NeedPCtmp) { printf("handle_rpctmp\n"); ilst->mov(reg_pc, reg_pc_temp); } }
 
+#define shil_interpret(str) { need_rpctmp; ilst->shil_ifb(str,pc); }
+
+#undef sh4op
+#undef rsh4op
+#define rsh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
+#define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { need_rpctmp; ilst->shil_ifb(op,pc); }; void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 
 //#define tmu_underflow  0x0100
 #define iNimp(info) rec_shil_iNimp(pc,op,info)
-
-#define shil_interpret(str) { need_rpctmp; ilst->shil_ifb(str,pc); }
 
 Sh4RegType dyna_reg_id_r[16];
 Sh4RegType dyna_reg_id_r_bank[8];

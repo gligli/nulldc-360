@@ -97,6 +97,23 @@ u32 IsInFReg(u32 reg)
 	return 0;
 }
 
+void FlushDouble(u32 reg)
+{
+	if(IsInFReg(reg))
+	{
+		fra->FlushRegister(reg);
+		fra->FlushRegister(reg+1);
+	}
+}
+void ReloadDouble(u32 reg)
+{
+	if(IsInFReg(reg))
+	{
+		fra->ReloadRegister(reg);
+		fra->ReloadRegister(reg+1);
+	}
+}
+
 //REGISTER ALLOCATION
 #define LoadReg(to,reg) ira->GetRegister(to,reg,RA_DEFAULT)
 #define LoadReg_force(to,reg) ira->GetRegister(to,reg,RA_FORCE)
@@ -449,7 +466,10 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 //	printf("emit_vmem_op_compat_const %d %d %08x %d\n",rw,sz,addr,reg);
 	
 	if (sz==FLAG_64)
+	{
 		reg=GetSingleFromDouble((u8)reg);
+		FlushDouble(reg);
+	}
 
 	void* ptr;
 	if (nvmem_GetPointer(ptr,addr,rw,sz))
@@ -515,6 +535,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 			break;
 		case FLAG_64:
 			verify(IsFpuReg(reg));
+			
 			if (rw==0)
 			{
 				ppce->emitLoadDouble(FR0,(u32*)ptr);
@@ -544,7 +565,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 			{
 				if (IsFpuReg(reg))
 				{
-					ppce->emitLoad32(R4,GetRegPtr(reg));
+					fra->LoadRegisterGPR(R4,reg);
 				}
 				else
 				{
@@ -582,8 +603,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 				case FLAG_32:
 					if (IsFpuReg(reg))
 					{
-						ppce->emitStore32(GetRegPtr(reg),R3);
-						fra->ReloadRegister(reg);
+						fra->SaveRegisterGPR(reg,R3);
 					}
 					else
 					{
@@ -591,7 +611,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 					}
 					break;
 				case FLAG_64:
-					ppce->emitStore32(GetRegPtr(reg),R3);
+					fra->SaveRegisterGPR(reg,R3);
 					break;
 				}
 			}
@@ -749,9 +769,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		case GPRtoXMM:		
 			{
 				//write back to ram
-				ppce->emitStore32(GetRegPtr(op->reg1),gpr2);
-				//mark reload on next use
-				fra->ReloadRegister(op->reg1);
+				fra->SaveRegisterGPR(op->reg1,gpr2);
 			}
 			break;
 		case GPRtoGPR:
@@ -802,9 +820,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 					//__asm int 3;
 					//write back to ram
 					ppce->emitLoadImmediate32(R4,op->imm1);
-					ppce->emitStore32(GetRegPtr(op->reg1),R4);
-					//mark reload on next use
-					fra->ReloadRegister(op->reg1);
+					fra->SaveRegisterGPR(op->reg1,R4);
 				}
 			}
 			break;
@@ -863,6 +879,8 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		u8 dest=GetSingleFromDouble((u8)op->reg1);
 		u8 source=GetSingleFromDouble((u8)op->reg2);
 
+		FlushDouble(source);
+		
 		ppce->emitLoad32(R4,GetRegPtr(source));
 		ppce->emitLoad32(R3,GetRegPtr(source+1));
 //		ppce->Emit(op_movlps,FR0,GetRegPtr(source));
@@ -870,6 +888,8 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		ppce->emitStore32(GetRegPtr(dest),R4);
 		ppce->emitStore32(GetRegPtr(dest+1),R3);
 //		ppce->Emit(op_movlps,GetRegPtr(dest),FR0);
+
+		ReloadDouble(dest);
 	}
 }
 
@@ -1476,8 +1496,10 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	
 	if (size==FLAG_64)
 	{
-		ppce->emitStoreDouble(GetRegPtr(GetSingleFromDouble((u8)op->reg1)),FR0);
+		u32 dblreg=GetSingleFromDouble((u8)op->reg1);
+		ppce->emitStoreDouble(GetRegPtr(dblreg),FR0);
 		t.exit_point=ppce->CreateLabel(true,0);
+		ReloadDouble(dblreg);
 	}
 	else
 	{
@@ -1511,7 +1533,10 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		t.reg_data=destreg;
 	}
 	else
+	{
 		t.reg_data=(ppc_reg)GetSingleFromDouble((u8)op->reg1);
+		ReloadDouble(t.reg_data);
+	}
 	
 
 	t.roml_search_lbl=roml_search_lbl;
@@ -1544,6 +1569,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	if (size==FLAG_64)
 	{
 		u8 f32reg=GetSingleFromDouble((u8)op->reg1);
+		FlushDouble(f32reg);
 		ppce->emitLoadDouble(FR0,GetRegPtr(f32reg));
 		rsrc=FR0;
 	}
@@ -1615,7 +1641,10 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 		t.reg_data=rsrc;
 	}
 	else
+	{
 		t.reg_data=(ppc_reg)GetSingleFromDouble((u8)op->reg1);
+		FlushDouble(t.reg_data);
+	}
 
 	t.roml_search_lbl=roml_search_lbl;
 	
@@ -1676,18 +1705,15 @@ void apply_roml_patches()
 		
 		if (roml_patch_list[i].asz!=FLAG_64)
 		{
-			if (roml_patch_list[i].is_float)
+			if (roml_patch_list[i].type==1)
 			{
-				if (roml_patch_list[i].type==1)
+				if (roml_patch_list[i].is_float)
 				{
 					static u32 tmp;
 					ppce->emitStoreFloat(&tmp,roml_patch_list[i].reg_data);
 					ppce->emitLoad32(R4,&tmp);
 				}
-			}
-			else
-			{
-				if (roml_patch_list[i].type==1)
+				else
 				{
 					//if write make sure data is on edx
 					if (roml_patch_list[i].reg_data!=R4)
@@ -1696,10 +1722,20 @@ void apply_roml_patches()
 			}
 
 			ppce->emitBranch(function,1);
+			
 			if (roml_patch_list[i].type==0)
 			{
-				if (roml_patch_list[i].reg_data!=R3)
+				if (roml_patch_list[i].is_float)
+				{
+					static u32 tmp;
+					ppce->emitStore32(&tmp,R3);
+					ppce->emitLoadFloat(roml_patch_list[i].reg_data,&tmp);
+				}
+				else
+				{
+					if (roml_patch_list[i].reg_data!=R3)
 					ppce->emitMoveRegister(roml_patch_list[i].reg_data,R3);
+				}
 			}
 		}
 		else
@@ -2182,17 +2218,16 @@ void fpr_reg_to_reg(shil_opcode* op,PowerPC_instr ppc,bool useRC)
 {
 /*	printf("fpr_reg_to_reg %d\n",frs(op));
 	disassemble(0,ppc);*/
-	switch (frs(op))
+/*	switch (frs(op))
 	{
-	case fa_r1r2:
+	case fa_r1r2:*/
 		{
 			ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			ppc_fpr_reg r2=fra->GetRegister(FR0,op->reg2,RA_DEFAULT);
-			assert(r1!=FR0 && r2!=FR0);
+			ppc_fpr_reg r2=fra->GetRegister(FR1,op->reg2,RA_DEFAULT);
 			EMIT_SET_RDRARB(ppc,r1,r1,r2,0,useRC);
 			fra->SaveRegister(op->reg1,r1);
 		}
-		break;
+/*		break;
 	case fa_r1m2:
 		{
 			ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
@@ -2221,7 +2256,7 @@ void fpr_reg_to_reg(shil_opcode* op,PowerPC_instr ppc,bool useRC)
 			fra->SaveRegister(op->reg1,r1);
 		}
 		break;
-	}
+	}*/
 }
 
 //#define SSE_s(op,sseop) sse_reg_to_reg(op,sseop);
@@ -2901,7 +2936,6 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	EMIT_BC(ppce,2,0,0,PPC_CC_T,PPC_CC_ZER);
 	EMIT_LI(ppce,R3,0);
 	ppce->emitStore32(GetRegPtr(reg_sr_T),R3);
-	
 	
 	ppce->emitLoadImmediate32(R3,op->imm1);
 	ppce->emitBranch((void*)OpPtr[op->imm1],1);
