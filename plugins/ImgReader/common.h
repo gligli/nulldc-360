@@ -178,8 +178,7 @@ struct Disc
 			}
 
 			int i;
-			u32 * ptr=(u32*)temp;
-			for(i=0;i<2352/4;++i) ptr[i]=__builtin_bswap32(ptr[i]);
+			bswap_block(temp,2352);
 			
 			//TODO: Proper sector conversions
 			if (secfmt==SECFMT_2352)
