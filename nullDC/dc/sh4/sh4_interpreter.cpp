@@ -680,12 +680,16 @@ u64 time_update_system=0;
 
 void FASTCALL spgUpdatePvr(u32 cycles); // quicker to use direct plugin call
 
+//#define PROF_UPDATESYSTEM
+
 extern "C" {
 //448 Cycles
 //as of 7/2/2k8 this is fixed to 448 cycles
 int __attribute__((externally_visible)) __fastcall UpdateSystem()
 {		
+#ifdef PROF_UPDATESYSTEM	
 	u64 ust=mftb();
+#endif
 	
 	UpdateTMU(448);
 	spgUpdatePvr(448);
@@ -697,8 +701,10 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 
 	int rv=UpdateINTC();
 	
+#ifdef PROF_UPDATESYSTEM	
 	ust=mftb()-ust;
 	time_update_system+=ust;
+#endif
 	
 	return rv;
 }
