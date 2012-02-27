@@ -14,8 +14,8 @@ static volatile bool running=false;
 
 #define TA_DMA_MAX_SIZE 1048576
 
-static __attribute__((aligned(128))) u32 ta_data[2][TA_DMA_MAX_SIZE/4];
-static int ta_size[2];
+static volatile __attribute__((aligned(128))) u32 ta_data[2][TA_DMA_MAX_SIZE/4];
+static volatile int ta_size[2];
 static volatile int ta_cur=0;
 static volatile bool ta_pending=false;
 static volatile bool ta_working=false;
@@ -32,9 +32,14 @@ void threaded_TADma(u32* data,u32 size)
 	
 	//printf("threaded_TADma %08x %d\n",data,size);
 #if 1
-	TASplitter::Dma(data,size);
+	verify(size*32<=TA_DMA_MAX_SIZE);
+	u64 * d=(u64*)ta_data[ta_cur];
+	memcpy(d,data,size*32);
+	ta_size[ta_cur]=size;
+
+	ta_pending=true;
+	while(ta_pending||ta_working);
 	
-	dmac_ch2_end_pending=true;
 	UpdateDMA();
 
 	return;
@@ -59,7 +64,7 @@ void threaded_TASQ(u32* data)
 {
 //	u64 prt=mftb();
 	
-	while(ta_pending);
+	while(ta_pending||do_render_pending||rend_end_render_call_pending);
 
 	u64 * d=(u64*)ta_data[ta_cur];
 	u64 * s=(u64*)data;
@@ -83,7 +88,7 @@ static void threaded_task()
 	{
 		if(ta_pending)
 		{
-			u32 * data=ta_data[ta_cur];
+			u32 * data=(u32*)ta_data[ta_cur];
 			u32 size = ta_size[ta_cur];
 			
 			ta_cur=1-ta_cur;
