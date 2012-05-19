@@ -977,8 +977,9 @@ void __fastcall shil_compile_swap(shil_opcode* op)
 	if (size==FLAG_8)
 	{
 		ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
-		EMIT_RLWIMI(ppce,r1,r1,16,0,15);
-		EMIT_RLWINM(ppce,r1,r1,8,16,31);		
+        ppce->emitMoveRegister(R5,r1);
+        EMIT_RLWIMI(ppce,r1,R5,24,24,31);
+		EMIT_RLWIMI(ppce,r1,R5,8,16,23);		
 		SaveReg(op->reg1,r1);
 	}
 	else
@@ -1905,23 +1906,17 @@ void __fastcall shil_compile_test(shil_opcode* op)
 		assert(0==(op->flags & FLAG_IMM2));
 		assert(op->flags & FLAG_REG2);
 		
-		PowerPC_instr ppc;
-
 		ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
-		if (ira->IsRegAllocated(op->reg2))
-		{
-			ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
-			GEN_AND(ppc,R0,r1,r2);
-			ppc|=1; // record bit
-			ppce->write32(ppc);		
-		}
-		else
-		{
-			ppce->emitLoad32(R3,GetRegPtr(op->reg2));
-			GEN_AND(ppc,R0,r1,R3);
-			ppc|=1; // record bit
-			ppce->write32(ppc);		
-		}
+        ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
+#if 0
+		PowerPC_instr ppc;
+        GEN_AND(ppc,R0,r1,r2);
+        ppc|=1; // record bit
+        ppce->write32(ppc);		
+#else
+        EMIT_AND(ppce,R5,r1,r2);
+        EMIT_CMPLI(ppce,R5,0,0);
+#endif        
 		//eflags is used w/ combination of SaveT
 	}
 }

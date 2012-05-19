@@ -41,6 +41,7 @@ const struct XenosVBFFormat VertexBufferFormat = {
 };
 
 bool hadTriangles=false;
+volatile bool syncPending=false;
 
 
 #define MODVOL 1
@@ -487,6 +488,15 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 				//memset(temp_tex_buffer,0xFFEFCFAF,w*h*4);
 			}
 
+            if (Texture->hpitch>Texture->height)
+            {
+                printf("hpitch! %d %d\n",Texture->hpitch,Texture->height);
+                int i;
+                for(i=Texture->height*Texture->wpitch;i<Texture->hpitch*Texture->wpitch;i+=Texture->height*Texture->wpitch)
+                {
+                    memcpy((u8*)bits+i,bits,Texture->wpitch*Texture->height);
+                }
+            }
 
 			//done , unlock texture !
 			Xe_Surface_Unlock(xe,Texture);
@@ -1632,7 +1642,9 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 
 		bool rtt=(FB_W_SOF1 & 0x1000000)!=0;
 		
-		Xe_Sync(xe);
+		if (syncPending) Xe_Sync(xe);
+    syncPending=false;
+    
 		Xe_InvalidateState(xe);
 //		Xe_SetFillMode(xe,XE_FILL_WIREFRAME,XE_FILL_WIREFRAME);
 
@@ -2057,8 +2069,8 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 			// Present the information rendered to the back buffer to the front buffer (the screen)
 			//(xe,Xe_GetFramebufferSurface(xe),XE_SOURCE_COLOR,0);
 			Xe_Execute(xe); // render everything in background !
-//			Xe_Sync(xe);
-			
+            syncPending=true;
+      
 			hadTriangles=false;
 		}
 	}
@@ -2432,7 +2444,7 @@ nl:
 	{
 		SetCurrentPVRRC(PARAM_BASE);
 		VertexCount+= pvrrc.verts.used;
-		render_end_pending_cycles= pvrrc.verts.used*25;
+		render_end_pending_cycles= pvrrc.verts.used*45;
 		//if (render_end_pending_cycles<500000)
 			render_end_pending_cycles+=500000;
 
@@ -2538,7 +2550,11 @@ nl:
 			pvrrc.invW_max=bg_d.f;
 
 		RenderWasStarted=true;
+#ifdef THREADED_PVR
 		do_render_pending=true;
+#else
+		DoRender();
+#endif
 		FrameCount++;
 		
 	}

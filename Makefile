@@ -33,7 +33,7 @@ INCLUDES	:=	files nullDC . nullDC/dc/sh4
 # options for code generation
 #---------------------------------------------------------------------------------
 
-OPTIFLAGS = -fvisibility=default -flto -fuse-linker-plugin -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 
+OPTIFLAGS = -fvisibility=default -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 #-flto -fuse-linker-plugin 
 
 ASFLAGS	= -Wa,$(INCLUDE) -Wa,-a32
 CFLAGS	= $(OPTIFLAGS) -g -pipe -Wall -Wno-format -Wno-write-strings -Wno-strict-aliasing $(MACHDEP) $(INCLUDE) -D__POWERPC__

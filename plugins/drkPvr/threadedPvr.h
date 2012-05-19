@@ -1,5 +1,7 @@
 #pragma once
 
+//#define THREADED_PVR
+
 #include <xetypes.h>
 
 void threaded_TADma(u32* data,u32 size);

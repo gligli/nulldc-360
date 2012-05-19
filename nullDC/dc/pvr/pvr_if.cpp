@@ -295,7 +295,6 @@ bool FASTCALL TAWrite(u32 address,u32* data,u32 count)
 	if (address_w<0x800000)//TA poly
 	{
 		libPvr.TaDMA(data,count);
-		delayed=true;
 	}
 	else if(address_w<0x1000000) //Yuv Converter
 	{

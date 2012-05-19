@@ -57,6 +57,8 @@ void irLoadSettings()
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/powerstone/Power Stone v1.001 (1999)(Capcom)(NTSC)(US)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/pj/Project Justice v1.001 (2001)(Capcom)(NTSC)(US)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/ikaruga/Ikaruga v1.002 (2002)(ESP)(NTSC)(JP)[!].gdi");
+	strcpy(irsettings.DefaultImage,"sda:/dcisos/doa2/Dead or Alive 2 v1.100 (2000)(Tecmo)(NTSC)(US)[!].gdi");
+//	strcpy(irsettings.DefaultImage,"sda:/dcisos/jetgrind/Jet Grind Radio v1.005 (2000)(Sega)(NTSC)(US)[!].gdi");
 	irsettings.PatchRegion=true;
 }
 void irSaveSettings()

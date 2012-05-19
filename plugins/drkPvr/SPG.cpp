@@ -278,8 +278,16 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 	{
 		if (render_end_pending_cycles<cycles)
 		{
+#ifdef THREADED_PVR
 			while(rend_end_render_call_pending);
 			rend_end_render_call_pending=true;
+#else
+			params.RaiseInterrupt(holly_RENDER_DONE);
+			params.RaiseInterrupt(holly_RENDER_DONE_isp);
+			params.RaiseInterrupt(holly_RENDER_DONE_vd);
+			rend_end_render();
+			render_end_pending=false;
+#endif
 		}
 		render_end_pending_cycles-=cycles;
 	}

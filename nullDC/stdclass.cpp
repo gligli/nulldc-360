@@ -290,7 +290,8 @@ void VArray2::LockRegion(u32 offset,u32 size)
 	
 	if (addr&0xffff || size&0xffff)
 	{
-		//gli WTF this happens!!
+//		printf("lock %08x %d\n",addr,size);
+//		vm_set_user_mapping_flags(addr&~0xffff,(size&~0xffff)+0x10000,VM_WIMG_CACHED_READ_ONLY);
 	}
 	else
 	{
@@ -304,6 +305,8 @@ void VArray2::UnLockRegion(u32 offset,u32 size)
 	
 	if (addr&0xffff || size&0xffff)
 	{
+//		printf("unlock %08x %d\n",addr,size);
+//		vm_set_user_mapping_flags(addr&~0xffff,(size&~0xffff)+0x10000,VM_WIMG_CACHED);
 	}
 	else
 	{

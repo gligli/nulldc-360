@@ -24,10 +24,10 @@ volatile bool do_render_pending=false;
 volatile bool rend_end_render_call_pending=false;
 
 extern volatile bool dmac_ch2_end_pending;
-void UpdateDMA();
 
 void threaded_TADma(u32* data,u32 size)
 {
+#ifdef THREADED_PVR
 	while(ta_pending||ta_working||do_render_pending||rend_end_render_call_pending);
 	
 	//printf("threaded_TADma %08x %d\n",data,size);
@@ -39,13 +39,7 @@ void threaded_TADma(u32* data,u32 size)
 
 	ta_pending=true;
 	while(ta_pending||ta_working);
-	
-	UpdateDMA();
-
-	return;
 #else	
-	UpdateDMA();
-
 	verify(size*32<=TA_DMA_MAX_SIZE);
 	
 	u64 * d=(u64*)ta_data[ta_cur];
@@ -56,12 +50,17 @@ void threaded_TADma(u32* data,u32 size)
 	
 	ta_pending=true;
 #endif
+	
+#else
+	TASplitter::Dma(data,size);
+#endif
 }
 
 extern u64 time_pref;
 
 void threaded_TASQ(u32* data)
 {
+#ifdef THREADED_PVR
 //	u64 prt=mftb();
 	
 	while(ta_pending||do_render_pending||rend_end_render_call_pending);
@@ -80,6 +79,9 @@ void threaded_TASQ(u32* data)
 
 /*	prt=mftb()-prt;
 	time_pref+=prt;*/
+#else
+	TASplitter::SQ(data);
+#endif
 }
 
 static void threaded_task()
@@ -130,8 +132,10 @@ static u8 stack[0x100000];
 
 void threaded_init()
 {
+#ifdef THREADED_PVR
 	running=true;
 	xenon_run_thread_task(2,&stack[sizeof(stack)-0x100],(void*)threaded_task);
+#endif
 	
 	atexit(threaded_term);
 }
