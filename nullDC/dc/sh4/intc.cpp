@@ -271,7 +271,7 @@ void RaiseExeption(u32 code,u32 vector)
 	}
 		
 	sh4r.spc = sh4r.pc;
-	sh4r.ssr = sh4r.sr.GetFull();
+	sh4r.ssr = sh4r.sr.GetFull(true);
 	sh4r.sgr = sh4r.r[15];
 	CCN_EXPEVT = code;
 	sh4r.sr.MD = 1;
@@ -325,7 +325,7 @@ bool fastcall Do_Interrupt(u32 intEvn)
 
 	CCN_INTEVT = intEvn;
 
-	sh4r.ssr = sh4r.sr.GetFull();
+	sh4r.ssr = sh4r.sr.GetFull(true);
 	sh4r.spc = sh4r.pc;
 	sh4r.sgr = sh4r.r[15];
 	sh4r.sr.BL = 1;
@@ -342,7 +342,7 @@ bool Do_Exeption(u32 lvl, u32 expEvn, u32 CallVect)
 {
 	CCN_EXPEVT = expEvn;
 
-	sh4r.ssr = sh4r.sr.GetFull();
+	sh4r.ssr = sh4r.sr.GetFull(true);
 	sh4r.spc = sh4r.pc+2;
 	sh4r.sgr = sh4r.r[15];
 	sh4r.sr.BL = 1;

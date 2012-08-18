@@ -1057,7 +1057,7 @@ sh4op(i0000_nnnn_0000_0010)//0002
 {
 	u32 n = GetN(op);
 
-	r[n] = sr.GetFull();
+	r[n] = sr.GetFull(true);
 }
 
  //sts FPSCR,<REG_N>             
@@ -1083,7 +1083,7 @@ sh4op(i0100_nnnn_0000_0011)
 {
 	u32 n = GetN(op);
 	
-	WriteMemBOU32(r[n],(u32)-4, sr.GetFull());
+	WriteMemBOU32(r[n],(u32)-4, sr.GetFull(true));
 	r[n] -= 4;
 }
 
@@ -1106,7 +1106,7 @@ sh4op(i0100_nnnn_0000_0111)
 	u32 sr_t;
 	ReadMemU32(sr_t,r[n]);
 
-	sr.SetFull(sr_t);
+	sr.SetFull(sr_t,true);
 	r[n] += 4;
 	if (UpdateSR())
 	{
@@ -1131,7 +1131,7 @@ sh4op(i0100_nnnn_0000_1110)
 {
 	u32 n = GetN(op);
 
-	sr.SetFull(r[n]);
+	sr.SetFull(r[n],true);
 	if (UpdateSR())
 	{
 		//FIXME olny if interrupts got on .. :P

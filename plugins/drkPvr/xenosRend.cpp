@@ -19,7 +19,7 @@ struct XenosShader *sh_ps, *sh_vs;
 struct XenosVertexBuffer *vb;
 
 struct XenosSurface * rtt_texture[2]={0,0};
-u32 rtt_index;
+u32 rtt_index=0;
 u32 rtt_address=-1;
 u32 rtt_FrameNumber=0xFFFFFFFF;
 u32 ppar_BackBufferWidth,ppar_BackBufferHeight;
@@ -1645,10 +1645,10 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 	{
 		dosort=UsingAutoSort();
 
-		bool rtt=(FB_W_SOF1 & 0x1000000)!=0;
+		bool rtt=false; //gli (FB_W_SOF1 & 0x1000000)!=0;
 		
 		if (syncPending) Xe_Sync(xe);
-    syncPending=false;
+        syncPending=false;
     
 		Xe_InvalidateState(xe);
 //		Xe_SetFillMode(xe,XE_FILL_WIREFRAME,XE_FILL_WIREFRAME);

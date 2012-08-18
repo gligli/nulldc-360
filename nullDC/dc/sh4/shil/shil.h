@@ -405,13 +405,13 @@ public :
 	void __xor(Sh4RegType to,u32 from);
 
 	//logical shifts
-	void shl(Sh4RegType to,u8 count);
-	void shr(Sh4RegType to,u8 count);
+	void shl(Sh4RegType to,u8 count,bool writeT);
+	void shr(Sh4RegType to,u8 count,bool writeT);
 	void shld(Sh4RegType to,Sh4RegType amt);
 
 	//arithmetic shifts
-	void sal(Sh4RegType to,u8 count);//<- is this used ?
-	void sar(Sh4RegType to,u8 count);
+	void sal(Sh4RegType to,u8 count,bool writeT);//<- is this used ?
+	void sar(Sh4RegType to,u8 count,bool writeT);
 
 	//rotate
 

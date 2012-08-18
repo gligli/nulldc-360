@@ -2,6 +2,10 @@
 #include "types.h"
 #include "intc_types.h"
 
+#define xstr(s) str(s)
+#define str(s) #s
+#include "../../emitter/emitter.h"
+
 //sh4 exeption saved stack pointer :)
 extern u32* sh4_exept_ssp;
 //sh4 next opcode execute
@@ -156,15 +160,40 @@ struct __attribute__((packed))  StatusReg
 		u32 m_full;
 	};
 	u32 T;
-	INLINE u32 GetFull()
+	INLINE u32 GetFull(bool autoDR)
 	{
-		return (m_full&STATUS_MASK) | T;
+        if (autoDR && settings.dynarec.Enable)
+        {
+            //gli interpeter T needs to be up to date
+            u32 Tloc=0;
+            asm volatile (
+                "li %[Tloc],0                  \n"
+                "bc 4," xstr(CR_T_FLAG) ",1f   \n"  
+                "li %[Tloc],1                  \n"
+                "1:                            \n"
+                :[Tloc] "+r" (Tloc)
+            );
+            T=Tloc;
+        }
+
+		return (m_full&STATUS_MASK) | (T&1);
 	}
 
-	INLINE void SetFull(u32 value)
+	INLINE void SetFull(u32 value,bool autoDR)
 	{
 		m_full=value & STATUS_MASK;
 		T=value&1;
+
+        if (autoDR && settings.dynarec.Enable)
+        {
+            //gli dynarec T needs to be up to date
+            u32 Tloc=T;
+            asm volatile (
+                "cmplwi %[Tloc],0              \n"  
+                "crnor " xstr(CR_T_FLAG) ",2,2 \n"
+                ::[Tloc] "r" (Tloc)
+            );
+        }
 	}
 
 };

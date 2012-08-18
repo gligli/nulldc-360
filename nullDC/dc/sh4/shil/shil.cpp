@@ -436,7 +436,8 @@ void shil_stream::__and(Sh4RegType to,Sh4RegType from)
 }
 void shil_stream::__and(Sh4RegType to,u32 from)
 {
-	emit32(shilop_and,to,from);
+//	emit32(shilop_and,to,from);
+	emitRegImm(shilop_and,to,from,FLAG_32);
 }
 void shil_stream::__or(Sh4RegType to,Sh4RegType from)
 {
@@ -444,7 +445,8 @@ void shil_stream::__or(Sh4RegType to,Sh4RegType from)
 }
 void shil_stream::__or(Sh4RegType to,u32 from)
 {
-	emit32(shilop_or,to,from);
+//	emit32(shilop_or,to,from);
+	emitRegImm(shilop_or,to,from,FLAG_32);
 }
 void shil_stream::__xor(Sh4RegType to,Sh4RegType from)
 {
@@ -452,17 +454,18 @@ void shil_stream::__xor(Sh4RegType to,Sh4RegType from)
 }
 void shil_stream::__xor(Sh4RegType to,u32 from)
 {
-	emit32(shilop_xor,to,from);
+//	emit32(shilop_xor,to,from);
+	emitRegImm(shilop_xor,to,from,FLAG_32);
 }
 
 //logical shifts
-void shil_stream::shl(Sh4RegType to,u8 count)
+void shil_stream::shl(Sh4RegType to,u8 count,bool writeT)
 {
-	emit32(shilop_shl,to,count);
+	emitRegImmImm(shilop_shl,to,count,writeT,FLAG_32);
 }
-void shil_stream::shr(Sh4RegType to,u8 count)
+void shil_stream::shr(Sh4RegType to,u8 count,bool writeT)
 {
-	emit32(shilop_shr,to,count);
+	emitRegImmImm(shilop_shr,to,count,writeT,FLAG_32);
 }
 
 void shil_stream::shld(Sh4RegType to,Sh4RegType amt)
@@ -471,13 +474,13 @@ void shil_stream::shld(Sh4RegType to,Sh4RegType amt)
 }
 
 //arithmetic shifts
-void shil_stream::sal(Sh4RegType to,u8 count)
+void shil_stream::sal(Sh4RegType to,u8 count,bool writeT)
 {//<- is this used ?
-	shl(to,count);
+	shl(to,count,writeT);
 }
-void shil_stream::sar(Sh4RegType to,u8 count)
+void shil_stream::sar(Sh4RegType to,u8 count,bool writeT)
 {
-	emit32(shilop_sar,to,count);
+	emitRegImmImm(shilop_sar,to,count,writeT,FLAG_32);
 }
 
 //rotate

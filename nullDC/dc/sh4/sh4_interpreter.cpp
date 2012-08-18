@@ -365,7 +365,7 @@ void Sh4_int_Reset(bool Manual)
 		mac.h=mac.l=pr=fpul=0;
 		sh4r.zer_fpul=0;
 
-		sr.SetFull(0x700000F0);
+		sr.SetFull(0x700000F0,true);
 		old_sr=sr;
 		UpdateSR();
 
@@ -465,7 +465,7 @@ u32 Sh4_int_GetRegister(Sh4RegType reg)
 			break;
 
 		case reg_sr :
-			return sr.GetFull();
+			return sr.GetFull(true);
 			break;
 		case reg_fpscr :
 			return fpscr.full;
@@ -537,7 +537,7 @@ void Sh4_int_SetRegister(Sh4RegType reg,u32 regdata)
 			pc=regdata;
 			break;
 		case reg_sr :
-			sr.SetFull(regdata);
+			sr.SetFull(regdata,true);
 			UpdateSR();
 			break;
 		case reg_fpscr :
@@ -582,11 +582,11 @@ bool ExecuteDelayslot()
 }
 bool ExecuteDelayslot_RTE()
 {
-	exec_cycles+=CPU_RATIO;
+    exec_cycles+=CPU_RATIO;
 
 	pc+=2;
 	u32 op=IReadMem16(pc);
-	sr.SetFull(ssr);
+	sr.SetFull(ssr,true);
 	bool rv=UpdateSR();
 	verify(sh4_exept_raised==false);
 	if (op!=0)

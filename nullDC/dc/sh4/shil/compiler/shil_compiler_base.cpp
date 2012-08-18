@@ -262,70 +262,37 @@ void fastcall op_imm_to_reg(shil_opcode* op,PowerPC_instr ppc, bool mask, bool r
 {
 	assert(FLAG_32==(op->flags & 3));
 	assert(op->flags & FLAG_IMM1);
-	assert(0==(op->flags & (FLAG_IMM2)));
+	assert(op->flags & FLAG_IMM2);
 	assert(op->flags & FLAG_REG1);
 	assert(0==(op->flags & FLAG_REG2));
-	if (ira->IsRegAllocated(op->reg1))
-	{
-		ppc_gpr_reg r1=LoadReg(R3,op->reg1);
-		assert(r1!=R3);
+    
+    ppc_gpr_reg r1=LoadReg(R3,op->reg1);
 		
-		if(op->imm1==1) // T flag?
-		{
-			EMIT_RLWINM(ppce,R5,r1,(right||!mask)?0:1,31,31);
-			EMIT_CMPLI(ppce,R5,1,0);
-		}
-				
-		PPC_SET_RD(ppc,r1);
-		PPC_SET_RA(ppc,r1);
-		PPC_SET_SH(ppc,right?32-op->imm1:op->imm1);
-		if(mask)
-		{
-			if(right)
-			{
-				PPC_SET_MB(ppc,op->imm1);
-				PPC_SET_ME(ppc,31);
-			}
-			else
-			{
-				PPC_SET_MB(ppc,0);
-				PPC_SET_ME(ppc,(31-op->imm1));
-			}
-		}
-		ppce->write32(ppc);
+    if(op->imm2) // to T flag?
+    {
+        EMIT_RLWINM(ppce,R5,r1,right?0:1,31,31);
+        EMIT_CMPLI(ppce,R5,1,0);
+    }
 
-		SaveReg(op->reg1,r1);
-	}
-	else{
-		u32 * ptr = GetRegPtr(op->reg1);
-		ppce->emitLoad32(R4,ptr);
+    PPC_SET_RD(ppc,r1);
+    PPC_SET_RA(ppc,r1);
+    PPC_SET_SH(ppc,((right && mask)?32-op->imm1:op->imm1));
+    if(mask)
+    {
+        if(right)
+        {
+            PPC_SET_MB(ppc,op->imm1);
+            PPC_SET_ME(ppc,31);
+        }
+        else
+        {
+            PPC_SET_MB(ppc,0);
+            PPC_SET_ME(ppc,(31-op->imm1));
+        }
+    }
+    ppce->write32(ppc);
 
-		if(op->imm1==1) // T flag?
-		{
-			EMIT_RLWINM(ppce,R5,R4,(right||!mask)?0:1,31,31);
-			EMIT_CMPLI(ppce,R5,1,0);
-		}
-				
-		PPC_SET_RD(ppc,R4);
-		PPC_SET_RA(ppc,R4);
-		PPC_SET_SH(ppc,right?32-op->imm1:op->imm1);
-		if(mask)
-		{
-			if(right)
-			{
-				PPC_SET_MB(ppc,op->imm1);
-				PPC_SET_ME(ppc,31);
-			}
-			else
-			{
-				PPC_SET_MB(ppc,0);
-				PPC_SET_ME(ppc,(31-op->imm1));
-			}
-		}
-		ppce->write32(ppc);
-
-		ppce->emitStore32(ptr,R4);
-	}
+    SaveReg(op->reg1,r1);
 }
 
 
@@ -1036,7 +1003,7 @@ void __fastcall shil_compile_sar(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_SRAWI(ppc,0,0,0);
-	op_imm_to_reg(op,ppc,false,false);
+	op_imm_to_reg(op,ppc,false,true);
 }
 
 //rotates
@@ -1522,6 +1489,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		}
 	}
 
+    t.sh4_reg_data=op->reg1;
 	t.p4_access=p4_handler;
 	t.resume_offset=(u8)old_offset;
 	t.asz=size;
@@ -1607,7 +1575,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	
 	if (was_float)
 	{
-		switch(size)
+        switch(size)
 		{
 			case FLAG_32: EMIT_STFS(ppce,rsrc,fast_offset,addr_reg); break;
 			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,addr_reg); break;
@@ -1629,6 +1597,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	//ppce->Emit(op_jmp,p4_handler);
 
 	roml_patch t;
+    t.sh4_reg_data=op->reg1;
 	t.p4_access=p4_handler;
 	t.resume_offset=(u8)old_offset;
 	t.exit_point=ppce->CreateLabel(true,0);
@@ -1701,7 +1670,7 @@ void apply_roml_patches()
 			}
 			ppce->emitBranchToLabel(roml_patch_list[i].exit_point,0);
 		}
-		
+
 		ppce->MarkLabel(normal_write_nosq);
 		
 		if (roml_patch_list[i].asz!=FLAG_64)
@@ -1710,9 +1679,7 @@ void apply_roml_patches()
 			{
 				if (roml_patch_list[i].is_float)
 				{
-					static u32 tmp;
-					ppce->emitStoreFloat(&tmp,roml_patch_list[i].reg_data);
-					ppce->emitLoad32(R4,&tmp);
+                    fra->LoadRegisterGPR(R4,roml_patch_list[i].sh4_reg_data);
 				}
 				else
 				{
@@ -1935,7 +1902,6 @@ void __fastcall shil_compile_adc(shil_opcode* op)
 	GEN_ADD(ppc,0,0,0);
 	ppc|=1; // record bit
 	op_reg_to_reg(op,ppc,0,false,false,true);
-	EMIT_CROR(ppce,CR_T_FLAG,PPC_CC_OVR,PPC_CC_OVR);
 }
 void __fastcall shil_compile_sub(shil_opcode* op)
 {

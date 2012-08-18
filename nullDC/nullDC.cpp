@@ -11,7 +11,6 @@
 #include <time/time.h>
 #include <ppc/timebase.h>
 #include <xenon_soc/xenon_power.h>
-#include <network/network.h>
 #include <libfat/fat.h>
 
 //initialse Emu

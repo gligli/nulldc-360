@@ -898,7 +898,7 @@ shilh(test)
 }
 shilh(xor)
 {
-	NormBinaryOp(^);
+	DefHanlder(op,bb,il); //gli fixes DOA2 NormBinaryOp(^);
 	return false;
 }
 shilh(jcond)

@@ -1,6 +1,6 @@
 #pragma once
 
-//#define THREADED_PVR
+#define THREADED_PVR
 
 #include <xetypes.h>
 

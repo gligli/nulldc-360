@@ -18,7 +18,7 @@ u32*  xf_hex=(u32*)sh4r.xf,*fr_hex=(u32*)sh4r.fr;
 
 void SaveSh4Regs(Sh4RegContext* to)
 {
-	SAVE_REG_A(r);
+    SAVE_REG_A(r);
 	SAVE_REG_A(r_bank);
 
 	SAVE_REG(gbr);

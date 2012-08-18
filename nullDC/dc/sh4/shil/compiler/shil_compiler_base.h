@@ -22,6 +22,8 @@ struct roml_patch
 	s32 fast_imm;
 	bool is_float;
 
+	u32 sh4_reg_data;
+    
 	ppc_Label* roml_search_lbl;
 };
 

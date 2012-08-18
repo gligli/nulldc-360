@@ -673,7 +673,10 @@ bool BasicBlock::Compile()
 			cBB->Rewrite.Offset=ppce->ppc_indx;
 
 			cBB->Rewrite.TFlag=CR_T_FLAG;
-			if (flags.SaveTInDelaySlot) cBB->Rewrite.TFlag=CR_T_COND_FLAG;
+			if (flags.SaveTInDelaySlot){
+                cBB->Rewrite.TFlag=CR_T_COND_FLAG;
+                flags.SaveTInDelaySlot=0;
+            }
 						
 			/* gli 8 ops max for cond rewrite */
 			for(int i=0;i<8;++i) ppce->write32(PPC_NOP);

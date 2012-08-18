@@ -18,12 +18,12 @@ shil_stream* ilst;
 #define need_rpctmp {if (bb->flags.IsDelaySlot && bb->flags.CouldNeedPCtmp) { printf("need_rpctmp\n"); bb->flags.NeedPCtmp=true; ilst->mov(reg_pc_temp, reg_pc); } }
 #define handle_rpctmp {if (bb->flags.NeedPCtmp) { printf("handle_rpctmp\n"); ilst->mov(reg_pc, reg_pc_temp); } }
 
-#define shil_interpret(str) { need_rpctmp; ilst->shil_ifb(str,pc); }
+#define shil_interpret(str) { need_rpctmp; handle_stids; ilst->shil_ifb(str,pc); }
 
 #undef sh4op
 #undef rsh4op
 #define rsh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
-#define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { need_rpctmp; ilst->shil_ifb(op,pc); }; void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
+#define sh4op(str) void  __fastcall rec_shil_##str (u32 op,u32 pc,BasicBlock* bb) { shil_interpret(op); }; void  __fastcall kkrec_shil_##str (u32 op,u32 pc,BasicBlock* bb)
 
 //#define tmu_underflow  0x0100
 #define iNimp(info) rec_shil_iNimp(pc,op,info)
@@ -449,6 +449,7 @@ rsh4op(i0011_nnnn_mmmm_1110)
 	u32 m=GetM(op);
 
 	ilst->adc(r[n],r[m]);		//add w/ carry
+    handle_stids; ilst->SaveT(CC_O);    
 }
 
 // addv <REG_M>,<REG_N>          
@@ -521,7 +522,7 @@ rsh4op(i0100_nnnn_0000_0000)
 {
 	u32 n = GetN(op);
 
-	ilst->shl(r[n],1);
+	ilst->shl(r[n],1,true);
 	handle_stids; ilst->SaveT(CC_E);
 }
 
@@ -530,7 +531,7 @@ rsh4op(i0100_nnnn_0010_0000)
 {
 	u32 n=GetN(op);
 
-	ilst->shl(r[n],1);
+	ilst->shl(r[n],1,true);
 	handle_stids; ilst->SaveT(CC_E);
 }
 
@@ -539,7 +540,7 @@ rsh4op(i0100_nnnn_0000_0001)
 {
 	u32 n = GetN(op);
 	
-	ilst->shr(r[n],1);
+	ilst->shr(r[n],1,true);
 	handle_stids; ilst->SaveT(CC_E);
 }
 
@@ -548,7 +549,7 @@ rsh4op(i0100_nnnn_0010_0001)
 {
 	u32 n = GetN(op);
 
-	ilst->sar(r[n],1);
+	ilst->sar(r[n],1,true);
 	handle_stids; ilst->SaveT(CC_E);
 }
 
@@ -1424,7 +1425,7 @@ rsh4op(icpu_nimp)
 
 void DoDslot(u32 pc,BasicBlock* bb, bool CouldNeedPCtmp)
 {
-	u16 opcode=ReadMem16(pc+2);
+    u16 opcode=ReadMem16(pc+2);
 
 	if (opcode==0 || opcode==0)
 		log("0 on delayslot , ingoring it ..\n");
@@ -1842,13 +1843,13 @@ struct shil_RecRegType
 	//SHIFT RIGHT
 	void operator>>=(const u32 constv)
 	{
-		ilst->shr(regid,(u8)constv);
+		ilst->shr(regid,(u8)constv,false);
 	};
 
 	//SHIFT LEFT
 	void operator<<=(const u32 constv)
 	{
-		ilst->shl(regid,(u8)constv);
+		ilst->shl(regid,(u8)constv,false);
 	};
 };
 
@@ -2015,9 +2016,9 @@ void shil_DynarecInit()
 #undef iNimp
 #define iNimp(op,info) rec_shil_iNimp(pc,op,info)
 
+#include "dc/sh4/sh4_cpu_loadstore.h"
+#include "dc/sh4/sh4_cpu_movs.h"
 #include "dc/sh4/sh4_cpu_arith.h"
 #include "dc/sh4/sh4_cpu_branch.h"
 #include "dc/sh4/sh4_cpu_logic.h"
-#include "dc/sh4/sh4_cpu_movs.h"
-#include "dc/sh4/sh4_cpu_loadstore.h"
 #endif
