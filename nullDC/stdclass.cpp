@@ -11,8 +11,6 @@ extern "C"{
 #include <ppc/vm.h>
 }
 
-#include <newlib/malloc_lock.h>
-
 //comonly used classes across the project
 
 //bah :P since it's template needs to be on .h pfftt

@@ -78,9 +78,6 @@ void BuildTwiddleTables()
 	}
 }
 
-//# define twop( val, n )	twidle_razi( (val), (n),(n) )
-#define twop twiddle_fast
-
 u8* vq_codebook;
 u32 palette_index;
 u32 palette_lut[1024];

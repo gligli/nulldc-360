@@ -111,7 +111,7 @@ void pvr_do_sort_dma()
 
 		link_addr=ea_ptr[0x1C>>2];//Next link
 		//transfer global param
-		log("pvr_do_sort_dma %08x %08x\n",ea_ptr,ea_ptr[0x18>>2]);
+		printf("pvr_do_sort_dma %08x %08x\n",ea_ptr,ea_ptr[0x18>>2]);
 		libPvr.TaDMA(ea_ptr,ea_ptr[0x18>>2]);
 		if (link_addr==2)
 		{

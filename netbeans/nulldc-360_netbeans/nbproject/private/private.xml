@@ -8,12 +8,13 @@
         <activeConfIndexElem>0</activeConfIndexElem>
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">
         <module name="org-netbeans-modules-cnd-discovery">
             <property name="libraries" value=""/>
             <property name="find_main" value=""/>
             <property name="executable" value="C:\X360 Hack\x360dev\ppc\nulldc-360\nulldc-360.elf"/>
-            <property name="rootFolder" value="C:\X360 Hack\x360dev\ppc\nulldc-360*C:\X360 Hack\x360dev\ppc\nulldc-360\files"/>
+            <property name="rootFolder" value="C:\X360 Hack\x360dev\ppc\nulldc-360\*C:\X360 Hack\x360dev\ppc\nulldc-360\files*C:\X360 Hack\x360dev\ppc\nulldc-360"/>
         </module>
     </preferences>
 </project-private>

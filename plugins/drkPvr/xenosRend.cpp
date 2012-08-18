@@ -192,8 +192,8 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 	/*
 	0	Zero	(0, 0, 0, 0)
 	1	One	(1, 1, 1, 1)
-	2	Ã¢â‚¬ËœOtherÃ¢â‚¬â„¢ Color	(OR, OG, OB, OA) 
-	3	Inverse Ã¢â‚¬ËœOtherÃ¢â‚¬â„¢ Color	(1-OR, 1-OG, 1-OB, 1-OA)
+	2	ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“OtherÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Color	(OR, OG, OB, OA) 
+	3	Inverse ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“OtherÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Color	(1-OR, 1-OG, 1-OB, 1-OA)
 	4	SRC Alpha	(SA, SA, SA, SA)
 	5	Inverse SRC Alpha	(1-SA, 1-SA, 1-SA, 1-SA)
 	6	DST Alpha	(DA, DA, DA, DA)
@@ -255,14 +255,19 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 		0x15556//1024
 	};
 
-
 #define twidle_tex(format)\
 						if (tcw.NO_PAL.VQ_Comp)\
 					{\
-						vq_codebook=(u8*)&params.vram[sa];\
+						u32 offset=0;\
+                        static u8 swapped[1024*1024+0x15556];\
+                        vq_codebook=(u8*)&params.vram[sa];\
 						if (tcw.NO_PAL.MipMapped)\
-							sa+=MipPoint[tsp.TexU];\
-						format##to8888_VQ(&pbt,(u8*)&params.vram[sa],w,h);\
+                        {\
+                            offset=MipPoint[tsp.TexV];\
+                        }\
+                        memcpy(swapped,&params.vram[sa],w*h+offset);\
+                        bswap_block(swapped,((w*h+offset)&~3)+4);\
+						format##to8888_VQ(&pbt,&swapped[offset],w,h);\
 					}\
 					else\
 					{\
@@ -490,7 +495,7 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 
             if (Texture->hpitch>Texture->height)
             {
-                printf("hpitch! %d %d\n",Texture->hpitch,Texture->height);
+//                printf("hpitch! %d %d\n",Texture->hpitch,Texture->height);
                 int i;
                 for(i=Texture->height*Texture->wpitch;i<Texture->hpitch*Texture->wpitch;i+=Texture->height*Texture->wpitch)
                 {

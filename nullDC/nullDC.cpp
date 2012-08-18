@@ -6,13 +6,13 @@
 #include <input/input.h>
 #include <console/console.h>
 #include <console/telnet_console.h>
-#include <diskio/diskio.h>
 #include <diskio/ata.h>
 #include <usb/usbmain.h>
 #include <time/time.h>
 #include <ppc/timebase.h>
 #include <xenon_soc/xenon_power.h>
 #include <network/network.h>
+#include <libfat/fat.h>
 
 //initialse Emu
 #include "types.h"
@@ -205,8 +205,10 @@ int main()
 	usb_do_poll();
 	
 	xenon_ata_init();
-	
-	if (!_vmem_reserve())
+    
+    fatInitDefault();
+    
+    if (!_vmem_reserve())
 	{
 		msgboxf(_T"Unable to reserve nullDC memory ...",MBX_OK | MBX_ICONERROR);
 		return -5;

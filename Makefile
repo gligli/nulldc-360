@@ -46,7 +46,7 @@ LDFLAGS	= -g $(OPTIFLAGS) $(MACHDEP_LD)
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lpng -lz -lxenon -lm
+LIBS	:=	-lpng -lz -lfat -lxenon -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

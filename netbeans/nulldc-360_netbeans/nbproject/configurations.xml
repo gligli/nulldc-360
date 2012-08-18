@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="79">
+<configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df name="files" root="../../files">
     </df>
@@ -337,6 +337,8 @@
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
       </toolsSet>
+      <codeAssistance>
+      </codeAssistance>
       <makefileType>
         <makeTool>
           <buildCommandWorkingDir>C:\X360 Hack\x360dev\ppc\nulldc-360</buildCommandWorkingDir>
@@ -348,14 +350,12 @@
               <pElem>../../build</pElem>
               <pElem>../../../../../../usr/local/xenon/usr/include</pElem>
               <pElem>../../../../../../usr/local/xenon/xenon/include</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/emitter/disasm</pElem>
+              <pElem>../../../../../../usr/local/xenon/xenon/include/machine</pElem>
               <pElem>../../../../../../usr/local/xenon/lib/gcc/xenon/4.6.1/include</pElem>
               <pElem>../../../../../../usr/local/xenon/xenon/include/sys</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/drkPvr</pElem>
             </incDir>
-            <preprocessorList>
-              <Elem>__ALTIVEC__</Elem>
-              <Elem>__VEC__</Elem>
-            </preprocessorList>
           </cTool>
           <ccTool>
             <incDir>
@@ -367,18 +367,20 @@
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/mem</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/maple</pElem>
-              <pElem>../../../../../../usr/local/xenon/usr/include/nocfe</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/nullExtDev</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/emitter/regalloc</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/aica</pElem>
               <pElem>../../../../../../usr/local/xenon/usr/include/xenos</pElem>
               <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1/xenon/32/bits</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/XMaple</pElem>
-              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/sh4</pElem>
               <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1/bits</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/sh4</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/sh4/shil/compiler</pElem>
               <pElem>../../../../../../usr/local/xenon/usr/include/input</pElem>
               <pElem>../../../../../../usr/local/xenon/xenon/include</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/vbaARM</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/plugins</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/sh4/rec_v1</pElem>
               <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1/ext</pElem>
               <pElem>../../../../../../usr/local/xenon/lib/gcc/xenon/4.6.1/include</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/ImgReader</pElem>
@@ -387,21 +389,718 @@
               <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/drkPvr</pElem>
               <pElem>../../../../../../usr/local/xenon/xenon/include/c++/4.6.1/debug</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/emitter</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC</pElem>
               <pElem>../../../../../../usr/local/xenon/usr/include/ppc</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/cl</pElem>
+              <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/sh4/shil</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/asic</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/dc/pvr</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/gui</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/ImgReader/deps</pElem>
             </incDir>
-            <preprocessorList>
-              <Elem>__ALTIVEC__</Elem>
-              <Elem>__VEC__</Elem>
-            </preprocessorList>
           </ccTool>
         </makeTool>
       </makefileType>
+      <item path="../../nullDC/basic_types.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/bininc.S" ex="true" tool="4" flavor2="0">
+      </item>
+      <item path="../../nullDC/cl/cl.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/cl/cl.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/config/config.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/aica/aica_if.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/asic/asic.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/asic/asic.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/dc.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/gdrom/gdrom_if.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/gdrom/gdrom_response.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/gdrom/gdromv3.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/maple/maple_if.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/mem/Elf.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/mem/_vmem.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/mem/memutil.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/mem/memutil.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/mem/mmu.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/mem/sb.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/mem/sh4_area0.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/mem/sh4_area0.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/mem/sh4_internal_reg.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/mem/sh4_mem.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/pvr/pvrLock.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/pvr/pvrLock.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/pvr/pvr_if.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/pvr/pvr_sb_regs.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/pvr/pvr_sb_regs.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/bsc.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/ccn.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/cpg.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/cpg.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/dmac.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/intc.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/analyser.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/analyser.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/basicblock.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/blockmanager.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/codespan.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/compiledblock.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/driver.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/driver.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/ops.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/rec_v1/sh4_cpu_shil.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rtc.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/rtc.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/sci.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/sci.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/scif.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4_cpu.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4_cpu_branch_rec.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4_fpu.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4_fpu.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4_if.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4_interpreter.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4_opcode_list.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4_registers.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/sh4r_rename.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/shil/compiler/shil_compiler_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/shil/shil.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/shil/shil_ce.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/shil/shil_ce.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/tmu.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/tmu.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/dc/sh4/ubc.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/dc/sh4/ubc.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/debug_mem.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/emitter/3DMath.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/emitter/BaseTypes.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/emitter/disasm/asm_ppc.c"
+            ex="false"
+            tool="0"
+            flavor2="2">
+        <cTool>
+        </cTool>
+      </item>
+      <item path="../../nullDC/emitter/disasm/opintl.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/emitter/disasm/ppc-dis.c"
+            ex="false"
+            tool="0"
+            flavor2="2">
+        <cTool>
+        </cTool>
+      </item>
+      <item path="../../nullDC/emitter/disasm/ppc-opc.c"
+            ex="false"
+            tool="0"
+            flavor2="2">
+        <cTool>
+        </cTool>
+      </item>
+      <item path="../../nullDC/emitter/emitter.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/emitter/regalloc/ppc_fpregalloc.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/emitter/regalloc/ppc_fpregalloc.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/emitter/regalloc/ppc_intregalloc.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/emitter/regalloc/ppc_intregalloc.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/emitter/regalloc/regalloc_base.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/fake_pluginsystem.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/fake_pluginsystem.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/gui/base.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/gui/resource.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/log/logging.cpp" ex="true" tool="1" flavor2="0">
+      </item>
+      <item path="../../nullDC/log/logging.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/log/logging_interface.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/naomi/naomi.cpp" ex="true" tool="1" flavor2="0">
+      </item>
+      <item path="../../nullDC/naomi/naomi.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/naomi/naomi_regs.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/nullDC.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/plugins/plugin_manager.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/plugins/plugin_types.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../nullDC/profiler/profiler.cpp" ex="true" tool="1" flavor2="0">
+      </item>
+      <item path="../../nullDC/profiler/profiler.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/serial_ipc/serial_ipc_client.cpp"
+            ex="true"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/serial_ipc/serial_ipc_client.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../nullDC/sh4_reg_playground.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../nullDC/stdclass.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/EmptyAICA/EmptyAICA.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/EmptyAICA/EmptyAICA.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/EmptyAICA/aica_hax.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/EmptyAICA/aica_hle.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/ImgReader.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/SCSIDEFS.H" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/ImgReader/cdi.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/cdi.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/ImgReader/chd.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/chd.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/ImgReader/common.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/deps/chdr.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/deps/md5.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/deps/sha1.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/gd_driver.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/ImgReader/gdi.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/gdi.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/ImgReader/ioctl.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/ioctl.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/ImgReader/mds.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/mds.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/ImgReader/mds_reader.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/ImgReader/resource.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/XMaple/ArcadeStick.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/DInputBackend.cpp"
+            ex="true"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../plugins/XMaple/DInputBackend.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../plugins/XMaple/Device.cpp" ex="true" tool="1" flavor2="0">
+      </item>
+      <item path="../../plugins/XMaple/Device.hpp" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/XMaple/DreameyeMic.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/FT0.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/FT4.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/FT8.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/Maxi.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/Mic.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/StandardController.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/Twinstick.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/XInputBackend.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/XMaple/XMaple.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/Renderer_if.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/SPG.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/TexCache.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/config.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/drkPvr/drkPvr.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/helper_classes.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/regs.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/screencapture.c"
+            ex="false"
+            tool="0"
+            flavor2="2">
+        <cTool>
+        </cTool>
+      </item>
+      <item path="../../plugins/drkPvr/screencapture.h"
+            ex="true"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../plugins/drkPvr/spg.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/drkPvr/ta.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/threadedPvr.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/drkPvr/threadedPvr.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/drkPvr/xenosRend.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/nullExtDev/bba.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/nullExtDev/bba.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/nullExtDev/lan.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/nullExtDev/lan.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/nullExtDev/modem.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/nullExtDev/modem.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/nullExtDev/nullExtDev.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/nullExtDev/rtl8139c.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/nullExtDev/rtl8139c.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/vbaARM/aica.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/vbaARM/arm7.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/vbaARM/arm7.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/vbaARM/mem.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/vbaARM/mem.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/vbaARM/resource.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/vbaARM/vbaARM.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
+      <item path="../../plugins/xenon_gui/xenon_gui.cpp"
+            ex="false"
+            tool="1"
+            flavor2="4">
+        <ccTool>
+        </ccTool>
+      </item>
     </conf>
   </confs>
 </configurationDescriptor>
