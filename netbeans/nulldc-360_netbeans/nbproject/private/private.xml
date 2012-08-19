@@ -8,7 +8,24 @@
         <activeConfIndexElem>0</activeConfIndexElem>
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="2">
+        <file>
+            <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/nullDC/dc/sh4/shil/compiler/shil_compiler_base.cpp</url>
+            <bookmark id="1">
+                <name/>
+                <line>280</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/nullDC/dc/sh4/rec_v1/sh4_cpu_shil.cpp</url>
+            <bookmark id="2">
+                <name/>
+                <line>451</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
     <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">
         <module name="org-netbeans-modules-cnd-discovery">
             <property name="libraries" value=""/>

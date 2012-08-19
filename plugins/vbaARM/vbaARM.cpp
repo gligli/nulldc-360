@@ -2,7 +2,7 @@
 //
 
 #include "vbaARM.h"
-#include "aica.h"
+#include "arm_aica.h"
 #include "arm7.h"
 #include "mem.h"
 
@@ -98,7 +98,7 @@ EXPORT void EXPORT_CALL armGetInterface(plugin_interface* info)
 	a.Reset=armReset;
 	a.Term=armTerm;
 
-	a.Update=UpdateARM;
+	a.Update=armUpdateARM;
 	a.ArmInterruptChange=ArmInterruptChange;
 	a.ExeptionHanlder=0;
 	a.SetResetState=SetResetState;

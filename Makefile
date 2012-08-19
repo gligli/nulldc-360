@@ -22,7 +22,7 @@ SOURCES		:=	nullDC nullDC/dc nullDC/dc/aica nullDC/dc/asic nullDC/dc/gdrom nullD
 			plugins/xenon_gui \
 			plugins/drkPvr \
 			plugins/ImgReader plugins/ImgReader/deps \
-			plugins/EmptyAICA \
+			plugins/nullAICA \
 			plugins/vbaARM \
 			plugins/nullExtDev \
 			plugins/XMaple

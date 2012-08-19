@@ -1,5 +1,5 @@
 #pragma once
-#include "aica.h"
+#include "arm_aica.h"
 
 template<int sz,typename T>
 T fastcall ReadMemArm(u32 addr);

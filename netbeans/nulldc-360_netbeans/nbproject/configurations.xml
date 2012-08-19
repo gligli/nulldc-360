@@ -260,6 +260,23 @@
         <in>mds_reader.h</in>
         <in>resource.h</in>
       </df>
+      <df name="nullAICA">
+        <in>aica.cpp</in>
+        <in>aica.h</in>
+        <in>aica_mem.cpp</in>
+        <in>aica_mem.h</in>
+        <in>audiostream.cpp</in>
+        <in>audiostream.h</in>
+        <in>audiostream_rif.h</in>
+        <in>dsp.cpp</in>
+        <in>dsp.h</in>
+        <in>nullAICA.cpp</in>
+        <in>nullAICA.h</in>
+        <in>sgc_if.cpp</in>
+        <in>sgc_if.h</in>
+        <in>xenon_audiostream.cpp</in>
+        <in>xenon_audiostream.h</in>
+      </df>
       <df name="nullExtDev">
         <in>bba.cpp</in>
         <in>bba.h</in>
@@ -273,11 +290,11 @@
         <in>rtl8139c.h</in>
       </df>
       <df name="vbaARM">
-        <in>aica.cpp</in>
-        <in>aica.h</in>
         <in>arm-new.h</in>
         <in>arm7.cpp</in>
         <in>arm7.h</in>
+        <in>arm_aica.cpp</in>
+        <in>arm_aica.h</in>
         <in>mem.cpp</in>
         <in>mem.h</in>
         <in>resource.h</in>
@@ -1072,15 +1089,15 @@
       </item>
       <item path="../../plugins/nullExtDev/rtl8139c.h" ex="true" tool="3" flavor2="0">
       </item>
-      <item path="../../plugins/vbaARM/aica.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
       <item path="../../plugins/vbaARM/arm7.cpp" ex="false" tool="1" flavor2="4">
         <ccTool>
         </ccTool>
       </item>
       <item path="../../plugins/vbaARM/arm7.h" ex="true" tool="3" flavor2="0">
+      </item>
+      <item path="../../plugins/vbaARM/arm_aica.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+        </ccTool>
       </item>
       <item path="../../plugins/vbaARM/mem.cpp" ex="false" tool="1" flavor2="4">
         <ccTool>

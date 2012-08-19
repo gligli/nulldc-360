@@ -17,8 +17,9 @@
 
 #define __assume assert
 
-static inline void _BitScanReverse(u32 * r,u32 v){
+static inline bool _BitScanReverse(unsigned long * r,u32 v){
 	*r=31-__builtin_clz(v);
+    return v!=0;
 }
 
 static inline u32 timeGetTime(){
