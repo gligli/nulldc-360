@@ -1095,10 +1095,6 @@
       </item>
       <item path="../../plugins/vbaARM/arm7.h" ex="true" tool="3" flavor2="0">
       </item>
-      <item path="../../plugins/vbaARM/arm_aica.cpp" ex="false" tool="1" flavor2="0">
-        <ccTool>
-        </ccTool>
-      </item>
       <item path="../../plugins/vbaARM/mem.cpp" ex="false" tool="1" flavor2="4">
         <ccTool>
         </ccTool>

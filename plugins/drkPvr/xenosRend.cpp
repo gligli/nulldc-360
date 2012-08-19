@@ -7,6 +7,7 @@
 #include <vector>
 #include "Renderer_if.h"
 //#include <xmmintrin.h>
+#include "threadedPvr.h"
 
 #if REND_API == REND_D3D
 
