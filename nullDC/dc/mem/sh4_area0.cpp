@@ -22,9 +22,9 @@ void PatchRandB(u8* addr,int sz)
 	{
 	u8* address=addr;
 
-	u8* patchaddr=&address[0x1A002];
+	u8* patchaddr=&address[0x1A002^3];
 	memcpy(patchaddr,"0",1);
-	patchaddr=&address[0x1A0A2];
+	patchaddr=&address[0x1A0A2^3];
 	memcpy(patchaddr,"0",1);
 	}
 
@@ -32,9 +32,9 @@ void PatchRandB(u8* addr,int sz)
 	{
 	u8* address=addr;
 
-	u8* patchaddr=&address[0x1A002];
+	u8* patchaddr=&address[0x1A002^3];
 	memcpy(patchaddr,"1",1);
-	patchaddr=&address[0x1A0A2];
+	patchaddr=&address[0x1A0A2^3];
 	memcpy(patchaddr,"1",1);
 	}
 
@@ -42,9 +42,9 @@ void PatchRandB(u8* addr,int sz)
 	{
 	u8* address=addr;
 
-	u8* patchaddr=&address[0x1A002];
+	u8* patchaddr=&address[0x1A002^3];
 	memcpy(patchaddr,"2",1);
-	patchaddr=&address[0x1A0A2];
+	patchaddr=&address[0x1A0A2^3];
 	memcpy(patchaddr,"2",1);
 	}
 
@@ -52,9 +52,9 @@ void PatchRandB(u8* addr,int sz)
 	{
 	u8* address=addr;
 
-	u8* patchaddr=&address[0x1A004];
+	u8* patchaddr=&address[0x1A004^3];
 	memcpy(patchaddr,"0",1);
-	patchaddr=&address[0x1A0A4];
+	patchaddr=&address[0x1A0A4^3];
 	memcpy(patchaddr,"0",1);
 	}
 
@@ -62,9 +62,9 @@ void PatchRandB(u8* addr,int sz)
 	{
 	u8* address=addr;
 
-	u8* patchaddr=&address[0x1A004];
+	u8* patchaddr=&address[0x1A004^3];
 	memcpy(patchaddr,"1",1);
-	patchaddr=&address[0x1A0A4];
+	patchaddr=&address[0x1A0A4^3];
 	memcpy(patchaddr,"1",1);
 	}
 
@@ -72,9 +72,9 @@ void PatchRandB(u8* addr,int sz)
 	{
 	u8* address=addr;
 
-	u8* patchaddr=&address[0x1A004];
+	u8* patchaddr=&address[0x1A004^3];
 	memcpy(patchaddr,"2",1);
-	patchaddr=&address[0x1A0A4];
+	patchaddr=&address[0x1A0A4^3];
 	memcpy(patchaddr,"2",1);
 	}
 
@@ -82,9 +82,9 @@ void PatchRandB(u8* addr,int sz)
 	{
 	u8* address=addr;
 
-	u8* patchaddr=&address[0x1A004];
+	u8* patchaddr=&address[0x1A004^3];
 	memcpy(patchaddr,"3",1);
-	patchaddr=&address[0x1A0A4];
+	patchaddr=&address[0x1A0A4^3];
 	memcpy(patchaddr,"3",1);
 	}
 }

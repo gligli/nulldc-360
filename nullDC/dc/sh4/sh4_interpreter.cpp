@@ -656,7 +656,7 @@ void __fastcall MediumUpdate()
 
 		if (aica_sample_cycles>=AICA_SAMPLE_CYCLES)
 		{
-//gli			UpdateArm(512);
+    		UpdateArm(512);
 			UpdateAica(1);
 			aica_sample_cycles-=AICA_SAMPLE_CYCLES;
 		}

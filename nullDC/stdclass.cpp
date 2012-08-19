@@ -286,14 +286,14 @@ void VArray2::LockRegion(u32 offset,u32 size)
 {
 	u32 addr=(u32)data+offset;
 	
+//    printf("LockRegion %p %d\n",addr,size);
+    
 	if (addr&0xffff || size&0xffff)
 	{
-//		printf("lock %08x %d\n",addr,size);
 		vm_set_user_mapping_flags(addr&~0xffff,(size&~0xffff)+0x10000,VM_WIMG_CACHED_READ_ONLY);
 	}
 	else
 	{
-//		printf("LockRegion %p %d\n",((u8*)data)+offset,size);
 		vm_set_user_mapping_flags(addr,size,VM_WIMG_CACHED_READ_ONLY);
 	}
 }
@@ -301,14 +301,14 @@ void VArray2::UnLockRegion(u32 offset,u32 size)
 {
 	u32 addr=(u32)data+offset;
 	
+//    printf("UnLockRegion %p %d\n",addr,size);
+
 	if (addr&0xffff || size&0xffff)
 	{
-//		printf("unlock %08x %d\n",addr,size);
 		vm_set_user_mapping_flags(addr&~0xffff,(size&~0xffff)+0x10000,VM_WIMG_CACHED);
 	}
 	else
 	{
-//		printf("UnLockRegion %p %d\n",((u8*)data)+offset,size);
 		vm_set_user_mapping_flags(addr,size,VM_WIMG_CACHED);
 	}
 }
