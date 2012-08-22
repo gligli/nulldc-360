@@ -909,8 +909,8 @@ INLINE void FASTCALL StepDecodeSample(ChannelEx* ch,u32 CA)
 	case 0:
 		{
 			//s16* ptr=(s16*)&aica_ram[(addr&~1)+(CA<<1)];
-			s0=sptr16[(CA+0)^2];
-			s1=sptr16[(CA+1)^2];
+			s0=sptr16[(CA+0)^1];
+			s1=sptr16[(CA+1)^1];
 		}
 		break;
 
