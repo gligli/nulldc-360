@@ -177,7 +177,6 @@ struct Disc
 				printf("ImgReader (common.h,177) - Sector read error!\n");
 			}
 
-			int i;
 			bswap_block(temp,2352);
 			
 			//TODO: Proper sector conversions

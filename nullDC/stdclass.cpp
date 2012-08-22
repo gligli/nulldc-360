@@ -165,7 +165,7 @@ void cResetEvent::Wait(u32 msec)//Wait for signal , then reset
 void cResetEvent::Wait()//Wait for signal , then reset
 {
 //gli	WaitForSingleObject(hEvent,(u32)-1);
-    while(!state);
+//    while(!state);
     if (auto_) state=false;
 }
 //End AutoResetEvent
@@ -334,7 +334,7 @@ void * ExeptionHandler(int pir_,void * srr0,void * dar,int write)
 
 	if (VramLockedWrite(address))
 	{
-		printf("VramLockedWrite\n");
+//		printf("VramLockedWrite\n");
 		return NULL;// EXCEPTION_CONTINUE_EXECUTION;
 	}
 	else if (RamLockedWrite(address,NULL))

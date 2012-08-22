@@ -15,8 +15,8 @@ shil_stream* ilst;
 
 #define handle_stids {if (bb->flags.IsDelaySlot) { bb->flags.SaveTInDelaySlot=true; ilst->LoadT(jcond_flag); } }
 
-#define need_rpctmp {if (bb->flags.IsDelaySlot && bb->flags.CouldNeedPCtmp) { printf("need_rpctmp\n"); bb->flags.NeedPCtmp=true; ilst->mov(reg_pc_temp, reg_pc); } }
-#define handle_rpctmp {if (bb->flags.NeedPCtmp) { printf("handle_rpctmp\n"); ilst->mov(reg_pc, reg_pc_temp); } }
+#define need_rpctmp {if (bb->flags.IsDelaySlot && bb->flags.CouldNeedPCtmp) { /*printf("need_rpctmp\n");*/ bb->flags.NeedPCtmp=true; ilst->mov(reg_pc_temp, reg_pc); } }
+#define handle_rpctmp {if (bb->flags.NeedPCtmp) { /*printf("handle_rpctmp\n");*/ ilst->mov(reg_pc, reg_pc_temp); } }
 
 #define shil_interpret(str) { need_rpctmp; handle_stids; ilst->shil_ifb(str,pc); }
 

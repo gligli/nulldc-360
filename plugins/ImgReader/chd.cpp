@@ -70,7 +70,6 @@ bool CHDDisc::TryOpen(wchar* file)
 	u32 temp_len;
 	u32 total_frames=150;
 
-	u32 total_secs=0;
 	u32 total_hunks=0;
 
 	for(;;)
