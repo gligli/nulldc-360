@@ -4,7 +4,7 @@
 
 #include <xenon_sound/sound.h>
 
-#define MAX_UNPLAYED 16384
+#define MAX_UNPLAYED 32768
 
 #define BUFFER_SIZE 65536
 static u8 buffer[BUFFER_SIZE];
