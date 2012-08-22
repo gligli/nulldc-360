@@ -2,6 +2,7 @@
 #include "mem.h"
 
 #define C_CORE
+#define DEV_VERSION
 
 //#define CPUReadHalfWordQuick(addr) arm_ReadMem16(addr & 0x7FFFFF)
 #define CPUReadMemoryQuick(addr) arm_ReadMem32(addr & ARAM_MASK)

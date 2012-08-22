@@ -34,6 +34,7 @@ u32 ReadReg(u32 addr)
             return rv;
 		}
 	}
+	ReadMemArrRet(aica_reg,addr,sz);
     return rv;
 }
 template<u32 sz>

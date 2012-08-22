@@ -6995,11 +6995,11 @@ if(cond_res) {
 #endif
   default:
 #ifdef DEV_VERSION
-    if(systemVerbose & VERBOSE_UNDEFINED)
-      log("Undefined ARM instruction %08x at %08x\n", opcode,
+//    if(systemVerbose & VERBOSE_UNDEFINED)
+BP      printf("Undefined ARM instruction %08x at %08x\n", opcode,
           armNextPC-4);
 #endif
-    CPUUndefinedException();
+//    CPUUndefinedException();
     break;
     // END
   }

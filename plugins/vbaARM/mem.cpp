@@ -85,6 +85,22 @@ T fastcall ReadMemArm(u32 addr)
 	addr&=0x00FFFFFF;
 	if (addr<0x800000)
 	{
+        if (addr&(sz-1)){
+            //printf("ARM unal rd %d %08x\n",sz,addr);
+            switch (sz)
+            {
+                case 4:
+                    u8 t[4];
+                    int i;
+                    for(i=0;i<4;++i)
+                        t[i]=arm_aica_ram[((addr+i)^3)&ARAM_MASK];
+                    
+                    return t[3]<<24 | t[2]<<16 | t[1]<<8 |t[0];
+                    break;
+                default:
+                    dbgbreak;
+            }
+        }
         if (sz==1)
             addr^=3;
         else if (sz==2)
@@ -105,6 +121,23 @@ void fastcall WriteMemArm(u32 addr,T data)
 	addr&=0x00FFFFFF;
 	if (addr<0x800000)
 	{
+        if (addr&(sz-1)){
+            //printf("ARM unal wr %d %08x\n",sz,addr);
+            switch (sz)
+            {
+                case 4:
+                    u8 t[4];
+                    t[3]=data>>24; t[2]=data>>16; t[1]=data>>8; t[0]=data;
+                    
+                    int i;
+                    for(i=0;i<4;++i)
+                        arm_aica_ram[((addr+i)^3)&ARAM_MASK]=t[i];
+                    break;
+                default:
+                    dbgbreak;
+            }
+            return;
+        }
         if (sz==1)
             addr^=3;
         else if (sz==2)
