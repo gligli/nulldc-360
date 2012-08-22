@@ -28,6 +28,7 @@ extern struct XenosDevice * xe;
 	void StartRender();
 	void EndRender();
 	void DoRender();
+    void HandleCache();
 
 	void ListCont();
 	void ListInit();
@@ -53,6 +54,7 @@ extern struct XenosDevice * xe;
 #define rend_start_render StartRender
 #define rend_end_render   EndRender
 #define rend_handle_event HandleEvent
+#define rend_handle_cache HandleCache
 
 #define rend_list_cont ListCont
 #define rend_list_init ListInit

@@ -105,17 +105,17 @@ void cfgSetIntAica(char* key,int def)
 void LoadSettingsAica()
 {
 	//load default settings before init
-	aica_settings.BufferSize=cfgGetIntAica("BufferSize",2048);
-	aica_settings.LimitFPS=cfgGetIntAica("LimitFPS",1);
+	aica_settings.BufferSize=2048;//cfgGetIntAica("BufferSize",2048);
+	aica_settings.LimitFPS=0;//cfgGetIntAica("LimitFPS",1);
 	aica_settings.HW_mixing=cfgGetIntAica("HW_mixing",0);
 	aica_settings.SoundRenderer=cfgGetIntAica("SoundRenderer",1);
 	aica_settings.GlobalFocus=cfgGetIntAica("GlobalFocus",1);
-	aica_settings.BufferCount=cfgGetIntAica("BufferCount",1);
-	aica_settings.CDDAMute=cfgGetIntAica("CDDAMute",0);
-	aica_settings.GlobalMute=cfgGetIntAica("GlobalMute",0);
-	aica_settings.DSPEnabled=cfgGetIntAica("DSPEnabled",0);		
+	aica_settings.BufferCount=1;//cfgGetIntAica("BufferCount",1);
+	aica_settings.CDDAMute=0;//cfgGetIntAica("CDDAMute",0);
+	aica_settings.GlobalMute=0;//cfgGetIntAica("GlobalMute",0);
+	aica_settings.DSPEnabled=0;//cfgGetIntAica("DSPEnabled",0);		
 
-	aica_settings.Volume = max(0,min(cfgGetIntAica("Volume",90),100));
+	aica_settings.Volume = 90;//max(0,min(cfgGetIntAica("Volume",90),100));
 }
 
 void SaveSettingsAica()

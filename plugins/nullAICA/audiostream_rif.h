@@ -9,3 +9,4 @@ u32 asRingFreeCount();
 //If sz==0 then a whole buffer is read
 bool asRingRead(u8* dst,u32 count=0);
 bool asRingStretchRead(u8* dst,u32 sz=0);
+bool asRingStretchPitchChange(u8* dst,u32 outcount,u32 usedcount);

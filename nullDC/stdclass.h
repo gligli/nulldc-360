@@ -198,7 +198,8 @@ typedef void* EVENTHANDLE;
 class cResetEvent
 {
 private:
-	EVENTHANDLE hEvent;
+	volatile bool state;
+    volatile bool auto_;
 public :
 	cResetEvent(bool State,bool Auto);
 	~cResetEvent();

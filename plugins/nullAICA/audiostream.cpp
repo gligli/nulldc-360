@@ -209,6 +209,7 @@ void WriteSample(s16 r, s16 l)
 	rawout.Write(l,r);
 	#endif
 
+#if 0
 	if (!asRingFreeCount())
 	{
 		if (aica_settings.LimitFPS)
@@ -237,8 +238,11 @@ void WriteSample(s16 r, s16 l)
 	RingBuffer[ptr].r=r;
 	RingBuffer[ptr].l=l;
 	WritePtr=ptr;
-	//if (0==(WritePtr&255))
-	//printf("write done %d %d \n",ReadPtr,WritePtr);
+//	if (0==(WritePtr&255))
+//        printf("write done %d %d \n",ReadPtr,WritePtr);
+#else
+    xenon_WriteSample(r,l);
+#endif
 }
 void WriteSamples1(s16* r , s16* l , u32 sample_count)
 {

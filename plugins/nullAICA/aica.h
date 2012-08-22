@@ -17,9 +17,165 @@
 #define REG_L (0x2D00)
 #define REG_M (0x2D04)
 #define entry(name,sz) u32 name:sz;
+
+#pragma pack(1)
 struct CommonData_struct
 {
 #ifdef XENON
+	//+0
+	u32 :16;
+	
+	entry(Mono,1);
+	entry(pad0_0,5);
+	entry(MEM8MB,1);
+	entry(DAC18B,1);
+	entry(VER,4);
+	entry(MVOL,4);
+	//+4
+	u32 :16;
+	entry(TESTB0,1);
+	entry(RBL,2);
+	entry(pad1_0,1);
+	entry(RBP,12);
+	//+8
+	u32 :16;
+	entry(pad3_0,3);
+	entry(MOFUL ,1);
+	entry(MOEMP ,1);
+	entry(MIOVF ,1);
+	entry(MIFUL ,1);
+	entry(MIEMP,1);
+	entry(MIBUF,8);
+	//+C
+	u32 :16;
+	entry(padC_0,1);
+	entry(AFSET,1);
+	entry(MSLC,6);
+	entry(MOBUF,8);
+	//+10
+	u32 :16;
+	
+	entry(LP,1);
+	entry(SGC,2);
+	entry(EG,13);
+	//+14
+	
+	u32 :16;
+	entry(CA,16);
+	
+	//quite a bit padding here :)
+	u8 pad_med_0[0x6C-4];
+
+	//+80
+	u32 :16;
+	entry(DMEA_hi,7);
+	entry(pad80_0,1);
+	entry($TSCD,3);
+	entry($T,1);
+	entry(MRWINH,4);
+	//+84
+	u32 :16;
+	entry(DMEA_lo,14);
+	entry(pad84_0,2);
+	//+88
+	u32 :16;
+	entry(DGATE,1);
+	entry(DRGA,13);
+	entry(pad88_0,2);
+	//+8C
+	u32 :16;
+	entry(DDIR,1);
+	entry(DLG,13);
+	entry(pad8C_0,1);
+	entry(DEXE,1);
+	//+90
+	u32 :16;
+	entry(pad90_0,5);
+	entry(TACTL,3);
+	entry(TIMA,8);
+	//+94
+	u32 :16;
+	entry(pad94_0,5);
+	entry(TBCTL,3);
+	entry(TIMB,8);
+	//+98
+	u32 :16;
+	entry(pad98_0,5);
+	entry(TCCTL,3);
+	entry(TIMC,8);
+
+	//+9C
+	u32 :16;
+	entry(pad9C_0,5);
+	entry(SCIEB,11);
+
+	//+A0
+	u32 :16;
+	entry(padA0_0,5);
+	entry(SCIPD,11);
+
+	//+A4
+	u32 :16;
+	entry(padA4_0,5);
+	entry(SCIRE,11);
+
+	//+A8
+	u32 :16;
+	entry(padA8_0,8);
+	entry(SCILV0,8);
+
+	//+AC
+	u32 :16;
+	entry(padAC_0,8);
+	entry(SCILV1,8);
+
+	//+B0
+	u32 :16;
+	entry(padB0_0,8);
+	entry(SCILV2,8);
+
+	//+B4
+	u32 :16;
+	entry(padB4_0,5)
+	entry(MCIEB,11);
+
+	//+B8
+	u32 :16;
+	entry(padB8_0,5)
+	entry(MCIPD,11);
+
+	//+BC
+	u32 :16;
+	entry(padBC_0,5)
+	entry(MCIRE,11);
+	
+	//some other misc shit FAR away is here :p
+	u8 pad_lot_0[0x344-4];
+
+	//+400 , hopefully :p
+	u32 :16;
+	entry(pad400_1,6);
+	entry(VREG,2);
+	entry(pad400_0,7);
+	entry(AR,1);
+
+	//Even more
+	u8 pad_lot_1[0x100-4];
+
+	//+500 , hopefully :p
+	u32 :16;
+	entry(pad500_0,8);
+	
+	entry(L7_r,1);
+	entry(L6_r,1);
+	entry(L5_r,1);
+	entry(L4_r,1);
+	entry(L3_r,1);
+	entry(L2_r,1);
+	entry(L1_r,1);
+	entry(L0_r,1);
+
+	//+504
 	u32 :16;
 	entry(pad504_0,7);
 	
@@ -32,145 +188,6 @@ struct CommonData_struct
 	entry(M2_r,1);
 	entry(M1_r,1);
 	entry(M0_r,1);
-	//+504
-	u32 :16;
-	entry(pad500_0,8);
-	
-	entry(L7_r,1);
-	entry(L6_r,1);
-	entry(L5_r,1);
-	entry(L4_r,1);
-	entry(L3_r,1);
-	entry(L2_r,1);
-	entry(L1_r,1);
-	entry(L0_r,1);
-	//+500 , hopefully :p
-	u8 pad_lot_1[0x100-4];
-	//Even more
-	u32 :16;
-	entry(pad400_1,6);
-	entry(VREG,2);
-	entry(pad400_0,7);
-	entry(AR,1);
-	//+400 , hopefully :p
-	u8 pad_lot_0[0x344-4];
-	//some other misc shit FAR away is here :p
-	
-	u32 :16;
-	entry(padBC_0,5)
-	entry(MCIRE,11);
-	//+BC
-	u32 :16;
-	entry(padB8_0,5)
-	entry(MCIPD,11);
-	//+B8
-	u32 :16;
-	entry(padB4_0,5)
-	entry(MCIEB,11);
-	//+B4
-	u32 :16;
-	entry(padB0_0,8);
-	entry(SCILV2,8);
-	//+B0
-	u32 :16;
-	entry(padAC_0,8);
-	entry(SCILV1,8);
-	//+AC
-	u32 :16;
-	entry(padA8_0,8);
-	entry(SCILV0,8);
-	//+A8
-	u32 :16;
-	entry(padA4_0,5);
-	entry(SCIRE,11);
-	//+A4
-	u32 :16;
-	entry(padA0_0,5);
-	entry(SCIPD,11);
-	//+A0
-	u32 :16;
-	entry(pad9C_0,5);
-	entry(SCIEB,11);
-	//+9C
-	u32 :16;
-	entry(pad98_0,5);
-	entry(TCCTL,3);
-	entry(TIMC,8);
-	//+98
-	u32 :16;
-	entry(pad94_0,5);
-	entry(TBCTL,3);
-	entry(TIMB,8);
-	//+94
-	u32 :16;
-	entry(pad90_0,5);
-	entry(TACTL,3);
-	entry(TIMA,8);
-	//+90
-	u32 :16;
-	entry(DDIR,1);
-	entry(DLG,13);
-	entry(pad8C_0,1);
-	entry(DEXE,1);
-	//+8C
-	u32 :16;
-	entry(DGATE,1);
-	entry(DRGA,13);
-	entry(pad88_0,2);
-	//+88
-	u32 :16;
-	entry(DMEA_lo,14);
-	entry(pad84_0,2);
-	//+84
-	u32 :16;
-	entry(DMEA_hi,7);
-	entry(pad80_0,1);
-	entry($TSCD,3);
-	entry($T,1);
-	entry(MRWINH,4);
-	//+80
-	u8 pad_med_0[0x6C-4];
-	//quite a bit padding here :)
-	
-	u32 :16;
-	entry(CA,16);
-	//+14
-	u32 :16;
-	
-	entry(LP,1);
-	entry(SGC,2);
-	entry(EG,13);
-	//+10
-	u32 :16;
-	entry(padC_0,1);
-	entry(AFSET,1);
-	entry(MSLC,6);
-	entry(MOBUF,8);
-	//+C
-	u32 :16;
-	entry(pad3_0,3);
-	entry(MOFUL ,1);
-	entry(MOEMP ,1);
-	entry(MIOVF ,1);
-	entry(MIFUL ,1);
-	entry(MIEMP,1);
-	entry(MIBUF,8);
-	//+8
-	u32 :16;
-	entry(TESTB0,1);
-	entry(RBL,2);
-	entry(pad1_0,1);
-	entry(RBP,12);
-	//+4
-	u32 :16;
-	
-	entry(Mono,1);
-	entry(pad0_0,5);
-	entry(MEM8MB,1);
-	entry(DAC18B,1);
-	entry(VER,4);
-	entry(MVOL,4);
-	//+0
 #else
 	//+0
 	entry(MVOL,4);
@@ -417,7 +434,8 @@ union InterruptInfo
 	struct
 	{
 #ifdef XENON
-		entry(SAMPLE_DONE,1);
+		u32 padding:21;
+        entry(SAMPLE_DONE,1);
 		//Bit 10 (R): Interrupt of one sample interval 
 		entry(MIDI_OUT,1);
 		//(If the status is no longer empty because data is written to the output FIFO, the interrupt request is canceled automatically.) 

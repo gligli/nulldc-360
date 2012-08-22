@@ -8,7 +8,15 @@
         <activeConfIndexElem>0</activeConfIndexElem>
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="2">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="4">
+        <file>
+            <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/nullDC/dc/sh4/rec_v1/sh4_cpu_shil.cpp</url>
+            <bookmark id="2">
+                <name/>
+                <line>451</line>
+                <key/>
+            </bookmark>
+        </file>
         <file>
             <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/nullDC/dc/sh4/shil/compiler/shil_compiler_base.cpp</url>
             <bookmark id="1">
@@ -18,10 +26,10 @@
             </bookmark>
         </file>
         <file>
-            <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/nullDC/dc/sh4/rec_v1/sh4_cpu_shil.cpp</url>
-            <bookmark id="2">
+            <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/plugins/nullAICA/sgc_if.cpp</url>
+            <bookmark id="4">
                 <name/>
-                <line>451</line>
+                <line>879</line>
                 <key/>
             </bookmark>
         </file>

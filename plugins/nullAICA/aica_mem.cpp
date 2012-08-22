@@ -12,30 +12,34 @@ u8 *aica_ram_l;
 template<u32 sz>
 u32 ReadReg(u32 addr)
 {
-	if (addr<0x2800)
+	u32 rv=-1;
+    if (addr<0x2800)
 	{
-		ReadMemArrRet(aica_reg,addr,sz);
+        ReadMemArrRet(aica_reg,addr,sz);
+        return rv;
 	}
 	if (addr < 0x2818)
 	{
-		if (sz==1)
+        if (sz==1)
 		{
 			ReadCommonReg(addr,true);
 			ReadMemArrRet(aica_reg,addr,1);
+            return rv;
 		}
 		else
 		{
 			ReadCommonReg(addr,false);
 			//ReadCommonReg8(addr+1);
 			ReadMemArrRet(aica_reg,addr,2);
+            return rv;
 		}
 	}
-
-	ReadMemArrRet(aica_reg,addr,sz);
+    return rv;
 }
 template<u32 sz>
 void WriteReg(u32 addr,u32 data)
 {
+//    	printf("wr aica %d %08x %08x\n",sz,addr,data);
 	if (addr < 0x2000)
 	{
 		//Channel data

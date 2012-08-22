@@ -2569,6 +2569,37 @@ nl:
 	{
 		*(u32*)&params.vram[vramlock_ConvOffset32toOffset64(adr)]=data;
 	}
+    
+    void HandleCache()
+    {
+        for (size_t i=0;i<lock_list.size();i++)
+		{
+			TextureCacheData* tcd=lock_list[i];
+			if (tcd->lock_block==0 && tcd->dirty==false)
+				tcd->LockVram();
+			
+		}
+		lock_list.clear();
+    
+        TexCacheList<TextureCacheData>::TexCacheEntry* ptext= TexCache.plast;
+		while(ptext && ((FrameNumber-ptext->data.LastUsed)>60))
+		{
+			TexCacheList<TextureCacheData>::TexCacheEntry* pprev;
+			pprev=ptext->prev;
+
+			if (drkpvr_settings.Emulation.TexCacheMode==0 || ptext->data.dirty==true)
+			{
+				ptext->data.Destroy();
+				Xe_DestroyTexture(xe,ptext->data.Texture);
+				TexCache.Remove(ptext);
+				//free it !
+				delete ptext;
+			}
+			ptext=pprev;
+		}
+
+    }
+    
 	void EndRender()
 	{
 		if (!RenderWasStarted)
@@ -2620,33 +2651,6 @@ nl:
 		}
 */
 		
-
-		for (size_t i=0;i<lock_list.size();i++)
-		{
-			TextureCacheData* tcd=lock_list[i];
-			if (tcd->lock_block==0 && tcd->dirty==false)
-				tcd->LockVram();
-			
-		}
-		lock_list.clear();
-		
-		TexCacheList<TextureCacheData>::TexCacheEntry* ptext= TexCache.plast;
-		while(ptext && ((FrameNumber-ptext->data.LastUsed)>60))
-		{
-			TexCacheList<TextureCacheData>::TexCacheEntry* pprev;
-			pprev=ptext->prev;
-
-			if (drkpvr_settings.Emulation.TexCacheMode==0 || ptext->data.dirty==true)
-			{
-				ptext->data.Destroy();
-				Xe_DestroyTexture(xe,ptext->data.Texture);
-				TexCache.Remove(ptext);
-				//free it !
-				delete ptext;
-			}
-			ptext=pprev;
-		}
-
 		int old_rev;
 		static NDC_WINDOW_RECT nwr;
 		bool do_resize;

@@ -139,6 +139,8 @@ cResetEvent::cResetEvent(bool State,bool Auto)
 		State?TRUE:FALSE, // initial state is State
         NULL			  // unnamed object
         );*/
+    auto_=Auto;
+    state=State;
 }
 cResetEvent::~cResetEvent()
 {
@@ -148,18 +150,23 @@ cResetEvent::~cResetEvent()
 void cResetEvent::Set()//Signal
 {
 //gli	SetEvent(hEvent);
+    state=true;
 }
 void cResetEvent::Reset()//reset
 {
 //gli	ResetEvent(hEvent);
+    state=false;
 }
 void cResetEvent::Wait(u32 msec)//Wait for signal , then reset
 {
 //gli	WaitForSingleObject(hEvent,msec);
+    Wait();
 }
 void cResetEvent::Wait()//Wait for signal , then reset
 {
 //gli	WaitForSingleObject(hEvent,(u32)-1);
+    while(!state);
+    if (auto_) state=false;
 }
 //End AutoResetEvent
 

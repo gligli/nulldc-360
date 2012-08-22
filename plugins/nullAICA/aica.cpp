@@ -42,7 +42,7 @@ void update_arm_interrupts()
 	u32 Lval=0;
 	if (p_ints)
 	{
-		u32 bit_value=1;//first bit
+        u32 bit_value=1;//first bit
 		//scan all interrupts , lo to hi bit.I assume low bit ints have higher priority over others
 		for (u32 i=0;i<11;i++)
 		{
@@ -89,10 +89,17 @@ struct AicaTimerData
 	{
 		struct 
 		{
+#ifdef XENON
+			u32 pad:16;
+			u32 nil:5;
+			u32 md:3;
+			u32 count:8;
+#else            
 			u32 count:8;
 			u32 md:3;
 			u32 nil:5;
 			u32 pad:16;
+#endif            
 		};
 		u32 data;
 	};
@@ -174,7 +181,8 @@ void FASTCALL UpdateAICA(u32 Samples)
 template<u32 sz>
 void WriteAicaReg(u32 reg,u32 data)
 {
-	switch (reg)
+//	printf("WriteAicaReg %08x %08x\n",reg,data);
+    switch (reg)
 	{
 	case SCIPD_addr:
 		verify(sz!=1);

@@ -278,6 +278,7 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 	{
 		if (render_end_pending_cycles<cycles)
 		{
+            rend_handle_cache();
 #ifdef THREADED_PVR
 			while(rend_end_render_call_pending);
 			rend_end_render_call_pending=true;

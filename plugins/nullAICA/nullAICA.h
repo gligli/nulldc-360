@@ -7,6 +7,7 @@
 #include <assert.h>
 
 #include <ppc/timebase.h>
+#include <byteswap.h>
 
 #define UINT16 u16
 #define INT32 int32_t
@@ -60,26 +61,26 @@ void dcThreadTerm(PluginType type);
 
 #define 	ReadMemArrRet(arr,addr,sz)				\
 			{if (sz==1)								\
-				return arr[addr];					\
+				rv= arr[addr^3];					\
 			else if (sz==2)							\
-				return *(u16*)&arr[addr];			\
+				rv= (*(u16*)&arr[addr^2]);			\
 			else if (sz==4)							\
-				return *(u32*)&arr[addr];}	
+				rv= (*(u32*)&arr[addr]);}	
 
 #define WriteMemArrRet(arr,addr,data,sz)				\
 			{if(sz==1)								\
-				{arr[addr]=(u8)data;return;}				\
+				{arr[addr^3]=(u8)data;return;}				\
 			else if (sz==2)							\
-				{*(u16*)&arr[addr]=(u16)data;return;}		\
+				{*(u16*)&arr[addr^2]=((u16)data);return;}		\
 			else if (sz==4)							\
-			{*(u32*)&arr[addr]=data;return;}}	
+			{*(u32*)&arr[addr]=(data);return;}}	
 #define WriteMemArr(arr,addr,data,sz)				\
 			{if(sz==1)								\
-				{arr[addr]=(u8)data;}				\
+				{arr[addr^3]=(u8)data;}				\
 			else if (sz==2)							\
-				{*(u16*)&arr[addr]=(u16)data;}		\
+				{*(u16*)&arr[addr^2]=((u16)data);}		\
 			else if (sz==4)							\
-			{*(u32*)&arr[addr]=data;}}	
+			{*(u32*)&arr[addr]=(data);}}	
 struct aica_setts
 {
 	u32 SoundRenderer;	//0 -> sdl , (1) -> DS
