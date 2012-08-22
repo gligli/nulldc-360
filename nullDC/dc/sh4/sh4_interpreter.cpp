@@ -18,10 +18,13 @@
 #include <float.h>
 #include <assert.h>
 
+#include <xenon_soc/xenon_power.h>
 #include <xenon_uart/xenon_uart.h>
 #include <ppc/timebase.h>
 
 #include "sh4r_rename.h"
+
+#define THREADED_AICA
 
 #define CPU_TIMESLICE	(448)
 #define CPU_RATIO		(8)
@@ -379,11 +382,109 @@ void Sh4_int_Reset(bool Manual)
 	}
 }
 
+//3584 Cycles
+#define AICA_SAMPLE_GCM 441
+#define AICA_SAMPLE_CYCLES (SH4_MAIN_CLOCK/(44100/AICA_SAMPLE_GCM))
+
+void aica_periodical(u32 cycl);
+void maple_periodical(u32 cycl);
+void FASTCALL spgUpdatePvr(u32 cycles); // quicker to use direct plugin call
+
+u32 aica_sample_cycles=0;
+
+#include "ccn.h"
+
+void FreeSuspendedBlocks();
+void DynaPrintCycles();
+
+//General update
+s32 rtc_cycles = 0;
+u32 update_cnt = 0;
+
+//typicaly, 446428 calls/second (448 cycles/call)
+//fast update is 448 cycles
+//medium update is 448*8=3584 cycles
+//slow update is 448*16=7168  cycles
+
+//14336 Cycles
+void __fastcall VerySlowUpdate()
+{
+	rtc_cycles-=14336;
+	if (rtc_cycles<=0)
+	{
+		rtc_cycles+=200*1000*1000;
+		settings.dreamcast.RTC++;
+	}
+	//This is a patch for the DC LOOPBACK test GDROM (disables serial i/o)
+	/*
+	*(u16*)&mem_b.data[(0xC0196EC)& 0xFFFFFF] =9;
+	*(u16*)&mem_b.data[(0xD0196D8+2)& 0xFFFFFF]=9;
+	*/
+	FreeSuspendedBlocks();
+}
+//7168 Cycles
+void __fastcall SlowUpdate()
+{
+		VerySlowUpdate();
+}
+
+void ThreadedUpdate()
+{
+   aica_sample_cycles+=3584*AICA_SAMPLE_GCM;
+
+    if (aica_sample_cycles>=AICA_SAMPLE_CYCLES)
+    {
+        UpdateArm(512);
+        UpdateAica(1);
+        aica_sample_cycles-=AICA_SAMPLE_CYCLES;
+    }
+
+    aica_periodical(3584);
+
+   	maple_periodical(3584);
+
+	libExtDevice.UpdateExtDevice(3584);
+
+    #if DC_PLATFORM!=DC_PLATFORM_NAOMI
+		UpdateGDRom();
+	#else
+		Update_naomi();
+	#endif	
+}
+
+static volatile bool running=false;
+static volatile bool update_pending=false;
+
+static void threaded_task()
+{
+	while(running)
+	{
+		if(update_pending){
+				ThreadedUpdate();
+				update_pending=false;
+		}
+	}
+}
+
+static void threaded_term()
+{
+	running=false;
+	while (xenon_is_thread_task_running(4));
+}
+
+static u8 stack[0x100000];
+
 void Sh4_int_Init() 
 {
 	BuildOpcodeTables();
 	GenerateSinCos();
 	log("Sh4 Init\n");
+
+#ifdef THREADED_AICA
+	running=true;
+	xenon_run_thread_task(4,&stack[sizeof(stack)-0x100],(void*)threaded_task);
+#endif
+    atexit(threaded_term);
 }
 
 void Sh4_int_Term() 
@@ -596,89 +697,25 @@ bool ExecuteDelayslot_RTE()
 	return rv;
 }
 
-#include "ccn.h"
-
-void FreeSuspendedBlocks();
-void DynaPrintCycles();
-
-//General update
-s32 rtc_cycles = 0;
-u32 update_cnt = 0;
-u32 aica_sample_cycles=0;
-
-//typicaly, 446428 calls/second (448 cycles/call)
-//fast update is 448 cycles
-//medium update is 448*8=3584 cycles
-//slow update is 448*16=7168  cycles
-
-//14336 Cycles
-void __fastcall VerySlowUpdate()
-{
-	rtc_cycles-=14336;
-	if (rtc_cycles<=0)
-	{
-		rtc_cycles+=200*1000*1000;
-		settings.dreamcast.RTC++;
-	}
-	//This is a patch for the DC LOOPBACK test GDROM (disables serial i/o)
-	/*
-	*(u16*)&mem_b.data[(0xC0196EC)& 0xFFFFFF] =9;
-	*(u16*)&mem_b.data[(0xD0196D8+2)& 0xFFFFFF]=9;
-	*/
-	FreeSuspendedBlocks();
-}
-//7168 Cycles
-void __fastcall SlowUpdate()
-{
-	#if DC_PLATFORM!=DC_PLATFORM_NAOMI
-		UpdateGDRom();
-	#else
-		Update_naomi();
-	#endif	
-	if (!(update_cnt&0x10))
-		VerySlowUpdate();
-}
-//3584 Cycles
-#define AICA_SAMPLE_GCM 441
-#define AICA_SAMPLE_CYCLES (SH4_MAIN_CLOCK/(44100/AICA_SAMPLE_GCM))
-
-void aica_periodical(u32 cycl);
-void maple_periodical(u32 cycl);
-
 void __fastcall MediumUpdate()
 {
-	#ifdef INCLUDE_DEV_TOOLS
-	if(!GetAsyncKeyState(DEV_TOOL_FAST_FW_KEY))
-	#endif
-//	if(!(update_cnt&0x7f)) //gli ugly speedhack
-	{
-		aica_sample_cycles+=3584*AICA_SAMPLE_GCM;
+#ifdef THREADED_AICA
+    while(update_pending);
+    update_pending=true;
+#else
+//    if(!(update_cnt&0x7f)) //gli ugly speedhack
+        ThreadedUpdate();
+#endif
 
-		if (aica_sample_cycles>=AICA_SAMPLE_CYCLES)
-		{
-    		UpdateArm(512);
-			UpdateAica(1);
-			aica_sample_cycles-=AICA_SAMPLE_CYCLES;
-		}
-
-		aica_periodical(3584);
-	}
-
-	maple_periodical(3584);
-
-/*gli useless
-	libExtDevice.UpdateExtDevice(3584);
- */
 	UpdateDMA();
 
 	if (!(update_cnt&0x8))
-		SlowUpdate();
+        if (!(update_cnt&0x10))
+            VerySlowUpdate();
 }
 
 u64 time_update_system=0;
 
-
-void FASTCALL spgUpdatePvr(u32 cycles); // quicker to use direct plugin call
 
 //#define PROF_UPDATESYSTEM
 
@@ -690,10 +727,10 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 #ifdef PROF_UPDATESYSTEM	
 	u64 ust=mftb();
 #endif
-	
-	UpdateTMU(448);
-	spgUpdatePvr(448);
 
+  	UpdateTMU(448);
+    spgUpdatePvr(448);
+	
 	if (!(update_cnt&0x7))
 		MediumUpdate();
 
