@@ -286,6 +286,56 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 
 	typedef void fastcall texture_handler_FP(PixelBuffer* pb,u8* p_in,u32 Width,u32 Height);
 
+    
+// thank you ced2911 for this :)
+static inline void handle_small_surface(struct XenosSurface * surf, void * buffer){
+	int width;
+	int height;
+	int wpitch;
+	int hpitch;
+	uint32_t * surf_data;
+	uint32_t * data;
+	uint32_t * src;	
+	
+	// don't handle big texture
+	if( surf->width>128 && surf->height>32) {
+		return;
+	}	
+	
+	width = surf->width;
+	height = surf->height;
+	wpitch = surf->wpitch / 4;
+	hpitch = surf->hpitch;	
+	
+	if(buffer)
+        surf_data = (uint32_t *)buffer;
+    else
+        surf_data = (uint32_t *)Xe_Surface_LockRect(xe, surf, 0, 0, 0, 0, XE_LOCK_WRITE);
+	
+	src = data = surf_data;
+		
+	for(int yp=0; yp<hpitch;yp+=height) {
+		int max_h = height;
+		if (yp + height> hpitch)
+				max_h = hpitch % height;
+		for(int y = 0; y<max_h; y++){
+			//x order
+			for(int xp = 0;xp<wpitch;xp+=width) {
+				int max_w = width;
+				if (xp + width> wpitch)
+					max_w = wpitch % width;
+
+				for(int x = 0; x<max_w; x++) {
+					data[x+xp + ((y+yp)*wpitch)]=src[x+ (y*wpitch)];
+				}
+			}
+		}
+	}
+	
+    if(!buffer)
+        Xe_Surface_Unlock(xe, surf);
+}    
+    
 	/*
 	texture_handler_FP* texture_handlers[8] = 
 	{
@@ -494,19 +544,12 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 				//memset(temp_tex_buffer,0xFFEFCFAF,w*h*4);
 			}
 
-            if (Texture->hpitch>Texture->height)
-            {
-//                printf("hpitch! %d %d\n",Texture->hpitch,Texture->height);
-                int i;
-                for(i=Texture->height*Texture->wpitch;i<Texture->hpitch*Texture->wpitch;i+=Texture->height*Texture->wpitch)
-                {
-                    memcpy((u8*)bits+i,bits,Texture->wpitch*Texture->height);
-                }
-            }
-
-			//done , unlock texture !
+            
+            handle_small_surface(Texture,bits);
+                    
+    		//done , unlock texture !
 			Xe_Surface_Unlock(xe,Texture);
-			
+
 			//PrintTextureName();
 			if (!lock_block)
 				lock_list.push_back(this);
@@ -1554,6 +1597,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 
 		//pal is organised as 16x64 texture
 		u8* tex=(u8*)Xe_Surface_LockRect(xe,pal_texture,0,0,0,0,XE_LOCK_WRITE);
+        u8* bits=tex;
 		u8* src=(u8*)palette_lut;
 
 		for (int i=0;i<64;i++)
@@ -1562,6 +1606,9 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 			tex+=pal_texture->wpitch;
 			src+=16*4;
 		}
+        
+        handle_small_surface(pal_texture,bits);
+        
 		Xe_Surface_Unlock(xe,pal_texture);
 	}
 	void UpdateFogTableTexure()
@@ -1578,7 +1625,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 
 		//could just memcpy ;p
 		u8* fog_table=(u8*)FOG_TABLE;
-		for (int j=0;j<fog_texture->hpitch;j++)
+		for (int j=0;j<fog_texture->height;j++)
 		{
 			for (int i=0;i<128;i++)
 			{
@@ -1589,6 +1636,9 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 				tex[offs+3 + j * fog_texture->wpitch]=0;//A
 			}
 		}
+
+        handle_small_surface(fog_texture,tex);
+        
 		Xe_Surface_Unlock(xe,fog_texture);
 	}
 	void SetMVS_Mode(u32 mv_mode,ISP_Modvol ispc)

@@ -439,7 +439,7 @@ pixelcvt_next(convPAL8_TW,2,4)
 }
 pixelcvt_next(convPAL4_X_TW,4,4)
 {
-TR	u8* p_in=(u8*)data;
+	u8* p_in=(u8*)data;
 	//20 -> 16 + 4 (*16 to fixup step size)
 	//goes to red
 	pb->prel(0^1,0^2,(p_in[0]&0xF)<<20);
@@ -464,7 +464,7 @@ TR	u8* p_in=(u8*)data;
 }
 pixelcvt_next(convPAL8_X_TW,2,4)
 {
-TR	u8* p_in=(u8*)data;
+	u8* p_in=(u8*)data;
 		//			4+16 (red) |       4+6 (2+8) green
 #define COL ((p_in[0]&0xF)<<20) | ((p_in[0]&0xF0)<<6)
 	pb->prel(0^1,0^1,COL);p_in++;
