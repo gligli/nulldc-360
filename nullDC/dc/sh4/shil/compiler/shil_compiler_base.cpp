@@ -2027,18 +2027,34 @@ void __fastcall shil_compile_mul(shil_opcode* op)
 		SaveReg((u8)reg_mach,R4);
 	}
 }
-#if 0 //gli86
+#if 1 //gli86
 void FASTCALL sh4_div0u();
 void FASTCALL sh4_div0s(u32 rn,u32 rm);
 u32 FASTCALL sh4_rotcl(u32 rn);
 u32 FASTCALL sh4_div1(u32 rn,u32 rm);
-template<bool sgn>
-u64 FASTCALL shil_helper_slowdiv32(u32 r3,u32 r2, u32 r1)
+
+u32 divtmp;
+
+u32 FASTCALL shil_helper_slowdiv32_sgn(u32 r3,u32 r2,u32 r1)
 {
-	if (sgn)
-		sh4_div0s(r2,r3);
-	else
-		sh4_div0u();
+	sh4_div0s(r2,r3);
+    
+	for (int i=0;i<32;i++)
+	{
+		r1=sh4_rotcl(r1);
+		r2=sh4_div1(r2,r3);
+	}
+
+    divtmp=r1;
+    return r3;
+    
+	return ((u64)r3<<32)|r1;//EAX=r1, EDX=r3 
+}
+
+
+u32 FASTCALL shil_helper_slowdiv32(u32 r3,u32 r2,u32 r1)
+{
+	sh4_div0u();
 
 	for (int i=0;i<32;i++)
 	{
@@ -2046,115 +2062,88 @@ u64 FASTCALL shil_helper_slowdiv32(u32 r3,u32 r2, u32 r1)
 		r2=sh4_div1(r2,r3);
 	}
 
+    divtmp=r1;
+    return r3;
+    
 	return ((u64)r3<<32)|r1;//EAX=r1, EDX=r3 
 }
+
 void __fastcall shil_compile_div32(shil_opcode* op)
 {
+	assert(op->flags & (FLAG_IMM1));
 	assert(0==(op->flags & (FLAG_IMM2)));
 
-	//ppce->Emit(op_int3);
 	u8 rQuotient=(u8)op->reg1;
 	u8 rDivisor=(u8)op->reg2;
 	u8 rDividend=(u8)op->imm1;
 	//Q=Dend/Dsor
 
-	//make sure that the sign extention is correct
-	ppc_gpr_reg Quotient=LoadReg_force(EAX,rQuotient);
-	
-	 if (op->flags & FLAG_SX)
-		ppce->Emit(op_cdq);
-	else
-		ppce->Emit(op_xor32,EDX,EDX);
-
-	ppc_gpr_reg Dividend=LoadReg_force(ECX,rDividend);
-	
-	ppce->Emit(op_cmp32,EDX,ECX);
-	
-	ppc_gpr_reg Divisor=LoadReg(EDX,rDivisor);
-	
+    ppc_gpr_reg divisor=LoadReg(R3,rDivisor);
+    ppc_gpr_reg dividend=LoadReg(R4,rDividend);
+    ppc_gpr_reg quotient=LoadReg(R5,rQuotient);
+    
 	ppc_Label* slowdiv=ppce->CreateLabel(false,8);
 	ppc_Label* fastdiv=ppce->CreateLabel(false,8);
 	ppc_Label* exit =ppce->CreateLabel(false,8);
 
-	//CDQ(rQuotient)!=rDividend  || rDividend!=0 ? (on input this should happen)
-	ppce->Emit(op_jne,slowdiv);
-	
-	//make sure its not divide by 0
-	ppce->Emit(op_test32,Divisor,Divisor);
-	//EDX==0 ?
-	ppce->Emit(op_jz,slowdiv);
-	
-	//all was ok, do normal divition !
-	ppce->Emit(op_jmp,fastdiv);
-	
-	//something went wrong
-	//slowdiv:
+    if (op->flags & FLAG_SX)
+    {
+        EMIT_SRAWI(ppce,R6,quotient,31);
+        EMIT_CMP(ppce,R6,dividend,0);
+    }
+    else
+    {
+        EMIT_CMPI(ppce,dividend,0,0);
+    }        
+    ppce->emitBranchConditionalToLabel(slowdiv,0,PPC_CC_F,PPC_CC_ZER);
+    
+    EMIT_CMPI(ppce,divisor,0,0);
+	ppce->emitBranchConditionalToLabel(slowdiv,0,PPC_CC_T,PPC_CC_ZER);
+
+    ppce->emitBranchToLabel(fastdiv,0);
+
 	ppce->MarkLabel(slowdiv);
-	//push the 3rd param
-	ppce->Emit(op_push32,EAX);
-	//call the slow div (full sh4 impl)
-	ppce->Emit(op_call,ppc_ptr_imm( (op->flags & FLAG_SX) ? shil_helper_slowdiv32<true> : shil_helper_slowdiv32<false>));
-	//goto enddiv;
-	ppce->Emit(op_jmp,exit);
 
-	//fast divition
-	//fastdiv:
+/*    ppce->emitBranch((void*)((op->flags & FLAG_SX) ? shil_helper_slowdiv32_sgn : shil_helper_slowdiv32),true);
+    ppce->emitLoad32(R5,&divtmp);*/
+    
+    ppce->emitDebugValue(0xdeadc0de);
+
+	ppce->emitBranchToLabel(exit,0);
 	ppce->MarkLabel(fastdiv);
-	if (Divisor==EDX)	//we can't have it there ..
-	{
-		ppce->Emit(op_xchg32,ECX,EDX);
-		Divisor=ECX;
-		Dividend=EDX;
-	}
-	else
-	{
-		Dividend=EDX;//its the same value if its here ...
-	}
 
 	if (op->flags & FLAG_SX)
 	{
-		ppce->Emit(op_idiv32,Divisor);
+        EMIT_DIVW(ppce,R7,quotient,divisor);
 	}
 	else
 	{
-		ppce->Emit(op_div32,Divisor);
+        EMIT_DIVWU(ppce,R7,quotient,divisor);
 	}
 
-
+    EMIT_MULLW(ppce,R6,R7,divisor);
+    EMIT_SUB(ppce,dividend,quotient,R6);
+    
+    EMIT_ANDI(ppce,R8,R7,1);
+    EMIT_CRNOR(ppce,CR_T_FLAG,PPC_CC_ZER,PPC_CC_ZER);
+    
 	if (op->flags & FLAG_SX)
 	{
-		ppce->Emit(op_sar32 ,EAX);
+        EMIT_SRAWI(ppce,quotient,R7,1);
 	}
 	else
 	{
-		ppce->Emit(op_shr32 ,EAX);
+        EMIT_SRWI(ppce,quotient,R7,1);
 	}
 
-	//set T
-	//Set byte if below (CF=1)
-	ppce->Emit(op_setb,ppc_ptr(GetRegPtr(reg_sr_T)));
+    ppce->emitBranchConditionalToLabel(exit,0,PPC_CC_T,CR_T_FLAG);
+    
+    EMIT_SUB(ppce,dividend,dividend,divisor);
+    
+    ppce->MarkLabel(exit);
+	SaveReg(rQuotient,quotient);
+	SaveReg(rDividend,dividend);
 
-
-	//WARNING--JUMP--
-
-	ppce->Emit(op_jb ,exit);
-
-	if (ira->IsRegAllocated(rDivisor))
-	{	//safe to do here b/c rDivisor was loaded to reg above (if reg cached)
-		ppc_gpr_reg t=LoadReg(EAX,rDivisor);
-		ppce->Emit(op_sub32 ,EDX,t);
-	}
-	else
-	{
-		ppce->Emit(op_sub32 ,EDX,GetRegPtr(rDivisor));
-	}
-
-	//WARNING--JUMP--
-
-	ppce->MarkLabel(exit);
-
-	SaveReg(rDividend,Dividend);
-	SaveReg(rQuotient,Quotient);
 }
 #endif
 
@@ -2986,10 +2975,8 @@ void sclt_Init()
 	SetH(shilop_fsca,shil_compile_fsca);
 	SetH(shilop_ftrv,shil_compile_ftrv);
 	SetH(shilop_fipr,shil_compile_fipr);
-		
-/* gli86
 	SetH(shilop_div32,shil_compile_div32);
-*/
+		
 	/*
 	u32 shil_nimp=shilop_count;
 	for (int i=0;i<shilop_count;i++)
