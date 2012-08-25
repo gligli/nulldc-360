@@ -199,7 +199,10 @@ void shil_stream::jmp()
 }
 void shil_stream::mov(Sh4RegType to,Sh4RegType from)
 {
-	if (IsReg64(to) || IsReg64(from))
+	if(from==to)
+        return;
+    
+    if (IsReg64(to) || IsReg64(from))
 	{
 		if (!(IsReg64(from) && IsReg64(from)))
 		{

@@ -834,7 +834,13 @@ shilh(shl)
 
 shilh(shld)
 {
-	DefHanlder(op,bb,il);
+	if (ce_IsConst(op->reg1) && ce_IsConst(op->reg2))
+	{
+		ce_SetConst(op->reg1,ce_GetConst(op->reg1)<<ce_GetConst(op->reg2));
+		return true;
+	}
+	else
+		DefHanlder(op,bb,il);
 	return false;
 }
 
@@ -898,7 +904,7 @@ shilh(test)
 }
 shilh(xor)
 {
-	DefHanlder(op,bb,il); //gli fixes DOA2 NormBinaryOp(^);
+	NormBinaryOp(^);
 	return false;
 }
 shilh(jcond)

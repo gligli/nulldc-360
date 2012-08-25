@@ -138,7 +138,7 @@ void ReloadDouble(u32 reg)
 
 //Common opcode handling code
 //reg to reg
-void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc_imm, bool invRDRA, bool sub, bool carry)
+void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc_imm, bool invRDRA, bool sub, bool carry,bool immNoUpper)
 {
 //	ppce->do_disasm=true;
 	assert(FLAG_32==(op->flags & 3));
@@ -147,113 +147,50 @@ void fastcall op_reg_to_reg(shil_opcode* op,PowerPC_instr ppc, PowerPC_instr ppc
 	if (op->flags & FLAG_IMM1)
 	{
 		assert(0==(op->flags & FLAG_REG2));
-		if (ira->IsRegAllocated(op->reg1))
-		{
-			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
-			assert(r1!=R3);
-			
-			if(carry)
-			{
-				EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
-				EMIT_ADDI(ppce,r1,r1,1);
-			}
-			
-			if(ppc_imm && (s32)op->imm1>=-32768 && (s32)op->imm1<=32767)
-			{
-				PPC_SET_RD(ppc_imm,r1);
-				PPC_SET_RA(ppc_imm,r1);
-				PPC_SET_IMMED(ppc_imm,op->imm1*(sub?-1:1));
-				ppce->write32(ppc_imm);
-			}
-			else
-			{
-				ppce->emitLoadImmediate32(R4,op->imm1);
-				EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA,0);
-			}
+        ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
 
-			SaveReg(op->reg1,r1);
+        if(carry)
+        {
+            EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
+            EMIT_ADDI(ppce,r1,r1,1);
+        }
 
-			if(sub && op->imm1==1) // lousy test for DT
-			{
-				EMIT_CMPI(ppce,r1,0,0);
-			}
-		}
-		else
-		{
-			/*ppce-> _ItM_ (GetRegPtr(op->reg1),op->imm1);*/
-			u32 * ptr = GetRegPtr(op->reg1);
-			ppce->emitLoad32(R4,ptr);
+        if(ppc_imm && (s32)op->imm1>=-32768 && (s32)op->imm1<=32767 && !(immNoUpper && op->imm1&0xffff0000))
+        {
+            PPC_SET_RD(ppc_imm,r1);
+            PPC_SET_RA(ppc_imm,r1);
+            PPC_SET_IMMED(ppc_imm,op->imm1*(sub?-1:1));
+            ppce->write32(ppc_imm);
+        }
+        else
+        {
+            ppce->emitLoadImmediate32(R4,op->imm1);
+            EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA,0);
+        }
 
-			if(carry)
-			{
-				EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
-				EMIT_ADDI(ppce,R4,R4,1);
-			}
-			
-			if(ppc_imm && (s32)op->imm1>=-32768 && (s32)op->imm1<=32767)
-			{
-				PPC_SET_RD(ppc_imm,R4);
-				PPC_SET_RA(ppc_imm,R4);
-				PPC_SET_IMMED(ppc_imm,op->imm1*(sub?-1:1));
-				ppce->write32(ppc_imm);
-			}
-			else
-			{
-				ppce->emitLoadImmediate32(R3,op->imm1);
-				EMIT_SET_RDRARB(ppc,R4,R3,R4,invRDRA,0);
-			}
+        SaveReg(op->reg1,r1);
 
-			ppce->emitStore32(ptr,R4);
-
-			if(sub && op->imm1==1) // lousy test for DT
-			{
-				EMIT_CMPI(ppce,R4,0,0);
-			}
-		}
+        if(sub && op->imm1==1) // lousy test for DT
+        {
+            EMIT_CMPI(ppce,r1,0,0);
+        }
 	}
 	else
 	{
 		assert(op->flags & FLAG_REG2);
-		if (ira->IsRegAllocated(op->reg1))
-		{
-			ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
-			assert(r1!=R3);
-			
-			if(carry)
-			{
-				EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
-				EMIT_ADDI(ppce,r1,r1,1);
-			}
-			
-			if (ira->IsRegAllocated(op->reg2))
-			{
-				ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
-				assert(r2!=R3);
-				EMIT_SET_RDRARB(ppc,r1,r2,r1,invRDRA,0);
-			}
-			else
-			{
-				ppce->emitLoad32(R4,GetRegPtr(op->reg2));
-				EMIT_SET_RDRARB(ppc,r1,R4,r1,invRDRA,0);
-			}
-			SaveReg(op->reg1,r1);
-		}
-		else
-		{
-			ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
+        ppc_gpr_reg r1 = LoadReg(R3,op->reg1);
 
-			u32 * ptr = GetRegPtr(op->reg1);
-			ppce->emitLoad32(R4,ptr);
+        if(carry)
+        {
+            EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
+            EMIT_ADDI(ppce,r1,r1,1);
+        }
 
-			if(carry)
-			{
-				EMIT_BC(ppce,2,0,0,PPC_CC_F,CR_T_FLAG);
-				EMIT_ADDI(ppce,R4,R4,1);
-			}
-			
-			EMIT_SET_RDRARB(ppc,R4,r2,R4,invRDRA,0);
-			ppce->emitStore32(ptr,R4);
-		}
+        ppc_gpr_reg r2 = LoadReg(R4,op->reg2);
+
+        EMIT_SET_RDRARB(ppc,r1,r2,r1,invRDRA,0);
+
+        SaveReg(op->reg1,r1);
 	}
 }
 
@@ -1056,7 +993,7 @@ void __fastcall shil_compile_xor(shil_opcode* op)
 	PowerPC_instr ppc,ppc_imm;
 	GEN_XOR(ppc,0,0,0);
 	GEN_XORI(ppc_imm,0,0,0);
-	op_reg_to_reg(op,ppc,ppc_imm,true,false,false);
+	op_reg_to_reg(op,ppc,ppc_imm,true,false,false,true);
 }
 //or reg32,reg32/imm32
 void __fastcall shil_compile_or(shil_opcode* op)
@@ -1064,171 +1001,74 @@ void __fastcall shil_compile_or(shil_opcode* op)
 	PowerPC_instr ppc,ppc_imm;
 	GEN_OR(ppc,0,0,0);
 	GEN_ORI(ppc_imm,0,0,0);
-	op_reg_to_reg(op,ppc,ppc_imm,true,false,false);
+	op_reg_to_reg(op,ppc,ppc_imm,true,false,false,true);
 }
 //and reg32,reg32/imm32
 void __fastcall shil_compile_and(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_AND(ppc,0,0,0);
-	op_reg_to_reg(op,ppc,0,true,false,false);
+	op_reg_to_reg(op,ppc,0,true,false,false,false);
 }
 //readm/writem 
 //Address calculation helpers
 ppc_reg readwrteparams1(u8 reg1,u32 imm,u32 size,s32* fast_imm)
 {
 	ppc_reg reg;
+    s32 imms=(s32)imm;
 	
-	if (ira->IsRegAllocated(reg1))
-	{
-		reg=LoadReg(R3,reg1);
-		assert(reg!=R3);
-		
-		if((s32)imm>=-32768 && (s32)imm<=32767)
-		{
-			if(size>=FLAG_32)
-			{
-				*fast_imm=(s32)imm;
-			}
-			else
-			{
-				EMIT_ADDI(ppce,R3,reg,imm);
-				reg=R3;
-			}
-		}
-		else
-		{
-			EMIT_ADDIS(ppce,R3,reg,HA(imm))
-			EMIT_ADDI(ppce,R3,R3,imm);
-			reg=R3;
-		}
-	}
-	else
-	{
-		ppce->emitLoad32(R3,GetRegPtr(reg1));
-		reg=R3;
+    reg=LoadReg(R5,reg1);
 
-		if((s32)imm>=-32768 && (s32)imm<=32767)
-		{
-			if(size>=FLAG_32)
-			{
-				*fast_imm=(s32)imm;
-			}
-			else
-			{
-				EMIT_ADDI(ppce,R3,R3,imm);
-			}
-		}
-		else
-		{
-			EMIT_ADDIS(ppce,R3,R3,HA(imm))
-			EMIT_ADDI(ppce,R3,R3,imm);
-		}
-	}
+    if(imms>=-32768 && imms<=32767)
+    {
+        if(size>=FLAG_32)
+        {
+            *fast_imm=imms;
+        }
+        else
+        {
+            EMIT_ADDI(ppce,R3,reg,imms);
+            reg=R3;
+        }
+    }
+    else
+    {
+        EMIT_ADDI(ppce,R3,reg,imm)
+        EMIT_ADDIS(ppce,R3,R3,HA(imm));
+        reg=R3;
+    }
 	return reg;
 }
 void readwrteparams2(u8 reg1,u8 reg2)
 {
-	if (ira->IsRegAllocated(reg1))
-	{
-		ppc_reg r1=LoadReg(R3,reg1);
-		assert(r1!=R3);
-		
-		if (ira->IsRegAllocated(reg2))
-		{
-			//lea ecx,[reg1+reg2]
-			ppc_reg r2=LoadReg(R3,reg2);
-			assert(r2!=R3);
-			EMIT_ADD(ppce,R3,r1,r2);
-		}
-		else
-		{
-			//mov ecx,reg1
-			//add ecx,[reg2]
-			ppce->emitLoad32(R3,GetRegPtr(reg2));
-			EMIT_ADD(ppce,R3,R3,r1);
-		}
-	}
-	else
-	{
-		if (ira->IsRegAllocated(reg2))
-		{
-			readwrteparams2(reg2,reg1);
-		}
-		else
-		{
-			//mov ecx,[reg1]
-			//add ecx,[reg2]
-			ppce->emitLoad32(R3,GetRegPtr(reg1));
-			ppce->emitLoad32(R4,GetRegPtr(reg2));
-			EMIT_ADD(ppce,R3,R3,R4);
-		}
-	}
+    ppc_reg r1=LoadReg(R4,reg1);
+    assert(r1!=R3);
+
+    ppc_reg r2=LoadReg(R5,reg2);
+    assert(r2!=R3);
+
+    EMIT_ADD(ppce,R3,r1,r2);
 }
 void readwrteparams3(u8 reg1,u8 reg2,u32 imm,u32 size,s32* fast_imm)
 {
 	//verify((imm&0xffff)==imm);
 	verify((s32)imm>=-32768 && (s32)imm<=32767);
 		
-	if (ira->IsRegAllocated(reg1))
-	{
-		ppc_reg r1=LoadReg(R3,reg1);
-		assert(r1!=R3);
-		
-		if (ira->IsRegAllocated(reg2))
-		{
-			//lea ecx,[reg1+reg2]
-			ppc_reg r2=LoadReg(R3,reg2);
-			assert(r2!=R3);
-			EMIT_ADD(ppce,R3,r1,r2);
-			if(size>=FLAG_32)
-			{
-TR				*fast_imm=(s32)imm;
-			}
-			else
-			{
-				EMIT_ADDI(ppce,R3,R3,imm);
-			}
-		}
-		else
-		{
-			//lea ecx,[reg1+imm]
-			//add ecx,[reg2]
-			ppce->emitLoad32(R3,GetRegPtr(reg2));
-			EMIT_ADD(ppce,R3,R3,r1);
-			if(size>=FLAG_32)
-			{
-TR				*fast_imm=(s32)imm;
-			}
-			else
-			{
-				EMIT_ADDI(ppce,R3,R3,imm);
-			}
-		}
-	}
-	else
-	{
-		if (ira->IsRegAllocated(reg2))
-		{
-			readwrteparams3(reg2,reg1,imm,size,fast_imm);
-		}
-		else
-		{
-			//mov ecx,[reg1]
-			//add ecx,[reg2]
-			ppce->emitLoad32(R3,GetRegPtr(reg1));
-			ppce->emitLoad32(R4,GetRegPtr(reg2));
-			EMIT_ADD(ppce,R3,R3,R4);
-			if(size>=FLAG_32)
-			{
-TR				*fast_imm=(s32)imm;
-			}
-			else
-			{
-				EMIT_ADDI(ppce,R3,R3,imm);
-			}
-		}
-	}
+    ppc_reg r1=LoadReg(R4,reg1);
+    assert(r1!=R3);
+
+    //lea ecx,[reg1+reg2]
+    ppc_reg r2=LoadReg(R5,reg2);
+    assert(r2!=R3);
+    EMIT_ADD(ppce,R3,r1,r2);
+    if(size>=FLAG_32)
+    {
+        *fast_imm=(s32)imm;
+    }
+    else
+    {
+        EMIT_ADDI(ppce,R3,R3,imm);
+    }
 }
 //Emit needed calc. asm and return register that has the address :)
 ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,s32* fast_offset)
@@ -1363,14 +1203,16 @@ ppc_reg roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
 	EMIT_RLWINM(ppce,R5,reg,0,3,31);
 	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
 #else		
-	if ((reg==R3 && rw==0) || reg==R6)
+	if (/*(reg==R3 && rw==0) ||*/ reg==R6)
 		addr_reg=reg;
 	else
 	{
 		ppce->emitMoveRegister(R5,reg);
 		addr_reg=R5;
 	}
-		
+	
+    verify((((u32)&sh4r)&0xf0000000)==0x80000000);
+	
 	EMIT_RLWIMI(ppce,addr_reg,RSH4R,31,0,2); // RSH4R is 0x8xxxxxxx, it's the only reason it's used here
 #endif
 	
@@ -1894,21 +1736,21 @@ void __fastcall shil_compile_add(shil_opcode* op)
 	PowerPC_instr ppc,ppc_imm;
 	GEN_ADD(ppc,0,0,0);
 	GEN_ADDI(ppc_imm,0,0,0);
-	op_reg_to_reg(op,ppc,ppc_imm,false,false,false);
+	op_reg_to_reg(op,ppc,ppc_imm,false,false,false,false);
 }
 void __fastcall shil_compile_adc(shil_opcode* op)
 {
 	PowerPC_instr ppc;
 	GEN_ADD(ppc,0,0,0);
 	ppc|=1; // record bit
-	op_reg_to_reg(op,ppc,0,false,false,true);
+	op_reg_to_reg(op,ppc,0,false,false,true,false);
 }
 void __fastcall shil_compile_sub(shil_opcode* op)
 {
 	PowerPC_instr ppc,ppc_imm;
 	GEN_SUBF(ppc,0,0,0);
 	GEN_ADDI(ppc_imm,0,0,0);
-	op_reg_to_reg(op,ppc,ppc_imm,false,true,false);
+	op_reg_to_reg(op,ppc,ppc_imm,false,true,false,false);
 }
 
 
