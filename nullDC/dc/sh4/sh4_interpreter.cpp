@@ -24,10 +24,11 @@
 
 #include "sh4r_rename.h"
 
-#define THREADED_AICA
-
 #define CPU_TIMESLICE	(448)
 #define CPU_RATIO		(8)
+
+volatile bool threaded_subsystems=true;
+volatile bool threaded_internals=true;
 
 //uh uh 
 volatile bool  sh4_int_bCpuRun=false;
@@ -425,6 +426,7 @@ void __fastcall VerySlowUpdate()
 //7168 Cycles
 void __fastcall SlowUpdate()
 {
+    if (!(update_cnt&0x1f))
 		VerySlowUpdate();
 }
 
@@ -441,19 +443,18 @@ void ThreadedUpdate()
 
     aica_periodical(3584);
 
-   	maple_periodical(3584);
-
 	libExtDevice.UpdateExtDevice(3584);
 
     #if DC_PLATFORM!=DC_PLATFORM_NAOMI
-		UpdateGDRom();
-	#else
-		Update_naomi();
-	#endif	
+        UpdateGDRom();
+    #else
+        Update_naomi();
+    #endif	
 }
 
 static volatile bool running=false;
 static volatile bool update_pending=false;
+static volatile bool update_pending2=false;
 
 static void threaded_task()
 {
@@ -466,13 +467,27 @@ static void threaded_task()
 	}
 }
 
+static void threaded_task2()
+{
+	while(running)
+	{
+		if(update_pending2){
+    		  	UpdateTMU(448);
+				update_pending2=false;
+		}
+	}
+}
+
+
 static void threaded_term()
 {
 	running=false;
 	while (xenon_is_thread_task_running(4));
+	while (xenon_is_thread_task_running(5));
 }
 
 static u8 stack[0x100000];
+static u8 stack2[0x100000];
 
 void Sh4_int_Init() 
 {
@@ -480,10 +495,12 @@ void Sh4_int_Init()
 	GenerateSinCos();
 	log("Sh4 Init\n");
 
-#ifdef THREADED_AICA
 	running=true;
-	xenon_run_thread_task(4,&stack[sizeof(stack)-0x100],(void*)threaded_task);
-#endif
+	if (threaded_subsystems)
+        xenon_run_thread_task(4,&stack[sizeof(stack)-0x100],(void*)threaded_task);
+	if (threaded_internals)
+    	xenon_run_thread_task(5,&stack2[sizeof(stack2)-0x100],(void*)threaded_task2);
+
     atexit(threaded_term);
 }
 
@@ -699,19 +716,22 @@ bool ExecuteDelayslot_RTE()
 
 void __fastcall MediumUpdate()
 {
-#ifdef THREADED_AICA
-    while(update_pending);
-    update_pending=true;
-#else
-//    if(!(update_cnt&0x7f)) //gli ugly speedhack
+    if(threaded_subsystems)
+    {
+        while(update_pending);
+        update_pending=true;
+    }
+    else
+    {
         ThreadedUpdate();
-#endif
-
+    }
+    
 	UpdateDMA();
 
-	if (!(update_cnt&0x8))
-        if (!(update_cnt&0x10))
-            VerySlowUpdate();
+   	maple_periodical(3584);
+
+	if (!(update_cnt&0xf))
+        SlowUpdate();
 }
 
 u64 time_update_system=0;
@@ -728,9 +748,18 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 	u64 ust=mftb();
 #endif
 
-  	UpdateTMU(448);
+    if(threaded_internals)
+    {
+        while(update_pending2);
+        update_pending2=true;
+    }
+    else
+    {
+        UpdateTMU(448);
+    }
+    
     spgUpdatePvr(448);
-	
+    
 	if (!(update_cnt&0x7))
 		MediumUpdate();
 

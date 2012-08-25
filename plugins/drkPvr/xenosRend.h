@@ -38,7 +38,7 @@ extern struct XenosDevice * xe;
 	void SetFBScale(float x,float y);
 	void ListModes(void(* callback)(u32 w,u32 h,u32 rr));
 
-	void VramLockedWrite(vram_block* bl);
+	void VramLockedWrite(vram_block* bl,u32 addr);
 	
 	extern volatile bool do_render_pending;
 	extern volatile bool rend_end_render_call_pending;

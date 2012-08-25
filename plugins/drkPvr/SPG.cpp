@@ -86,42 +86,28 @@ extern u64 time_rw_regs;
 extern u64 time_gdrom;
 extern u64 time_lookup;
 extern u64 time_pref;
+extern u32 gdromaccesses;
 
 void PrintBlocksRunCount();
 
 void spgVBL()
 {
-	//Vblank counter
+	u32 curtime=timeGetTime();
+    
+    //Vblank counter
 	vblk_cnt++;
 	params.RaiseInterrupt(holly_HBLank);// -> This turned out to be HBlank btw , needs to be emulated ;(
 	//TODO : rend_if_VBlank();
 	rend_vblank();//notify for vblank :)
 	UpdateRRect();
-	if ((timeGetTime()-last_fps)>800)
+	if ((curtime-last_fps)>500)
 	{
-		double spd_fps=(double)(FrameCount)/(double)((double)(timeGetTime()-(double)last_fps)/1000);
-		double spd_vbs=(double)(vblk_cnt)/(double)((double)(timeGetTime()-(double)last_fps)/1000);
+		double spd_fps=(double)(FrameCount)/(double)((double)(curtime-(double)last_fps)/1000);
+		double spd_vbs=(double)(vblk_cnt)/(double)((double)(curtime-(double)last_fps)/1000);
 		double spd_cpu=spd_vbs*Frame_Cycles;
 		spd_cpu/=1000000;	//mrhz kthx
 		double fullvbs=(spd_vbs/spd_cpu)*200;
-		double mv=VertexCount;
-		char mv_c=' ';
-
-		if (mv>750)
-		{
-			mv/=1000;	//KV
-			mv_c='K';
-		}
-		if (mv>750)
-		{
-			mv/=1000;	//
-			mv_c='M';
-		}
-		VertexCount=0;
-		last_fps=timeGetTime();
-		FrameCount=0;
-		vblk_cnt=0;
-
+        
 		wchar fpsStr[256];
 		const char* mode=0;
 		const char* res=0;
@@ -225,10 +211,16 @@ void spgVBL()
 			}
 		}
 
-		printf("%4.2f%% - VPS: %4.2f(%s%s%4.2f) RPS: %4.2f Vert: %4.2f%c Sh4: %4.2f mhz\n", 
+		printf("%4.2f%% - VPS:%4.1f(%s%s%4.2f) RPS:%4.1f Sh4 %4.2fMhz Gdr %dKB/s\n", 
 			spd_cpu*100/200,spd_vbs,
 			mode,res,fullvbs,
-			spd_fps,mv,mv_c, spd_cpu);
+			spd_fps,spd_cpu,(u32)((float)gdromaccesses/(curtime-last_fps)));
+        
+        gdromaccesses=0;
+		VertexCount=0;
+		last_fps=curtime;
+		FrameCount=0;
+		vblk_cnt=0;
 	}
 }
 

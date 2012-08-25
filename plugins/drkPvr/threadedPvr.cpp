@@ -32,13 +32,8 @@ void threaded_TADma(u32* data,u32 size)
 	
 	//printf("threaded_TADma %08x %d\n",data,size);
 #if 1
-	verify(size*32<=TA_DMA_MAX_SIZE);
-	u64 * d=(u64*)ta_data[ta_cur];
-	memcpy(d,data,size*32);
-	ta_size[ta_cur]=size;
-
-	ta_pending=true;
-	while(ta_pending||ta_working);
+    TASplitter::Dma(data,size);
+    dmac_ch2_end_pending=true;
 #else	
 	verify(size*32<=TA_DMA_MAX_SIZE);
 	

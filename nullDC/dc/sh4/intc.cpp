@@ -142,6 +142,7 @@ INTC_IPRC_type INTC_IPRC;
 
 //InterruptID intr_l;
 
+#pragma pack(1)
 __attribute__((aligned(65536))) struct intr_s{
 u32 interrupt_vpend;
 u32 interrupt_vmask;	//-1 -> ingore that kthx.0x0FFFffff allows all interrupts ( virtual interrupts are allways masked
@@ -212,6 +213,8 @@ void fastcall VirtualInterrupt(u32 id)
 u32 no_interrupts,yes_interrupts;
 //#endif
 
+int UpdateINTC_C();
+
 extern "C" { // called from ASM
 int __attribute__((externally_visible)) UpdateINTCDoINT()
 {
@@ -230,7 +233,7 @@ int __attribute__((externally_visible)) UpdateINTCDoINT()
 	}
 }
 }
-//#define ASM_INTC
+#define ASM_INTC
 
 int UpdateINTC()
 {
@@ -246,20 +249,26 @@ int UpdateINTC()
 		return UpdateINTCDoINT();
 	}
 #else
-	asm volatile (
+	u32 rv=0;
+    
+    asm volatile (
 		"lis 7,intr@ha					\n"
-
-		"lwz 4,intr+0@l(7)				\n" // vpend
-		"lwz 5,intr+4@l(7)				\n" // vmask
-		"lwz 6,intr+8@l(7)				\n" // sri
+		"lwz 4,intr@l+0(7)              \n" // vpend
+		"lwz 5,intr@l+4(7)              \n" // vmask
+		"lwz 6,intr@l+8(7)              \n" // sri
 		"and 4,4,5						\n"
 		"cmplw 4,6						\n"
-		"ble 1f\n"
-		"b UpdateINTCDoINT			\n"
-		"1:\n"
+		"ble 1f                         \n"
+        "li %[rv],1                     \n"
+		"1:                             \n"
+        : [rv] "+r" (rv)
+        :: "3","4","5","6","7","cc"
 	);
+
+    if(rv) return UpdateINTCDoINT();
+
+    return 0;
 #endif
-	return 0;
 }
 
 void RaiseExeption(u32 code,u32 vector)

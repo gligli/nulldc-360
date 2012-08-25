@@ -647,20 +647,18 @@ static inline void handle_small_surface(struct XenosSurface * surf, void * buffe
 		return 0;
 	}
 	
-	void VramLockedWrite(vram_block* bl)
+	void VramLockedWrite(vram_block* bl,u32 addr)
 	{
-		//EnterCriticalSection(&tex_cache_cs);
 		TextureCacheData* tcd = (TextureCacheData*)bl->userdata;
-		tcd->dirty=true;
-		tcd->lock_block=0;
-		/*
-		if (tcd->Updates==0)
-		{
-			tcd->Texture->Release();
-			tcd->Texture=0;
-		}*/
-		params.vram_unlock(bl);
-		//LeaveCriticalSection(&tex_cache_cs);
+
+    	//if (addr>=bl->start && addr<=bl->end)
+        {
+//            printf("inval %d\n",tcd->Texture->height*tcd->Texture->wpitch);
+                        
+            tcd->dirty=true;
+            tcd->lock_block=0;
+    		params.vram_unlock(bl);
+        }
 	}
 	extern cThread rth;
 

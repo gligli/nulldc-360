@@ -187,7 +187,7 @@ void UpdateRRect()
 
 void FASTCALL vramLockCB (vram_block* block,u32 addr)
 {
-	rend_text_invl(block);
+    rend_text_invl(block,addr);
 }
 #include <vector>
 using std::vector;
