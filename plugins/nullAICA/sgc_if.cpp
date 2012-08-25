@@ -1371,6 +1371,6 @@ void AICA_Sample()
 	pl=mixl;
 	pr=mixr;
 
-	WriteSample(mixr,mixl);
+	xenon_WriteSample(mixr,mixl);
 }
 

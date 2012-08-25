@@ -1,14 +1,12 @@
-
-#include "audiostream_rif.h"
-#include "audiostream.h"
+#include "xenon_audiostream.h"
 
 #include <xenon_sound/sound.h>
 
 #define MAX_UNPLAYED 16384
 
 #define BUFFER_SIZE 65536
-static u8 buffer[BUFFER_SIZE];
-static u8 buffer48[BUFFER_SIZE];
+static s16 buffer[BUFFER_SIZE];
+static s16 buffer48[BUFFER_SIZE];
 
 static s16 prevLastSample[2]={0,0};
 // resamples pStereoSamples (taken from http://pcsx2.googlecode.com/svn/trunk/plugins/zerospu2/zerospu2.cpp)
@@ -61,23 +59,23 @@ void xenon_WriteSample(s16 r,s16 l)
         sound_inited=1;
     }
     
-    int bufs=441*4;
-    int buf48s=(bufs*48000/44100)&~1;
+    int bufs=441;
+    int buf48s=bufs*48000/44100;
     
     
-    *((s16*)&buffer[bufpos])=r; bufpos+=2;
-    *((s16*)&buffer[bufpos])=l; bufpos+=2;
+    buffer[bufpos++]=r;
+    buffer[bufpos++]=l;
     
     if (bufpos>=bufs)
     {
-		ResampleLinear((s16 *)buffer,bufs/4,(s16 *)buffer48,buf48s/4);
+		ResampleLinear(buffer,bufs/2,buffer48,buf48s/2);
 
         int i;
-        for(i=0;i<buf48s/2;++i) ((s16*)buffer48)[i]=bswap_16(((s16*)buffer48)[i]);
+        for(i=0;i<buf48s;++i) buffer48[i]=bswap_16(buffer48[i]);
 
         while(xenon_sound_get_unplayed()>MAX_UNPLAYED);
   
-        xenon_sound_submit(buffer48,buf48s);
+        xenon_sound_submit(buffer48,buf48s*2);
         
         bufpos=0;
     }

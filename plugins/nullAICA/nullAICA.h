@@ -61,11 +61,11 @@ void dcThreadTerm(PluginType type);
 
 #define 	ReadMemArrRet(arr,addr,sz)				\
 			{if (sz==1)								\
-				rv= arr[addr^3];					\
+				return arr[addr^3];					\
 			else if (sz==2)							\
-				rv= (*(u16*)&arr[addr^2]);			\
+				return (*(u16*)&arr[addr^2]);			\
 			else if (sz==4)							\
-				rv= (*(u32*)&arr[addr]);}	
+				return (*(u32*)&arr[addr]);}	
 
 #define WriteMemArrRet(arr,addr,data,sz)				\
 			{if(sz==1)								\

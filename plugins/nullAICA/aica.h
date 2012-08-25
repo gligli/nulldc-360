@@ -1,6 +1,6 @@
 #pragma once
 #include "nullAICA.h"
-#include "audiostream.h"
+#include "xenon_audiostream.h"
 #include "assert.h"
 
 #define SCIEB_addr 0x289C

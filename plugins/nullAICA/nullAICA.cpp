@@ -5,7 +5,7 @@
 #include "sgc_if.h"
 #include "aica.h"
 #include "aica_mem.h"
-#include "audiostream.h"
+#include "xenon_audiostream.h"
 
 aica_setts aica_settings;
 aica_init_params aica_params;
@@ -29,7 +29,7 @@ s32 FASTCALL InitAica(aica_init_params* initp)
 
 	init_mem();
 	AICA_Init();
-	InitAudio();
+	xenon_InitAudio();
 
 	return rv_ok;
 }
@@ -37,7 +37,7 @@ s32 FASTCALL InitAica(aica_init_params* initp)
 //called when plugin is unloaded by emu , olny if dcInit is called (eg , not called to enumerate plugins)
 void FASTCALL TermAica()
 {
-	TermAudio();
+	xenon_TermAudio();
 	AICA_Term();
 	term_mem();
 }

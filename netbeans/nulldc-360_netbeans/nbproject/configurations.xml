@@ -265,9 +265,6 @@
         <in>aica.h</in>
         <in>aica_mem.cpp</in>
         <in>aica_mem.h</in>
-        <in>audiostream.cpp</in>
-        <in>audiostream.h</in>
-        <in>audiostream_rif.h</in>
         <in>dsp.cpp</in>
         <in>dsp.h</in>
         <in>nullAICA.cpp</in>
@@ -668,13 +665,6 @@
         </ccTool>
       </item>
       <item path="../../nullDC/dc/sh4/shil/shil.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/shil/shil_ce.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
         <ccTool>
         </ccTool>
       </item>
