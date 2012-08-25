@@ -2604,11 +2604,12 @@ nl:
 			pvrrc.invW_max=bg_d.f;
 
 		RenderWasStarted=true;
-#ifdef THREADED_PVR
-		do_render_pending=true;
-#else
-		DoRender();
-#endif
+
+        if (threaded_pvr)        
+            do_render_pending=true;
+        else
+            DoRender();
+
 		FrameCount++;
 		
 	}

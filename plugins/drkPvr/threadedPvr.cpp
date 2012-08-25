@@ -10,6 +10,8 @@
 #include "ta.h"
 #include "spg.h"
 
+volatile bool threaded_pvr=true;
+
 static volatile bool running=false;
 
 #define TA_DMA_MAX_SIZE 1048576
@@ -27,10 +29,8 @@ extern volatile bool dmac_ch2_end_pending;
 
 void threaded_TADma(u32* data,u32 size)
 {
-#ifdef THREADED_PVR
 	while(ta_pending||ta_working||do_render_pending||rend_end_render_call_pending);
-	
-	//printf("threaded_TADma %08x %d\n",data,size);
+
 #if 1
     TASplitter::Dma(data,size);
     dmac_ch2_end_pending=true;
@@ -45,38 +45,32 @@ void threaded_TADma(u32* data,u32 size)
 	
 	ta_pending=true;
 #endif
-	
-#else
-	TASplitter::Dma(data,size);
-#endif
 }
 
 extern u64 time_pref;
 
 void threaded_TASQ(u32* data)
 {
-#ifdef THREADED_PVR
-//	u64 prt=mftb();
-	
-	while(ta_pending||do_render_pending||rend_end_render_call_pending);
+    if(threaded_pvr)
+    {
+        while(ta_pending||do_render_pending||rend_end_render_call_pending);
 
-	u64 * d=(u64*)ta_data[ta_cur];
-	u64 * s=(u64*)data;
-	
-	d[0]=s[0];
-	d[1]=s[1];
-	d[2]=s[2];
-	d[3]=s[3];
-	
-	ta_size[ta_cur]=0;
-	
-	ta_pending=true;
+        u64 * d=(u64*)ta_data[ta_cur];
+        u64 * s=(u64*)data;
 
-/*	prt=mftb()-prt;
-	time_pref+=prt;*/
-#else
-	TASplitter::SQ(data);
-#endif
+        d[0]=s[0];
+        d[1]=s[1];
+        d[2]=s[2];
+        d[3]=s[3];
+
+        ta_size[ta_cur]=0;
+
+        ta_pending=true;
+    }
+    else
+    {
+    	TASplitter::SQ(data);
+    }
 }
 
 static void threaded_task()
@@ -127,10 +121,10 @@ static u8 stack[0x100000];
 
 void threaded_init()
 {
-#ifdef THREADED_PVR
 	running=true;
-	xenon_run_thread_task(2,&stack[sizeof(stack)-0x100],(void*)threaded_task);
-#endif
+    
+    if (threaded_pvr)
+        xenon_run_thread_task(2,&stack[sizeof(stack)-0x100],(void*)threaded_task);
 	
 	atexit(threaded_term);
 }
