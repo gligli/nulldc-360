@@ -4,7 +4,11 @@
 #include <stdlib.h>
 
 #include <xenon_soc/xenon_power.h>
+
+#include <ppc/xenonsprs.h>
+#include <ppc/register.h>
 #include <ppc/atomic.h>
+#include <time/time.h>
 
 #include "Renderer_if.h"
 #include "ta.h"
@@ -19,29 +23,99 @@ static volatile bool running=false;
 static volatile __attribute__((aligned(128))) u32 ta_data[2][TA_DMA_MAX_SIZE/4];
 static volatile int ta_size[2];
 static volatile int ta_cur=0;
+
 static volatile bool ta_pending=false;
 static volatile bool ta_working=false;
 
-volatile bool do_render_pending=false;
-volatile bool rend_end_render_call_pending=false;
+static volatile bool start_render_call_pending=false;
+static volatile bool end_render_call_pending=false;
+
+static __attribute__((aligned(128))) unsigned int tp_lock=0;
+static __attribute__((aligned(128))) unsigned int rend_lock=0;
+
+#define chkunlock(x) {/*verify(*x);*/unlock(x);}
+
+using namespace TASplitter;
+
+static u32 threaded_CurrentList=ListType_None; 
+
+// send "Job done" irq immediately, and let the pvr thread handle it when it can :)
+void threaded_ImmediateIRQ(u32 * data)
+{
+    Ta_Dma * td = (Ta_Dma*) data;
+    
+    switch (td->pcw.ParaType)
+    {
+        case ParamType_End_Of_List:
+
+            if (threaded_CurrentList==ListType_None)
+                threaded_CurrentList=td->pcw.ListType;
+            
+//            printf("RaiseInterrupt %d\n",threaded_CurrentList);
+            params.RaiseInterrupt(ListEndInterrupt[threaded_CurrentList]);
+
+			threaded_CurrentList=ListType_None;
+            break;
+
+        case ParamType_Sprite:
+        case ParamType_Polygon_or_Modifier_Volume:
+
+            if (threaded_CurrentList==ListType_None)
+                threaded_CurrentList=td->pcw.ListType;
+            
+            break;
+    }
+}
+
+void threaded_Wait(bool ta,bool render,bool set_srcp,bool set_ercp)
+{
+    if(threaded_pvr)
+    {
+       if (ta)
+       {
+           lock(&tp_lock);
+           while(ta_working) asm volatile("db16cyc");
+//           verify(!ta_working && !ta_pending);
+           chkunlock(&tp_lock);
+       }
+       if (render)
+       {
+           lock(&rend_lock);
+//           verify(!start_render_call_pending && !end_render_call_pending);
+           start_render_call_pending|=set_srcp;
+           end_render_call_pending|=set_ercp;
+       }
+    }
+}
 
 void threaded_TADma(u32* data,u32 size)
 {
-	while(ta_pending||ta_working||do_render_pending||rend_end_render_call_pending);
+    if(threaded_pvr)
+    {
+        lock(&tp_lock);
+//        verify(!ta_pending);
 
-#if 1
-    TASplitter::Dma(data,size);
-#else	
-	verify(size*32<=TA_DMA_MAX_SIZE);
-	
-	u64 * d=(u64*)ta_data[ta_cur];
-	
-	memcpy(d,data,size*32);
-	
-	ta_size[ta_cur]=size;
-	
-	ta_pending=true;
-#endif
+        verify(size*32<=TA_DMA_MAX_SIZE);
+
+        u64 * d=(u64*)ta_data[ta_cur];
+
+        memcpy(d,data,size*32);
+
+        ta_size[ta_cur]=size;
+
+        ta_pending=true;
+    }
+    else
+    {
+        TASplitter::Dma(data,size);
+    }
+
+    u32 * end=data+size*32/4;
+    while(data<end)
+    {
+        threaded_ImmediateIRQ(data);
+        data+=32/4;
+    }
 }
 
 extern u64 time_pref;
@@ -50,7 +124,8 @@ void threaded_TASQ(u32* data)
 {
     if(threaded_pvr)
     {
-        while(ta_pending||do_render_pending||rend_end_render_call_pending);
+        lock(&tp_lock);
+//        verify(!ta_pending);
 
         u64 * d=(u64*)ta_data[ta_cur];
         u64 * s=(u64*)data;
@@ -68,6 +143,8 @@ void threaded_TASQ(u32* data)
     {
     	TASplitter::SQ(data);
     }
+    
+    threaded_ImmediateIRQ(data);
 }
 
 static void threaded_task()
@@ -76,13 +153,15 @@ static void threaded_task()
 	{
 		if(ta_pending)
 		{
-			u32 * data=(u32*)ta_data[ta_cur];
+			ta_working=true;
+
+            u32 * data=(u32*)ta_data[ta_cur];
 			u32 size = ta_size[ta_cur];
 			
 			ta_cur=1-ta_cur;
 			
-			ta_working=true;
-			ta_pending=false;
+    		ta_pending=false;
+			chkunlock(&tp_lock);
 			
 			if (!size)
 			{
@@ -95,21 +174,24 @@ static void threaded_task()
 
 			ta_working=false;
 		}
-		
-		if(do_render_pending){
-				DoRender();
-				do_render_pending=false;
+        
+		if(start_render_call_pending){
+            rend_start_render();
+            start_render_call_pending=false;
+            chkunlock(&rend_lock);
 		}
 
-		if (rend_end_render_call_pending)
+		if (end_render_call_pending)
 		{
-			params.RaiseInterrupt(holly_RENDER_DONE);
+            params.RaiseInterrupt(holly_RENDER_DONE);
 			params.RaiseInterrupt(holly_RENDER_DONE_isp);
 			params.RaiseInterrupt(holly_RENDER_DONE_vd);
 			rend_end_render();
 			render_end_pending=false;
-			rend_end_render_call_pending=false;
+			end_render_call_pending=false;
+            chkunlock(&rend_lock);
 		}
+    	
 	}
 }
 
@@ -120,7 +202,7 @@ void threaded_init()
 	running=true;
     
     if (threaded_pvr)
-        xenon_run_thread_task(2,&stack[sizeof(stack)-0x100],(void*)threaded_task);
+        xenon_run_thread_task(2,&stack[sizeof(stack)-0x1000],(void*)threaded_task);
 	
 	atexit(threaded_term);
 }

@@ -22,14 +22,11 @@ DMAC_CHCR_type DMAC_CHCR[4];
 DMAC_DMAOR_type DMAC_DMAOR;
 
 u32 dmac_ch2_src;
-volatile bool dmac_ch2_end_pending=false;
 
 void dmac_ch2_end();
 		
 void DMAC_Ch2St()
 {
-	bool delayed=false;
-	
 	//u32 chcr	= DMAC_CHCR[2].full,
 	u32 dmaor	= DMAC_DMAOR.full;//,
 		//dmatcr	= DMAC_DMATCR[2];
@@ -62,7 +59,7 @@ void DMAC_Ch2St()
 			{
 				u32 *sys_buf=(u32 *)GetMemPtr(src,len);//(&mem_b[src&RAM_MASK]);
 				u32 new_len=RAM_SIZE-p_addr;
-				delayed=TAWrite(dst,sys_buf,(new_len/32));
+				TAWrite(dst,sys_buf,(new_len/32));
 				len-=new_len;
 				src+=new_len;
 				//dst+=new_len;
@@ -70,7 +67,7 @@ void DMAC_Ch2St()
 			else
 			{
 				u32 *sys_buf=(u32 *)GetMemPtr(src,len);//(&mem_b[src&RAM_MASK]);
-				delayed=TAWrite(dst,sys_buf,(len/32));
+				TAWrite(dst,sys_buf,(len/32));
 				src+=len;
 				break;
 			}
@@ -125,14 +122,7 @@ void DMAC_Ch2St()
 	
 	dmac_ch2_src=src;
 	
-	if(!delayed)
-	{
-		dmac_ch2_end();
-	}
-    else
-    {
-        dmac_ch2_end_pending=true;
-    }
+    dmac_ch2_end();
 }
 
 void dmac_ch2_end()
@@ -151,8 +141,6 @@ void dmac_ch2_end()
 	// The DMA end interrupt flag (SB_ISTNRM - bit 19: DTDE2INT) is set to "1."
 	//-> fixed , holly_PVR_DMA is for diferent use now (fixed the interrupts enum too)
 	asic_RaiseInterrupt(holly_CH2_DMA);
-
-	dmac_ch2_end_pending=false;
 }
 
 
@@ -169,10 +157,6 @@ void dmac_ddt_ch2_direct(u32 dst,u32 count)
 //transfer 22kb chunks (or less) [704 x 32] (22528)
 void UpdateDMA()
 {
-	if(dmac_ch2_end_pending)
-	{
-		dmac_ch2_end();
-	}
 }
 template<u32 ch>
 void WriteCHCR(u32 data)

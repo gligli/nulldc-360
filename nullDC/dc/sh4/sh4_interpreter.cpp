@@ -718,7 +718,7 @@ void __fastcall MediumUpdate()
 {
     if(threaded_subsystems)
     {
-        while(update_pending);
+        while(update_pending) asm volatile("db16cyc");
         update_pending=true;
     }
     else
@@ -750,7 +750,7 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 
     if(threaded_internals)
     {
-        while(update_pending2);
+        while(update_pending2) asm volatile("db16cyc");
         update_pending2=true;
     }
     else

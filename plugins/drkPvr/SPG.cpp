@@ -77,8 +77,8 @@ void CalculateSync()
 }
 
 extern u32 op_usage[0x10000];
-#define DYNA_MEM_POOL_SIZE 32*1024*1024
-extern u8 dyna_mem_pool[DYNA_MEM_POOL_SIZE];
+extern u8* DynarecCache;
+extern u32 DynarecCacheSize;
 
 extern u64 time_dr_start;
 extern u64 time_update_system;
@@ -189,10 +189,10 @@ void spgVBL()
 					break;
 				case 'd':
 				{
-					printf("---- dumping dynarec mem pool @%08x\n",dyna_mem_pool);
+					printf("---- dumping dynarec mem pool @%08x\n",DynarecCache);
 					FILE * f=fopen("uda:/nulldc-mempool.bin","wb");
 					if(f){
-						fwrite(dyna_mem_pool,1,DYNA_MEM_POOL_SIZE,f);
+						fwrite(DynarecCache,1,DynarecCacheSize,f);
 						fclose(f);
 					}
 					break;
@@ -270,14 +270,11 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 	{
 		if (render_end_pending_cycles<cycles)
 		{
+            threaded_Wait(false,true,false,true);
+
             rend_handle_locks();
             
-            if(threaded_pvr)
-            {
-    			while(rend_end_render_call_pending);
-        		rend_end_render_call_pending=true;
-            }
-            else
+            if(!threaded_pvr)
             {
                 params.RaiseInterrupt(holly_RENDER_DONE);
                 params.RaiseInterrupt(holly_RENDER_DONE_isp);

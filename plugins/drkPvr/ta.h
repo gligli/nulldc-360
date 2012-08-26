@@ -324,9 +324,10 @@ public:
 							//end of list should be all 0's ...
 							TA_decoder::EndList(CurrentList);//end a list olny if it was realy started
 						}
-
+                        
+                        
 						//printf("End list %X\n",CurrentList);
-						params.RaiseInterrupt(ListEndInterrupt[CurrentList]);
+//gli threaded_ImmediateIRQ does this now						params.RaiseInterrupt(ListEndInterrupt[CurrentList]);
 						ListIsFinished[CurrentList]=true;
 						CurrentList=ListType_None;
 						VerxexDataFP=0;

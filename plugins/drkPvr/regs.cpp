@@ -2,7 +2,7 @@
 #include "Renderer_if.h"
 #include "ta.h"
 #include "spg.h"
-
+#include "threadedPvr.h"
 
 //seems to work allright .. ;P
 //many things need to be emulated , especialy to support lle emulation but for now that's not needed
@@ -28,7 +28,7 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 		return;
 	}
 	u32 addr=paddr&RegMask;
-
+    
 	if (addr==ID_addr)
 		return;//read olny
 	if (addr==REVISION_addr)
@@ -36,9 +36,13 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 
 	if (addr==STARTRENDER_addr)
 	{
-//		asm("sc");
-		//start render
-		rend_start_render();
+        //start render
+		threaded_Wait(true,true,true,false);
+
+        BeforeStartRender();
+
+        if(!threaded_pvr) rend_start_render();
+
 		//PrintfInfo();
 		//TODO : fix that mess -- now uses hacksync ;) later will be async too :P:P
 		
@@ -53,6 +57,8 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 	{
 		if (data>>31)
 		{
+            threaded_Wait(true,false,false,false);
+
 			rend_list_init();
 			data=0;
 		}
@@ -63,7 +69,10 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 		if (data!=0)
 		{
 			if (data&1)
+            {
+                threaded_Wait(true,false,false,false);
 				rend_list_srst();
+            }
 			data=0;
 		}
 	}
@@ -71,7 +80,8 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 	if (addr==TA_LIST_CONT_addr)
 	{
 		//a write of anything works ?
-		rend_list_cont();
+        threaded_Wait(true,false,false,false);
+        rend_list_cont();
 	}
 	
 	if (addr == FB_R_CTRL_addr || 
@@ -89,9 +99,10 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 		{
 			u32 pal=addr&1023;
 
-			pal_needs_update=true;
 			_pal_rev_256[pal>>8]++;
 			_pal_rev_16[pal>>4]++;
+
+			pal_needs_update=true;
 		}
 	}
 	PvrReg(addr,u32)=data;

@@ -41,7 +41,7 @@ const struct XenosVBFFormat VertexBufferFormat = {
     }
 };
 
-bool hadTriangles=false;
+volatile bool hadTriangles=false;
 volatile bool syncPending=false;
 
 
@@ -82,21 +82,21 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 //#define D3DXGetVertexShaderProfile(x) "vs_2_0"
 
 #define PS_SHADER_COUNT (384*4)
-	bool RenderWasStarted=false;
+	volatile bool RenderWasStarted=false;
 	struct VertexDecoder;
 	FifoSplitter<VertexDecoder> TileAccel;
 
 	struct { bool needs_resize;NDC_WINDOW_RECT new_size;u32 rev;} resizerq;
 
-	u32 clear_rt=0;
+	volatile u32 clear_rt=0;
 	u32 last_ps_mode=0xFFFFFFFF;
 	float current_scalef[4];
 	//CRITICAL_SECTION tex_cache_cs;
 	
-	u32 FrameNumber=0;
-	u32 fb_FrameNumber=0;
+	volatile u32 FrameNumber=0;
+	volatile u32 fb_FrameNumber=0;
 
-	u32 frameStart = 0;
+	volatile u32 frameStart = 0;
 	u32 frameRate = 0;
 	u32 timer, timeStart = timeGetTime();
 
@@ -742,8 +742,8 @@ static inline void handle_small_surface(struct XenosSurface * surf, void * buffe
 		u32* ptest=(u32*)&params.vram[addr1];
 
 		{
-			struct XenosSurface * tex=fb_texture;
 #if 0
+			struct XenosSurface * tex=fb_texture;
 			//assume rect is same as front buffer
 			RECT rs={0,0,fb_surf_desc.Width,fb_surf_desc.Height};
 			
@@ -1134,13 +1134,15 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 		//save old context
 		u32 found=FindRC(tarc.Address);
 		if (found!=0xFFFFFFFF)
-			memcpy(&rcnt[found],&tarc,sizeof(TA_context));
+        {
+            rcnt[found]=tarc;
+        }
 
 		//switch to new one
 		found=FindRC(addr);
 		if (found!=0xFFFFFFFF)
 		{
-			memcpy(&tarc,&rcnt[found],sizeof(TA_context));
+            tarc=rcnt[found];
 		}
 		else
 		{
@@ -1158,19 +1160,19 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 //		printf("SetCurrentPVRRC:0x%X\n",addr);
 		if (addr==tarc.Address)
 		{
-			memcpy(&pvrrc,&tarc,sizeof(TA_context));
+            pvrrc=tarc;
 			return;
 		}
 
 		u32 found=FindRC(addr);
 		if (found!=0xFFFFFFFF)
 		{
-			memcpy(&pvrrc,&rcnt[found],sizeof(TA_context));
+            pvrrc=rcnt[found];
 			return;
 		}
 
 		printf("WARNING : Unable to find a PVR rendering context\n");
-		memcpy(&pvrrc,&tarc,sizeof(TA_context));
+        pvrrc=tarc;
 	}
 
 
@@ -1338,14 +1340,14 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 	}
 	const float TextureSizes[8][2]=
 	{
-		8.f,1/8.f,
-		16.f,1/16.f,
-		32.f,1/32.f,
-		64.f,1/64.f,
-		128.f,1/128.f,
-		256.f,1/256.f,
-		512.f,1/512.f,
-		1024.f,1/1024.f,
+		{8.f,1/8.f},
+		{16.f,1/16.f},
+		{32.f,1/32.f},
+		{64.f,1/64.f},
+		{128.f,1/128.f},
+		{256.f,1/256.f},
+		{512.f,1/512.f},
+		{1024.f,1/1024.f},
 	};
 	//
 	template <u32 Type,bool FFunction,bool df,bool SortingEnabled>
@@ -1628,8 +1630,8 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 			{
 				const register u32 offs = i << 2;
 				tex[offs+0 + j * fog_texture->wpitch]=0;//B
-				tex[offs+1 + j * fog_texture->wpitch]=fog_table[offs+0^3];//G
-				tex[offs+2 + j * fog_texture->wpitch]=fog_table[offs+1^3];//R
+				tex[offs+1 + j * fog_texture->wpitch]=fog_table[(offs+0)^3];//G
+				tex[offs+2 + j * fog_texture->wpitch]=fog_table[(offs+1)^3];//R
 				tex[offs+3 + j * fog_texture->wpitch]=0;//A
 			}
 		}
@@ -2493,15 +2495,23 @@ nl:
 	}
 	void decode_pvr_vertex(u32 base,u32 ptr,Vertex* to);
 	int old_pal_mode;
+    
+    void BeforeStartRender()
+    {
+        SetCurrentPVRRC(PARAM_BASE);
+    }
+    
 	void StartRender()
 	{
-		SetCurrentPVRRC(PARAM_BASE);
 		VertexCount+= pvrrc.verts.used;
+
 		render_end_pending_cycles= pvrrc.verts.used*45;
 		//if (render_end_pending_cycles<500000)
 			render_end_pending_cycles+=500000;
 
-		if (old_pal_mode!=drkpvr_settings.Emulation.PaletteMode)
+        //printf("%08x 2\n",PARAM_BASE);
+
+        if (old_pal_mode!=drkpvr_settings.Emulation.PaletteMode)
 		{
 			//mark pal texures dirty
 			TexCacheList<TextureCacheData>::TexCacheEntry* ptext= TexCache.plast;
@@ -2530,7 +2540,7 @@ nl:
 		bg_d.i=ISP_BACKGND_D & ~(0xF);
 		bg_t.full=ISP_BACKGND_T;
 		
-		PolyParam* bgpp=&pvrrc.global_param_op.data[0];
+        PolyParam bgpp;
 		Vertex* cv=BGPoly;
 
 		bool PSVM=(FPU_SHAD_SCALE&0x100)!=0; //double parameters for volumes
@@ -2552,23 +2562,24 @@ nl:
 		//Get vertex ptr
 		u32 vertex_ptr=strip_vert_num*strip_vs+strip_base +3*4;
 		//now , all the info is ready :p
+		bgpp.isp.full=vri(strip_base);
+		bgpp.tsp.full=vri(strip_base+4);
+		bgpp.tcw.full=vri(strip_base+8);
+		bgpp.count=4;
+		bgpp.first=0;
+		bgpp.tileclip=0;//disabled ! HA ~
 
-		bgpp->isp.full=vri(strip_base);
-		bgpp->tsp.full=vri(strip_base+4);
-		bgpp->tcw.full=vri(strip_base+8);
-		bgpp->count=4;
-		bgpp->first=0;
-		bgpp->tileclip=0;//disabled ! HA ~
-
-		bgpp->isp.DepthMode=7;// -> this makes things AWFULLY slow .. sometimes
-		bgpp->isp.CullMode=0;// -> so that its not culled, or somehow else hiden !
-		bgpp->tsp.FogCtrl=2;
+		bgpp.isp.DepthMode=7;// -> this makes things AWFULLY slow .. sometimes
+		bgpp.isp.CullMode=0;// -> so that its not culled, or somehow else hiden !
+		bgpp.tsp.FogCtrl=2;
 		//Set some pcw bits .. i should realy get rid of pcw ..
-		bgpp->pcw.UV_16bit=bgpp->isp.UV_16b;
-		bgpp->pcw.Gouraud=bgpp->isp.Gouraud;
-		bgpp->pcw.Offset=bgpp->isp.Offset;
-		bgpp->pcw.Texture=bgpp->isp.Texture;
+		bgpp.pcw.UV_16bit=bgpp.isp.UV_16b;
+		bgpp.pcw.Gouraud=bgpp.isp.Gouraud;
+		bgpp.pcw.Offset=bgpp.isp.Offset;
+		bgpp.pcw.Texture=bgpp.isp.Texture;
 
+        //pvrrc.global_param_op.data[0]=bgpp;
+        
 		float scale_x= (SCALER_CTL.hscale) ? 2.f:1.f;	//if AA hack the hacked pos value hacks
 		for (int i=0;i<3;i++)
 		{
@@ -2604,10 +2615,7 @@ nl:
 
 		RenderWasStarted=true;
 
-        if (threaded_pvr)        
-            do_render_pending=true;
-        else
-            DoRender();
+        DoRender();
 
 		FrameCount++;
 		
@@ -2913,7 +2921,6 @@ nl:
 	#define z_update(zv)
 #endif
 
-		//if ((*(u32*)&invW)==0x7F800000) return;\
 	//Append vertex base
 #define vert_cvt_base \
 	f32 invW=vtx->xyz[2];\
@@ -3257,7 +3264,6 @@ nl:
 #define append_sprite(indx) \
 	vert_float_color_(cv[indx].col,SFaceBaseColor[3],SFaceBaseColor[0],SFaceBaseColor[1],SFaceBaseColor[2])\
 	vert_float_color_(cv[indx].spc,SFaceOffsColor[3],SFaceOffsColor[0],SFaceOffsColor[1],SFaceOffsColor[2])
-	//cv[indx].base_int=1;\
 	//cv[indx].offset_int=1;
 
 #define append_sprite_yz(indx,set,st2) \

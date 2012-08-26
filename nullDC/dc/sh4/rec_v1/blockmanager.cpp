@@ -869,7 +869,7 @@ void DumpBlockMappings()
 
 //Memory allocator
 
-u8 __attribute__ ((aligned(128))) dyna_mem_pool[DYNA_MEM_POOL_SIZE];
+u8 __attribute__ ((aligned(65536))) dyna_mem_pool[DYNA_MEM_POOL_SIZE];
 
 void init_memalloc(u32 size)
 {
@@ -882,8 +882,6 @@ void init_memalloc(u32 size)
 	
 	DynarecCache = dyna_mem_pool;
 	verify(DynarecCache!=0);
-
-	
 }
 void reset_memalloc()
 {
@@ -909,7 +907,7 @@ void* dyna_finalize(void* ptr,u32 oldsize,u32 newsize)
 		return 0;
 	
 	void* rv=&DynarecCache[DynarecCacheUsed];
-#if 1
+#if 0
 	verify(!((u32)rv&127));
 	DynarecCacheUsed+=(newsize+127)&~127; // align blocks on cache lines
 #else
