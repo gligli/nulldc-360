@@ -30,11 +30,6 @@ static volatile bool ta_working=false;
 static volatile bool start_render_call_pending=false;
 static volatile bool end_render_call_pending=false;
 
-static __attribute__((aligned(128))) unsigned int tp_lock=0;
-static __attribute__((aligned(128))) unsigned int rend_lock=0;
-
-#define chkunlock(x) {/*verify(*x);*/unlock(x);}
-
 using namespace TASplitter;
 
 static u32 threaded_CurrentList=ListType_None; 
@@ -73,15 +68,11 @@ void threaded_Wait(bool ta,bool render,bool set_srcp,bool set_ercp)
     {
        if (ta)
        {
-           lock(&tp_lock);
-           while(ta_working) asm volatile("db16cyc");
-//           verify(!ta_working && !ta_pending);
-           chkunlock(&tp_lock);
+           while(ta_working||ta_pending) asm volatile("db16cyc");
        }
        if (render)
        {
-           lock(&rend_lock);
-//           verify(!start_render_call_pending && !end_render_call_pending);
+           while(start_render_call_pending||end_render_call_pending) asm volatile("db16cyc");
            start_render_call_pending|=set_srcp;
            end_render_call_pending|=set_ercp;
        }
@@ -92,9 +83,8 @@ void threaded_TADma(u32* data,u32 size)
 {
     if(threaded_pvr)
     {
-        lock(&tp_lock);
-//        verify(!ta_pending);
-
+        while(ta_pending) asm volatile("db16cyc");
+        
         verify(size*32<=TA_DMA_MAX_SIZE);
 
         u64 * d=(u64*)ta_data[ta_cur];
@@ -124,8 +114,7 @@ void threaded_TASQ(u32* data)
 {
     if(threaded_pvr)
     {
-        lock(&tp_lock);
-//        verify(!ta_pending);
+        while(ta_pending) asm volatile("db16cyc");
 
         u64 * d=(u64*)ta_data[ta_cur];
         u64 * s=(u64*)data;
@@ -161,7 +150,6 @@ static void threaded_task()
 			ta_cur=1-ta_cur;
 			
     		ta_pending=false;
-			chkunlock(&tp_lock);
 			
 			if (!size)
 			{
@@ -178,7 +166,6 @@ static void threaded_task()
 		if(start_render_call_pending){
             rend_start_render();
             start_render_call_pending=false;
-            chkunlock(&rend_lock);
 		}
 
 		if (end_render_call_pending)
@@ -189,7 +176,6 @@ static void threaded_task()
 			rend_end_render();
 			render_end_pending=false;
 			end_render_call_pending=false;
-            chkunlock(&rend_lock);
 		}
     	
 	}

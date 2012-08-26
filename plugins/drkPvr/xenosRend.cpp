@@ -2578,7 +2578,7 @@ nl:
 		bgpp.pcw.Offset=bgpp.isp.Offset;
 		bgpp.pcw.Texture=bgpp.isp.Texture;
 
-        //pvrrc.global_param_op.data[0]=bgpp;
+        pvrrc.global_param_op.data[0]=bgpp;
         
 		float scale_x= (SCALER_CTL.hscale) ? 2.f:1.f;	//if AA hack the hacked pos value hacks
 		for (int i=0;i<3;i++)
