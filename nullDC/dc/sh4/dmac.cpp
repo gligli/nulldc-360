@@ -129,6 +129,10 @@ void DMAC_Ch2St()
 	{
 		dmac_ch2_end();
 	}
+    else
+    {
+        dmac_ch2_end_pending=true;
+    }
 }
 
 void dmac_ch2_end()

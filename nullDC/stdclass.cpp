@@ -297,7 +297,7 @@ void VArray2::LockRegion(u32 offset,u32 size)
     
 	if (addr&0xffff || size&0xffff)
 	{
-		vm_set_user_mapping_flags(addr&~0xffff,(size&~0xffff)+0x10000,VM_WIMG_CACHED_READ_ONLY);
+		vm_set_user_mapping_flags(addr&~0xffff,(size+0xffff)&~0xffff,VM_WIMG_CACHED_READ_ONLY);
 	}
 	else
 	{
@@ -312,7 +312,7 @@ void VArray2::UnLockRegion(u32 offset,u32 size)
 
 	if (addr&0xffff || size&0xffff)
 	{
-		vm_set_user_mapping_flags(addr&~0xffff,(size&~0xffff)+0x10000,VM_WIMG_CACHED);
+		vm_set_user_mapping_flags(addr&~0xffff,(size+0xffff)&~0xffff,VM_WIMG_CACHED);
 	}
 	else
 	{

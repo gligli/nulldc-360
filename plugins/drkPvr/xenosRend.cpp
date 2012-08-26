@@ -1374,60 +1374,59 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 			cache_tcw=gp->tcw;
 			cache_texture_enabled = gp->pcw.Texture;
 			
-			struct XenosSurface * tex=GetTexture(gp->tsp,gp->tcw);
+            if (gp->tsp.full!=cache_tsp.full)
+            {
+                cache_tsp=gp->tsp;
 
-			if ( gp->tsp.FilterMode == 0 || (drkpvr_settings.Emulation.PaletteMode>1 && ( gp->tcw.PAL.PixelFmt==5|| gp->tcw.PAL.PixelFmt==6) ))
-			{
-				tex->use_filtering=0;
-			}
-			else
-			{
-				tex->use_filtering=1;
-			}
-
-			if (gp->tsp.full!=cache_tsp.full)
-			{
-				cache_tsp=gp->tsp;
-
-				if (Type==ListType_Translucent)
-				{
-					Xe_SetSrcBlend(xe,SrcBlendGL[gp->tsp.SrcInstr]);
-					Xe_SetSrcBlendAlpha(xe,SrcBlendGL[gp->tsp.SrcInstr]);
-					Xe_SetDestBlend(xe,DstBlendGL[gp->tsp.DstInstr]);
-					Xe_SetDestBlendAlpha(xe,DstBlendGL[gp->tsp.DstInstr]);
-					bool clip_alpha_on_zero=gp->tsp.SrcInstr==4 && (gp->tsp.DstInstr==1 || gp->tsp.DstInstr==5);
-					if (clip_alpha_on_zero!=cache_clip_alpha_on_zero)
-					{
-						cache_clip_alpha_on_zero=clip_alpha_on_zero;
-						Xe_SetAlphaTestEnable(xe,clip_alpha_on_zero);
-					}
-				}
-
-				
-				if (gp->tsp.ClampV)
-					tex->v_addressing=XE_TEXADDR_CLAMP;
-				else 
-				{
-					if (gp->tsp.FlipV)
-						tex->v_addressing=XE_TEXADDR_MIRROR;
-					else
-						tex->v_addressing=XE_TEXADDR_WRAP;
-				}
-
-				if (gp->tsp.ClampU)
-					tex->u_addressing=XE_TEXADDR_CLAMP;
-				else 
-				{
-					if (gp->tsp.FlipU)
-						tex->u_addressing=XE_TEXADDR_MIRROR;
-					else
-						tex->u_addressing=XE_TEXADDR_WRAP;
-				}
-			}
+                if (Type==ListType_Translucent)
+                {
+                    Xe_SetSrcBlend(xe,SrcBlendGL[gp->tsp.SrcInstr]);
+                    Xe_SetSrcBlendAlpha(xe,SrcBlendGL[gp->tsp.SrcInstr]);
+                    Xe_SetDestBlend(xe,DstBlendGL[gp->tsp.DstInstr]);
+                    Xe_SetDestBlendAlpha(xe,DstBlendGL[gp->tsp.DstInstr]);
+                    bool clip_alpha_on_zero=gp->tsp.SrcInstr==4 && (gp->tsp.DstInstr==1 || gp->tsp.DstInstr==5);
+                    if (clip_alpha_on_zero!=cache_clip_alpha_on_zero)
+                    {
+                        cache_clip_alpha_on_zero=clip_alpha_on_zero;
+                        Xe_SetAlphaTestEnable(xe,clip_alpha_on_zero);
+                    }
+                }
+            }
 
 			if (gp->pcw.Texture)
 			{
-				Xe_SetTexture(xe,0,tex);
+                struct XenosSurface * tex=GetTexture(gp->tsp,gp->tcw);
+
+                if ( gp->tsp.FilterMode == 0 || (drkpvr_settings.Emulation.PaletteMode>1 && ( gp->tcw.PAL.PixelFmt==5|| gp->tcw.PAL.PixelFmt==6) ))
+                {
+                    tex->use_filtering=0;
+                }
+                else
+                {
+                    tex->use_filtering=1;
+                }
+
+                if (gp->tsp.ClampV)
+                    tex->v_addressing=XE_TEXADDR_CLAMP;
+                else 
+                {
+                    if (gp->tsp.FlipV)
+                        tex->v_addressing=XE_TEXADDR_MIRROR;
+                    else
+                        tex->v_addressing=XE_TEXADDR_WRAP;
+                }
+
+                if (gp->tsp.ClampU)
+                    tex->u_addressing=XE_TEXADDR_CLAMP;
+                else 
+                {
+                    if (gp->tsp.FlipU)
+                        tex->u_addressing=XE_TEXADDR_MIRROR;
+                    else
+                        tex->u_addressing=XE_TEXADDR_WRAP;
+                }
+
+                Xe_SetTexture(xe,0,tex);
 				float tsz[4];
 				tsz[0]=TextureSizes[gp->tsp.TexU][0];
 				tsz[2]=TextureSizes[gp->tsp.TexU][1];
@@ -2619,7 +2618,7 @@ nl:
 		*(u32*)&params.vram[vramlock_ConvOffset32toOffset64(adr)]=data;
 	}
     
-    void HandleCache()
+    void HandleLocks()
     {
         for (size_t i=0;i<lock_list.size();i++)
 		{
@@ -2629,7 +2628,10 @@ nl:
 			
 		}
 		lock_list.clear();
-    
+    }
+
+    void HandleCache()
+    {
         TexCacheList<TextureCacheData>::TexCacheEntry* ptext= TexCache.plast;
 		while(ptext && ((FrameNumber-ptext->data.LastUsed)>60))
 		{
@@ -2651,7 +2653,9 @@ nl:
     
 	void EndRender()
 	{
-		if (!RenderWasStarted)
+		HandleCache();
+        
+        if (!RenderWasStarted)
 		{
 			//printf("Render was not started ..\n");
 			return;

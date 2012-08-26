@@ -25,15 +25,12 @@ static volatile bool ta_working=false;
 volatile bool do_render_pending=false;
 volatile bool rend_end_render_call_pending=false;
 
-extern volatile bool dmac_ch2_end_pending;
-
 void threaded_TADma(u32* data,u32 size)
 {
 	while(ta_pending||ta_working||do_render_pending||rend_end_render_call_pending);
 
 #if 1
     TASplitter::Dma(data,size);
-    dmac_ch2_end_pending=true;
 #else	
 	verify(size*32<=TA_DMA_MAX_SIZE);
 	
@@ -94,7 +91,6 @@ static void threaded_task()
 			else
 			{
 				TASplitter::Dma(data,size);
-				dmac_ch2_end_pending=true;
 			}
 
 			ta_working=false;

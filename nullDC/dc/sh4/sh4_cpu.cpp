@@ -172,10 +172,12 @@ void __fastcall do_pref(u32 addr)
 	if (!mmu_TranslateSQW(addr))
 	{
 		log("Read Exeption From SQ WRITE \n");
+        return;
 	}
 
 	if (((addr >> 26) & 0x7) == 4)//Area 4 !11!!
 	{
+    	
 		TAWriteSQ(addr,sq);
 	}
 	else

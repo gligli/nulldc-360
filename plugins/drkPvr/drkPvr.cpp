@@ -552,6 +552,7 @@ void LoadSettingsPvr()
 	drkpvr_settings.Emulation.ZBufferMode=2;
 	drkpvr_settings.Emulation.AlphaSortMode=1;
 	drkpvr_settings.Emulation.PaletteMode=1;
+    drkpvr_settings.Emulation.TexCacheMode=1;
 	drkpvr_settings.Emulation.ModVolMode=MVM_Off;
 }
 

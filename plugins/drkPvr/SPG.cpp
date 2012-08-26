@@ -270,7 +270,7 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 	{
 		if (render_end_pending_cycles<cycles)
 		{
-            rend_handle_cache();
+            rend_handle_locks();
             
             if(threaded_pvr)
             {
