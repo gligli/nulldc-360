@@ -2499,16 +2499,16 @@ nl:
     void BeforeStartRender()
     {
         SetCurrentPVRRC(PARAM_BASE);
-    }
-    
-	void StartRender()
-	{
+
 		VertexCount+= pvrrc.verts.used;
 
 		render_end_pending_cycles= pvrrc.verts.used*45;
 		//if (render_end_pending_cycles<500000)
 			render_end_pending_cycles+=500000;
-
+    }
+    
+	void StartRender()
+	{
         //printf("%08x 2\n",PARAM_BASE);
 
         if (old_pal_mode!=drkpvr_settings.Emulation.PaletteMode)
@@ -2661,6 +2661,11 @@ nl:
     
 	void EndRender()
 	{
+        params.RaiseInterrupt(holly_RENDER_DONE);
+        params.RaiseInterrupt(holly_RENDER_DONE_isp);
+        params.RaiseInterrupt(holly_RENDER_DONE_vd);
+		render_end_pending=false;
+
 		HandleCache();
         
         if (!RenderWasStarted)

@@ -181,13 +181,13 @@ void UpdateRRect()
 	rect[1]=(dc_wh[1]-480)/2;
 	rect[3]=dc_wh[1];
 
-	rend_set_render_rect(rect,oldmode!=drkpvr_settings.Enhancements.AspectRatioMode);
+	SetRenderRect(rect,oldmode!=drkpvr_settings.Enhancements.AspectRatioMode);
 	oldmode=drkpvr_settings.Enhancements.AspectRatioMode;
 }
 
 void FASTCALL vramLockCB (vram_block* block,u32 addr)
 {
-    rend_text_invl(block,addr);
+    VramLockedWrite(block,addr);
 }
 #include <vector>
 using std::vector;
@@ -243,7 +243,7 @@ void handler_resmode(int mode)
 	drkpvr_settings.Video.ResolutionMode=mode;
 		
 	SaveSettingsPvr();
-	rend_handle_event(NDE_GUI_RESIZED,0);
+	HandleEvent(NDE_GUI_RESIZED,0);
 }
 void handler_PalMode(int  mode)
 {
@@ -424,7 +424,7 @@ void FASTCALL ResetPvr(bool Manual)
 {
 	Regs_Reset(Manual);
 	spg_Reset(Manual);
-	rend_reset(Manual);
+	ResetRenderer(Manual);
 }
 
 //called when entering sh4 thread , from the new thread context (for any thread speciacific init)
@@ -445,14 +445,14 @@ s32 FASTCALL InitPvr(pvr_init_params* param)
 		//failed
 		return rv_error;
 	}
-	if (!rend_init())
+	if (!InitRenderer())
 	{
 		//failed
 		return rv_error;
 	}
 	UpdateRRect();
 	//olny the renderer cares about thread speciacific shit ..
-	if (!rend_thread_start())
+	if (!ThreadStart())
 	{
 		return rv_error;
 	}
@@ -465,9 +465,9 @@ s32 FASTCALL InitPvr(pvr_init_params* param)
 //called when exiting from sh4 thread , from the new thread context (for any thread speciacific de init) :P
 void FASTCALL TermPvr()
 {
-	rend_thread_end();
+	ThreadEnd();
 
-	rend_term();
+	TermRenderer();
 	spg_Term();
 	Regs_Term();
 	
@@ -482,7 +482,7 @@ float GetSeconds()
 
 void EXPORT_CALL EventHandler(u32 id,void*p)
 {
-	rend_handle_event(id,p);
+	HandleEvent(id,p);
 }
 //Give to the emu pointers for the PowerVR interface
 void EXPORT_CALL drkPvrGetInterface(plugin_interface* info)

@@ -37,11 +37,12 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 	if (addr==STARTRENDER_addr)
 	{
         //start render
-		threaded_Wait(true,true,true,false);
+		threaded_Call(NULL);
 
         BeforeStartRender();
 
-        if(!threaded_pvr) rend_start_render();
+		threaded_Call(StartRender);
+        if(!threaded_pvr) StartRender();
 
 		//PrintfInfo();
 		//TODO : fix that mess -- now uses hacksync ;) later will be async too :P:P
@@ -57,9 +58,8 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 	{
 		if (data>>31)
 		{
-            threaded_Wait(true,false,false,false);
-
-			rend_list_init();
+            threaded_Call(ListInit);
+			if(!threaded_pvr) ListInit();
 			data=0;
 		}
 	}
@@ -70,8 +70,8 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 		{
 			if (data&1)
             {
-                threaded_Wait(true,false,false,false);
-				rend_list_srst();
+                threaded_Call(SoftReset);
+				if(!threaded_pvr) SoftReset();
             }
 			data=0;
 		}
@@ -80,8 +80,8 @@ void FASTCALL WritePvrRegister(u32 paddr,u32 data,u32 size)
 	if (addr==TA_LIST_CONT_addr)
 	{
 		//a write of anything works ?
-        threaded_Wait(true,false,false,false);
-        rend_list_cont();
+        threaded_Call(ListCont);
+        if(!threaded_pvr) ListCont();
 	}
 	
 	if (addr == FB_R_CTRL_addr || 

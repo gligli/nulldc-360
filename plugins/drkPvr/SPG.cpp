@@ -69,7 +69,7 @@ void CalculateSync()
 			scale_y=0.5f;//non interlaced modes have half resolution
 	}
 
-	rend_set_fb_scale(scale_x,scale_y);
+	SetFBScale(scale_x,scale_y);
 	
 	//Frame_Cycles=(u64)DCclock*(u64)sync_cycles/(u64)pixel_clock;
 	
@@ -98,7 +98,7 @@ void spgVBL()
 	vblk_cnt++;
 	params.RaiseInterrupt(holly_HBLank);// -> This turned out to be HBlank btw , needs to be emulated ;(
 	//TODO : rend_if_VBlank();
-	rend_vblank();//notify for vblank :)
+	VBlank();//notify for vblank :)
 	UpdateRRect();
 	if ((curtime-last_fps)>500)
 	{
@@ -270,18 +270,9 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 	{
 		if (render_end_pending_cycles<cycles)
 		{
-            threaded_Wait(true,true,false,true);
-
-            rend_handle_locks();
-            
-            if(!threaded_pvr)
-            {
-                params.RaiseInterrupt(holly_RENDER_DONE);
-                params.RaiseInterrupt(holly_RENDER_DONE_isp);
-                params.RaiseInterrupt(holly_RENDER_DONE_vd);
-                rend_end_render();
-                render_end_pending=false;
-            }
+            HandleLocks();
+            threaded_Call(EndRender);
+            if(!threaded_pvr) EndRender();
 		}
 		render_end_pending_cycles-=cycles;
 	}

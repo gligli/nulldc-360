@@ -25,10 +25,9 @@ static volatile int ta_size[2];
 static volatile int ta_cur=0;
 
 static volatile bool ta_pending=false;
-static volatile bool ta_working=false;
+static volatile bool call_pending=false;
 
-static volatile bool start_render_call_pending=false;
-static volatile bool end_render_call_pending=false;
+static volatile void (*call_function)()=NULL;
 
 using namespace TASplitter;
 
@@ -62,20 +61,13 @@ void threaded_ImmediateIRQ(u32 * data)
     }
 }
 
-void threaded_Wait(bool ta,bool render,bool set_srcp,bool set_ercp)
+void threaded_Call(void (*call)())
 {
     if(threaded_pvr)
     {
-       if (ta)
-       {
-           while(ta_working||ta_pending) asm volatile("db16cyc");
-       }
-       if (render)
-       {
-           while(start_render_call_pending||end_render_call_pending) asm volatile("db16cyc");
-           start_render_call_pending|=set_srcp;
-           end_render_call_pending|=set_ercp;
-       }
+       while(ta_pending||call_pending) asm volatile("db16cyc");
+       call_function=(volatile void (*)())call;
+       if((void*)call) call_pending=true;
     }
 }
 
@@ -142,8 +134,6 @@ static void threaded_task()
 	{
 		if(ta_pending)
 		{
-			ta_working=true;
-
             u32 * data=(u32*)ta_data[ta_cur];
 			u32 size = ta_size[ta_cur];
 			
@@ -159,25 +149,12 @@ static void threaded_task()
 			{
 				TASplitter::Dma(data,size);
 			}
-
-			ta_working=false;
 		}
         
-		if(start_render_call_pending){
-            rend_start_render();
-            start_render_call_pending=false;
+		if(call_pending){
+            (*call_function)();
+            call_pending=false;
 		}
-
-		if (end_render_call_pending)
-		{
-            params.RaiseInterrupt(holly_RENDER_DONE);
-			params.RaiseInterrupt(holly_RENDER_DONE_isp);
-			params.RaiseInterrupt(holly_RENDER_DONE_vd);
-			rend_end_render();
-			render_end_pending=false;
-			end_render_call_pending=false;
-		}
-    	
 	}
 }
 
