@@ -2509,6 +2509,8 @@ nl:
     
 	void StartRender()
 	{
+		threaded_wait(true);
+
         //printf("%08x 2\n",PARAM_BASE);
 
         BeforeStartRender();
@@ -2615,7 +2617,7 @@ nl:
 
 		RenderWasStarted=true;
 
-        threaded_Call(DoRender);
+        threaded_call(DoRender);
 
 		FrameCount++;
 		

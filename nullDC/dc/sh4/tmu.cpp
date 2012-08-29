@@ -15,11 +15,11 @@ u32 tmu_prescaler_shift[3];
 u32 tmu_prescaler_mask[3];
 const u32 tmu_ch_bit[3]={1,2,4};
 
-u32 tmu_regs_CNT[3];
-u32 tmu_regs_COR[3];
-u16 tmu_regs_CR[3];
+volatile u32 tmu_regs_CNT[3];
+volatile u32 tmu_regs_COR[3];
+volatile u16 tmu_regs_CR[3];
 u32 old_mode[3] = {0xFFFF,0xFFFF,0xFFFF};
-u8 TMU_TOCR,TMU_TSTR;
+volatile u8 TMU_TOCR,TMU_TSTR;
 
 const InterruptID tmu_intID[3]={sh4_TMU0_TUNI0,sh4_TMU1_TUNI1,sh4_TMU2_TUNI2};
 
@@ -154,67 +154,67 @@ void tmu_Init()
 	TMU[(u32)(TMU_TOCR_addr&0xFF)>>2].flags=REG_8BIT_READWRITE | REG_READ_DATA | REG_WRITE_DATA;
 	TMU[(u32)(TMU_TOCR_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TOCR_addr&0xFF)>>2].writeFunction=0;
-	TMU[(u32)(TMU_TOCR_addr&0xFF)>>2].data8=&TMU_TOCR;
+	TMU[(u32)(TMU_TOCR_addr&0xFF)>>2].data8=(u8*)&TMU_TOCR;
 
 	//TMU TSTR 0xFFD80004 0x1FD80004 8 0x00 0x00 Held 0x00 Pclk
 	TMU[(u32)(TMU_TSTR_addr&0xFF)>>2].flags=REG_8BIT_READWRITE | REG_READ_DATA | REG_WRITE_DATA;
 	TMU[(u32)(TMU_TSTR_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TSTR_addr&0xFF)>>2].writeFunction=0;
-	TMU[(u32)(TMU_TSTR_addr&0xFF)>>2].data8=&TMU_TSTR;
+	TMU[(u32)(TMU_TSTR_addr&0xFF)>>2].data8=(u8*)&TMU_TSTR;
 
 	//TMU TCOR0 0xFFD80008 0x1FD80008 32 0xFFFFFFFF 0xFFFFFFFF Held Held Pclk
 	TMU[(u32)(TMU_TCOR0_addr&0xFF)>>2].flags=REG_32BIT_READWRITE | REG_READ_DATA | REG_WRITE_DATA;
 	TMU[(u32)(TMU_TCOR0_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCOR0_addr&0xFF)>>2].writeFunction=0;
-	TMU[(u32)(TMU_TCOR0_addr&0xFF)>>2].data32=&tmu_regs_COR[0];
+	TMU[(u32)(TMU_TCOR0_addr&0xFF)>>2].data32=(u32*)&tmu_regs_COR[0];
 
 	//TMU TCNT0 0xFFD8000C 0x1FD8000C 32 0xFFFFFFFF 0xFFFFFFFF Held Held Pclk
 	TMU[(u32)(TMU_TCNT0_addr&0xFF)>>2].flags=REG_32BIT_READWRITE | REG_READ_DATA | REG_WRITE_DATA;
 	TMU[(u32)(TMU_TCNT0_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCNT0_addr&0xFF)>>2].writeFunction=0;
-	TMU[(u32)(TMU_TCNT0_addr&0xFF)>>2].data32=&tmu_regs_CNT[0];
+	TMU[(u32)(TMU_TCNT0_addr&0xFF)>>2].data32=(u32*)&tmu_regs_CNT[0];
 
 	//TMU TCR0 0xFFD80010 0x1FD80010 16 0x0000 0x0000 Held Held Pclk
 	TMU[(u32)(TMU_TCR0_addr&0xFF)>>2].flags=REG_16BIT_READWRITE | REG_READ_DATA;
 	TMU[(u32)(TMU_TCR0_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCR0_addr&0xFF)>>2].writeFunction=TMU_TCR0_write;
-	TMU[(u32)(TMU_TCR0_addr&0xFF)>>2].data16=&tmu_regs_CR[0];
+	TMU[(u32)(TMU_TCR0_addr&0xFF)>>2].data16=(u16*)&tmu_regs_CR[0];
 
 	//TMU TCOR1 0xFFD80014 0x1FD80014 32 0xFFFFFFFF 0xFFFFFFFF Held Held Pclk
 	TMU[(u32)(TMU_TCOR1_addr&0xFF)>>2].flags=REG_32BIT_READWRITE | REG_READ_DATA | REG_WRITE_DATA;
 	TMU[(u32)(TMU_TCOR1_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCOR1_addr&0xFF)>>2].writeFunction=0;
-	TMU[(u32)(TMU_TCOR1_addr&0xFF)>>2].data32=&tmu_regs_COR[1];
+	TMU[(u32)(TMU_TCOR1_addr&0xFF)>>2].data32=(u32*)&tmu_regs_COR[1];
 
 	//TMU TCNT1 0xFFD80018 0x1FD80018 32 0xFFFFFFFF 0xFFFFFFFF Held Held Pclk
 	TMU[(u32)(TMU_TCNT1_addr&0xFF)>>2].flags=REG_32BIT_READWRITE | REG_READ_DATA | REG_WRITE_DATA;
 	TMU[(u32)(TMU_TCNT1_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCNT1_addr&0xFF)>>2].writeFunction=0;
-	TMU[(u32)(TMU_TCNT1_addr&0xFF)>>2].data32=&tmu_regs_CNT[1];
+	TMU[(u32)(TMU_TCNT1_addr&0xFF)>>2].data32=(u32*)&tmu_regs_CNT[1];
 
 	//TMU TCR1 0xFFD8001C 0x1FD8001C 16 0x0000 0x0000 Held Held Pclk
 	TMU[(u32)(TMU_TCR1_addr&0xFF)>>2].flags=REG_16BIT_READWRITE | REG_READ_DATA;
 	TMU[(u32)(TMU_TCR1_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCR1_addr&0xFF)>>2].writeFunction=TMU_TCR1_write;
-	TMU[(u32)(TMU_TCR1_addr&0xFF)>>2].data16=&tmu_regs_CR[1];
+	TMU[(u32)(TMU_TCR1_addr&0xFF)>>2].data16=(u16*)&tmu_regs_CR[1];
 
 	//TMU TCOR2 0xFFD80020 0x1FD80020 32 0xFFFFFFFF 0xFFFFFFFF Held Held Pclk
 	TMU[(u32)(TMU_TCOR2_addr&0xFF)>>2].flags=REG_32BIT_READWRITE | REG_READ_DATA | REG_WRITE_DATA;
 	TMU[(u32)(TMU_TCOR2_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCOR2_addr&0xFF)>>2].writeFunction=0;
-	TMU[(u32)(TMU_TCOR2_addr&0xFF)>>2].data32=&tmu_regs_COR[2];
+	TMU[(u32)(TMU_TCOR2_addr&0xFF)>>2].data32=(u32*)&tmu_regs_COR[2];
 
 	//TMU TCNT2 0xFFD80024 0x1FD80024 32 0xFFFFFFFF 0xFFFFFFFF Held Held Pclk
 	TMU[(u32)(TMU_TCNT2_addr&0xFF)>>2].flags=REG_32BIT_READWRITE | REG_READ_DATA | REG_WRITE_DATA;
 	TMU[(u32)(TMU_TCNT2_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCNT2_addr&0xFF)>>2].writeFunction=0;
-	TMU[(u32)(TMU_TCNT2_addr&0xFF)>>2].data32=&tmu_regs_CNT[2];
+	TMU[(u32)(TMU_TCNT2_addr&0xFF)>>2].data32=(u32*)&tmu_regs_CNT[2];
 
 	//TMU TCR2 0xFFD80028 0x1FD80028 16 0x0000 0x0000 Held Held Pclk
 	TMU[(u32)(TMU_TCR2_addr&0xFF)>>2].flags=REG_16BIT_READWRITE | REG_READ_DATA;
 	TMU[(u32)(TMU_TCR2_addr&0xFF)>>2].readFunction=0;
 	TMU[(u32)(TMU_TCR2_addr&0xFF)>>2].writeFunction=TMU_TCR2_write;
-	TMU[(u32)(TMU_TCR2_addr&0xFF)>>2].data16=&tmu_regs_CR[2];
+	TMU[(u32)(TMU_TCR2_addr&0xFF)>>2].data16=(u16*)&tmu_regs_CR[2];
 
 	//TMU TCPR2 0xFFD8002C 0x1FD8002C 32 Held Held Held Held Pclk
 	TMU[(u32)(TMU_TCPR2_addr&0xFF)>>2].flags=REG_32BIT_READWRITE;

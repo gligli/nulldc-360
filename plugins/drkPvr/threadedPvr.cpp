@@ -25,6 +25,7 @@ static volatile int ta_size[2];
 static volatile int ta_cur=0;
 
 static volatile bool ta_pending=false;
+static volatile bool ta_working=false;
 static volatile bool call_pending=false;
 
 static volatile void (*call_function)()=NULL;
@@ -61,17 +62,26 @@ void threaded_ImmediateIRQ(u32 * data)
     }
 }
 
-void threaded_Call(void (*call)())
+void threaded_wait(bool wait_ta_working)
+{
+    if(threaded_pvr)
+        if(wait_ta_working)
+            while(ta_pending||call_pending||ta_working) asm volatile("db16cyc");
+        else
+            while(ta_pending||call_pending) asm volatile("db16cyc");
+}
+
+void threaded_call(void (*call)())
 {
     if(threaded_pvr)
     {
-       while(ta_pending||call_pending) asm volatile("db16cyc");
-       call_function=(volatile void (*)())call;
-       if((void*)call) call_pending=true;
+        threaded_wait(false);
+        call_function=(volatile void (*)())call;
+        if((void*)call) call_pending=true;
     }
     else
     {
-       if((void*)call) call();
+        if((void*)call) call();
     }
 }
 
@@ -80,9 +90,21 @@ void threaded_TADma(u32* data,u32 size)
     if(threaded_pvr)
     {
         while(ta_pending||call_pending) asm volatile("db16cyc");
-    }
+        
+        verify(size*32<=TA_DMA_MAX_SIZE);
 
-    TASplitter::Dma(data,size);
+        u64 * d=(u64*)ta_data[ta_cur];
+
+        memcpy(d,data,size*32);
+
+        ta_size[ta_cur]=size;
+
+        ta_pending=true;
+    }
+    else
+    {
+        TASplitter::Dma(data,size);
+    }
 
     u32 * end=data+size*32/4;
     while(data<end)
@@ -99,7 +121,7 @@ void threaded_TASQ(u32* data)
     if(threaded_pvr)
     {
         while(ta_pending||call_pending) asm volatile("db16cyc");
-
+        
         u64 * d=(u64*)ta_data[ta_cur];
         u64 * s=(u64*)data;
 
@@ -131,6 +153,7 @@ static void threaded_task()
 			
 			ta_cur=1-ta_cur;
 			
+    		ta_working=true;
     		ta_pending=false;
 			
 			if (!size)
@@ -141,6 +164,8 @@ static void threaded_task()
 			{
 				TASplitter::Dma(data,size);
 			}
+
+    		ta_working=false;
 		}
         
 		if(call_pending){

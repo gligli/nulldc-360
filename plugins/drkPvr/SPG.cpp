@@ -270,8 +270,9 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 	{
 		if (render_end_pending_cycles<cycles)
 		{
+            threaded_wait(false);
             HandleLocks();
-            threaded_Call(EndRender);
+            threaded_call(EndRender);
 		}
 		render_end_pending_cycles-=cycles;
 	}

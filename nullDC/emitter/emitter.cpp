@@ -85,9 +85,6 @@ void ppc_block::Init(dyna_reallocFP* ral,dyna_finalizeFP* alf)
 	bc_tab_next_idx=0;
 	last_lis_valid=false;
 }
-#define patches (*(vector<code_patch>*) _patches)
-#define labels (*(vector<ppc_Label*>*) _labels)
-
 //Generates code.if user_data is non zero , user_data_size bytes are allocated after the executable code
 //and user_data is set to the first byte of em.Allways 16 byte alligned
 void* ppc_block::Generate()
@@ -336,8 +333,6 @@ void ppc_block::ApplyPatches(u8* base)
 }
 ppc_block::ppc_block()
 {
-	_patches=new vector<code_patch>;
-	_labels=new vector<code_patch>;
 	labels.reserve(64);
 	do_disasm=false;
 	do_disasm_imm=false;
@@ -346,8 +341,6 @@ ppc_block::~ppc_block()
 {
 	//ensure everything is free'd :)
 	Free();
-	delete &patches;
-	delete &labels;
 }
 //Will free any used resources exept generated code
 void ppc_block::Free()
@@ -556,7 +549,10 @@ void ppc_block::emitLoadImmediate32(ppc_gpr_reg reg, u32 val)
 
 void ppc_block::emitBranchConditionalToLabel(ppc_Label * lab,int lk,int bo,int bi)
 {
-	code_patch cp;
+	verify(lab);
+	verify((u32)lab>=0x80000000);
+    
+    code_patch cp;
 	
 	cp.type=5|16;
 	cp.lbl=lab;
@@ -568,6 +564,9 @@ void ppc_block::emitBranchConditionalToLabel(ppc_Label * lab,int lk,int bo,int b
 
 void ppc_block::emitBranchToLabel(ppc_Label * lab,int lk)
 {
+	verify(lab);
+	verify((u32)lab>=0x80000000);
+
 	code_patch cp;
 	
 	cp.type=6|16;

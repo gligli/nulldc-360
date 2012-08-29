@@ -52,9 +52,11 @@ typedef void* dyna_finalizeFP(void* ptr,u32 oldsize,u32 newsize);
 
 //define it here cus we use it on label type ;)
 class ppc_block;
+
 // a label
-struct ppc_Label
+class ppc_Label
 {
+public:
 	u32 target_opcode;
 	u8 patch_sz;
 	ppc_block* owner;
@@ -114,14 +116,14 @@ struct ppc_block_externs
 class ppc_block
 {
 private:
-	void* _labels;
+	vector<code_patch> patches;
+	vector<ppc_Label*> labels;
 	void ApplyPatches(u8* base);
 	dyna_reallocFP* ralloc;
 	dyna_finalizeFP* allocfin;
 	u32 bc_tab[0x4000];
 	u32 bc_tab_next_idx;
 public:
-	void* _patches;
 
 	u8* ppc_buff;
 	u32 ppc_indx;

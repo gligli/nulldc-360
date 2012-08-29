@@ -6,10 +6,10 @@
 #include <debug.h>
 #include <ppc/atomic.h>
 
-#define PRE_GUARD 65536
-#define POST_GUARD 65536
+#define PRE_GUARD 1024
+#define POST_GUARD 1024
 
-#define FILL 0
+#define FILL 0x42
 
 static unsigned int lck=0;
 
@@ -22,11 +22,11 @@ void __real_free(void * p);
 
 void * __wrap_malloc(size_t size)
 {
-    lock(&lck);
-    
     u32 lr=0;
     asm volatile("mflr %[lr]":[lr] "+r" (lr));
 
+    lock(&lck);
+    
     size+=PRE_GUARD;
     size+=POST_GUARD;
     
@@ -66,6 +66,7 @@ void __wrap_free(void * p)
         if (sp[i]!=FILL)
         {
             printf("[mchk] corrupted malloc !!!! size=%d lr=%p\n",size-PRE_GUARD-POST_GUARD,lr);
+            buffer_dump(sp,PRE_GUARD);
             asm volatile("sc");
         }
     
@@ -73,6 +74,7 @@ void __wrap_free(void * p)
         if (sp[i+size-POST_GUARD]!=FILL)
         {
             printf("[mchk] corrupted malloc !!!! size=%d lr=%p\n",size-PRE_GUARD-POST_GUARD,lr);
+            buffer_dump(&sp[size-POST_GUARD],POST_GUARD);
             asm volatile("sc");
         }
 
