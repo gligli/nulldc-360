@@ -190,6 +190,7 @@
       <in>debug_mem.cpp</in>
       <in>fake_pluginsystem.cpp</in>
       <in>fake_pluginsystem.h</in>
+      <in>mchk.c</in>
       <in>nullDC.cpp</in>
       <in>sh4_reg_playground.h</in>
       <in>stdclass.cpp</in>

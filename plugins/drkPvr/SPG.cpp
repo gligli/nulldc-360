@@ -43,7 +43,7 @@ void CalculateSync()
 
 	//We need to caclulate the pixel clock
 
-	u32 sync_cycles=(SPG_LOAD.hcount+1)*(SPG_LOAD.vcount+1);
+//	u32 sync_cycles=(SPG_LOAD.hcount+1)*(SPG_LOAD.vcount+1);
 	pvr_numscanlines=SPG_LOAD.vcount+1;
 	
 	Line_Cycles=(u32)((u64)DCclock*(u64)(SPG_LOAD.hcount+1)/(u64)pixel_clock);
@@ -52,7 +52,7 @@ void CalculateSync()
 	{
 		//this is a temp hack
 		Line_Cycles/=2;
-		u32 interl_mode=VO_CONTROL.field_mode;
+//		u32 interl_mode=VO_CONTROL.field_mode;
 		
 		//if (interl_mode==2)//3 will be funny =P
 		//	scale_y=0.5f;//single interlace
@@ -108,7 +108,7 @@ void spgVBL()
 		spd_cpu/=1000000;	//mrhz kthx
 		double fullvbs=(spd_vbs/spd_cpu)*200;
         
-		wchar fpsStr[256];
+//		wchar fpsStr[256];
 		const char* mode=0;
 		const char* res=0;
 
@@ -126,7 +126,7 @@ void spgVBL()
 
 		if(kbhit())
 		{
-			int i,j;
+			u32 i,j;
 			u32 cumulcnt[0x200]={0};
 			switch(getch())
 			{
@@ -272,7 +272,6 @@ void FASTCALL spgUpdatePvr(u32 cycles)
 		{
             HandleLocks();
             threaded_Call(EndRender);
-            if(!threaded_pvr) EndRender();
 		}
 		render_end_pending_cycles-=cycles;
 	}

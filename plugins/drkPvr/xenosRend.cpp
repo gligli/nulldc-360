@@ -29,8 +29,8 @@ struct XenosSurface * fb_texture=0;
 struct XenosSurface * pal_texture=0;
 struct XenosSurface * fog_texture=0;
 
-volatile bool gfx_do_resize=false;
-volatile bool gfx_do_restart=false;
+bool gfx_do_resize=false;
+bool gfx_do_restart=false;
 
 const struct XenosVBFFormat VertexBufferFormat = {
     4, {
@@ -41,8 +41,8 @@ const struct XenosVBFFormat VertexBufferFormat = {
     }
 };
 
-volatile bool hadTriangles=false;
-volatile bool syncPending=false;
+bool hadTriangles=false;
+bool syncPending=false;
 
 
 #define MODVOL 1
@@ -51,7 +51,7 @@ volatile bool syncPending=false;
 //#include <D3dx9shader.h>
 
 using namespace TASplitter;
-volatile bool render_restart = false;
+bool render_restart = false;
 bool UseSVP=false;
 bool UseFixedFunction=false;
 bool dosort=false;
@@ -82,21 +82,21 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 //#define D3DXGetVertexShaderProfile(x) "vs_2_0"
 
 #define PS_SHADER_COUNT (384*4)
-	volatile bool RenderWasStarted=false;
+	bool RenderWasStarted=false;
 	struct VertexDecoder;
 	FifoSplitter<VertexDecoder> TileAccel;
 
 	struct { bool needs_resize;NDC_WINDOW_RECT new_size;u32 rev;} resizerq;
 
-	volatile u32 clear_rt=0;
+	u32 clear_rt=0;
 	u32 last_ps_mode=0xFFFFFFFF;
 	float current_scalef[4];
 	//CRITICAL_SECTION tex_cache_cs;
 	
-	volatile u32 FrameNumber=0;
-	volatile u32 fb_FrameNumber=0;
+	u32 FrameNumber=0;
+	u32 fb_FrameNumber=0;
 
-	volatile u32 frameStart = 0;
+	u32 frameStart = 0;
 	u32 frameRate = 0;
 	u32 timer, timeStart = timeGetTime();
 
@@ -193,8 +193,8 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 	/*
 	0	Zero	(0, 0, 0, 0)
 	1	One	(1, 1, 1, 1)
-	2	ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“OtherÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Color	(OR, OG, OB, OA) 
-	3	Inverse ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“OtherÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Color	(1-OR, 1-OG, 1-OB, 1-OA)
+	2	ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œOtherÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ Color	(OR, OG, OB, OA) 
+	3	Inverse ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œOtherÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ Color	(1-OR, 1-OG, 1-OB, 1-OA)
 	4	SRC Alpha	(SA, SA, SA, SA)
 	5	Inverse SRC Alpha	(1-SA, 1-SA, 1-SA, 1-SA)
 	6	DST Alpha	(DA, DA, DA, DA)
@@ -678,8 +678,8 @@ static inline void handle_small_surface(struct XenosSurface * surf, void * buffe
 	{
 		FrameNumber++;
 		
-		u32 field=0;//default from field 1
-		u32 interlc=SPG_CONTROL.interlace;
+/*		u32 field=0;//default from field 1
+//		u32 interlc=SPG_CONTROL.interlace;
 		switch (VO_CONTROL.field_mode)
 		{
 			//From SPG
@@ -736,10 +736,10 @@ static inline void handle_small_surface(struct XenosSurface * surf, void * buffe
 		if (field)
 			src=FB_R_SOF2;
 		else
-			src=FB_R_SOF1;
+			src=FB_R_SOF1;*/
 
-		u32 addr1=vramlock_ConvOffset32toOffset64(src);
-		u32* ptest=(u32*)&params.vram[addr1];
+//		u32 addr1=vramlock_ConvOffset32toOffset64(src);
+//		u32* ptest=(u32*)&params.vram[addr1];
 
 		{
 #if 0
@@ -1075,7 +1075,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 		if (pvrrc.verts.allocate_list_sz->size()==0)
 			return;
 
-		u32 base=0;
+//		u32 base=0;
 		u32 csegc=0;
 		u32 cseg=-1;
 		Vertex* bptr=0;
@@ -1529,7 +1529,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 		if (pvrrc.verts.allocate_list_sz->size()==0)
 			return;
 
-		u32 base=0;
+	//	u32 base=0;
 		u32 csegc=0;
 		u32 cseg=-1;
 		Vertex* bptr=0;
@@ -1703,7 +1703,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 		Xe_InvalidateState(xe);
 //		Xe_SetFillMode(xe,XE_FILL_WIREFRAME,XE_FILL_WIREFRAME);
 
-		void* ptr;
+//		void* ptr;
 		if (FrameNumber-rtt_FrameNumber >60)
 		{
 			rtt_address=0xFFFFFFFF;
@@ -1772,7 +1772,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 			Xe_SetShader(xe,SHADER_TYPE_PIXEL,sh_ps,0);
 
 #define clamp(minv,maxv,x) min(maxv,max(minv,x))
-			float bg=*(float*)&ISP_BACKGND_D; 
+//			float bg=*(float*)&ISP_BACKGND_D; 
 
 #ifdef scale_type_1
 			float c0[4]={clamp(0,10000000.0f,pvrrc.invW_min)};
@@ -1905,7 +1905,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 			//Punch Through
 			Xe_SetAlphaTestEnable(xe,1);
 			Xe_SetAlphaFunc(xe,XE_CMP_GREATER);
-			Xe_SetAlphaRef(xe,((PT_ALPHA_REF&0xff>0)?(PT_ALPHA_REF&0xff)-1:0)/255.0f);
+			Xe_SetAlphaRef(xe,(((PT_ALPHA_REF&0xff)>0)?(PT_ALPHA_REF&0xff)-1:0)/255.0f);
 			Xe_SetStencilRef(xe,3,0);
 
 			//if (!GetAsyncKeyState(VK_F2))
@@ -2494,7 +2494,7 @@ nl:
 		return *(u32*)&params.vram[vramlock_ConvOffset32toOffset64(addr)];
 	}
 	void decode_pvr_vertex(u32 base,u32 ptr,Vertex* to);
-	int old_pal_mode;
+	u32 old_pal_mode;
     
     void BeforeStartRender()
     {
@@ -2511,6 +2511,8 @@ nl:
 	{
         //printf("%08x 2\n",PARAM_BASE);
 
+        BeforeStartRender();
+        
         if (old_pal_mode!=drkpvr_settings.Emulation.PaletteMode)
 		{
 			//mark pal texures dirty
@@ -2587,8 +2589,6 @@ nl:
 			vertex_ptr+=strip_vs;
 		}
 
-		float ZV=0;
-
 		cv[0].x=0;
 		cv[0].y=0;
 		cv[0].z=bg_d.f;
@@ -2615,7 +2615,7 @@ nl:
 
 		RenderWasStarted=true;
 
-        DoRender();
+        threaded_Call(DoRender);
 
 		FrameCount++;
 		
@@ -2664,7 +2664,6 @@ nl:
         params.RaiseInterrupt(holly_RENDER_DONE);
         params.RaiseInterrupt(holly_RENDER_DONE_isp);
         params.RaiseInterrupt(holly_RENDER_DONE_vd);
-		render_end_pending=false;
 
 		HandleCache();
         
@@ -2717,10 +2716,10 @@ nl:
 		}
 */
 		
-		int old_rev;
+		u32 old_rev;
 		static NDC_WINDOW_RECT nwr;
 		bool do_resize;
-		static s32 old_res_mode=-1;
+		static u32 old_res_mode=-1;
 		do
 		{
 			old_rev = resizerq.rev;
@@ -2747,6 +2746,8 @@ nl:
 			render_restart=false;
 			gfx_do_restart=true;
 		}
+
+		render_end_pending=false;
 	}
 
 	__attribute__((aligned(128))) static f32 FaceBaseColor[4];

@@ -69,28 +69,20 @@ void threaded_Call(void (*call)())
        call_function=(volatile void (*)())call;
        if((void*)call) call_pending=true;
     }
+    else
+    {
+       if((void*)call) call();
+    }
 }
 
 void threaded_TADma(u32* data,u32 size)
 {
     if(threaded_pvr)
     {
-        while(ta_pending) asm volatile("db16cyc");
-        
-        verify(size*32<=TA_DMA_MAX_SIZE);
-
-        u64 * d=(u64*)ta_data[ta_cur];
-
-        memcpy(d,data,size*32);
-
-        ta_size[ta_cur]=size;
-
-        ta_pending=true;
+        while(ta_pending||call_pending) asm volatile("db16cyc");
     }
-    else
-    {
-        TASplitter::Dma(data,size);
-    }
+
+    TASplitter::Dma(data,size);
 
     u32 * end=data+size*32/4;
     while(data<end)
@@ -106,7 +98,7 @@ void threaded_TASQ(u32* data)
 {
     if(threaded_pvr)
     {
-        while(ta_pending) asm volatile("db16cyc");
+        while(ta_pending||call_pending) asm volatile("db16cyc");
 
         u64 * d=(u64*)ta_data[ta_cur];
         u64 * s=(u64*)data;

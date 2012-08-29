@@ -87,9 +87,9 @@ using namespace std;
 
 #ifdef XENON
 //force
-#define INLINE __attribute__((always_inline))
+#define INLINE
 //sugest
-#define SINLINE __inline
+#define SINLINE
 //no inline :)
 #define NOINLINE
 #else

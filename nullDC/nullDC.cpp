@@ -11,6 +11,7 @@
 #include <time/time.h>
 #include <ppc/timebase.h>
 #include <xenon_soc/xenon_power.h>
+#include <xenon_sound/sound.h>
 #include <libfat/fat.h>
 
 //initialse Emu
@@ -193,7 +194,10 @@ int main()
 
 	xenos_init(VIDEO_MODE_AUTO);
 	console_init();
-	xenon_make_it_faster(XENON_SPEED_FULL);
+    
+    xenon_sound_init();
+
+    xenon_make_it_faster(XENON_SPEED_FULL);
 	
 /*	network_init();
 	network_print_config();

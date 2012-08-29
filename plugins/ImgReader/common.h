@@ -141,7 +141,7 @@ struct Track
 
 struct Disc
 {
-	wstring path;
+	string path;
 	vector<Session> sessions;	//info for sessions
 	vector<Track> tracks;		//info for tracks
 	Track LeadOut;				//info for lead out track (can't read from here)

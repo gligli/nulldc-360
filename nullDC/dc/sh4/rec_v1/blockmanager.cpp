@@ -907,7 +907,7 @@ void* dyna_finalize(void* ptr,u32 oldsize,u32 newsize)
 		return 0;
 	
 	void* rv=&DynarecCache[DynarecCacheUsed];
-#if 0
+#if 1
 	verify(!((u32)rv&127));
 	DynarecCacheUsed+=(newsize+127)&~127; // align blocks on cache lines
 #else
