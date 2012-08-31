@@ -65,10 +65,12 @@ void threaded_ImmediateIRQ(u32 * data)
 void threaded_wait(bool wait_ta_working)
 {
     if(threaded_pvr)
+    {
         if(wait_ta_working)
             while(ta_pending||call_pending||ta_working) asm volatile("db16cyc");
         else
             while(ta_pending||call_pending) asm volatile("db16cyc");
+    }
 }
 
 void threaded_call(void (*call)())

@@ -1303,13 +1303,14 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	}
 	
 	roml_patch t;
+    u8 sh4_dest_reg=op->reg1;
 	
 	if (size==FLAG_64)
 	{
-		u32 dblreg=GetSingleFromDouble((u8)op->reg1);
-		ppce->emitStoreDouble(GetRegPtr(dblreg),FR0);
+		sh4_dest_reg=GetSingleFromDouble((u8)op->reg1);
+		ppce->emitStoreDouble(GetRegPtr(sh4_dest_reg),FR0);
 		t.exit_point=ppce->CreateLabel(true,0);
-		ReloadDouble(dblreg);
+		ReloadDouble(sh4_dest_reg);
 	}
 	else
 	{
@@ -1331,7 +1332,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		}
 	}
 
-    t.sh4_reg_data=op->reg1;
+    t.sh4_reg_data=sh4_dest_reg;
 	t.p4_access=p4_handler;
 	t.resume_offset=(u8)old_offset;
 	t.asz=size;
@@ -1377,11 +1378,13 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_offset);
 
 	ppc_reg rsrc;
+    u8 sh4_dest_reg=op->reg1;
+    
 	if (size==FLAG_64)
 	{
-		u8 f32reg=GetSingleFromDouble((u8)op->reg1);
-		FlushDouble(f32reg);
-		ppce->emitLoadDouble(FR0,GetRegPtr(f32reg));
+		sh4_dest_reg=GetSingleFromDouble((u8)op->reg1);
+		FlushDouble(sh4_dest_reg);
+		ppce->emitLoadDouble(FR0,GetRegPtr(sh4_dest_reg));
 		rsrc=FR0;
 	}
 	else
@@ -1399,7 +1402,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 			else
 			{
 				rsrc=R4;
-				ppce->emitLoad32(R4,GetRegPtr(op->reg1));
+                fra->LoadRegisterGPR(R4,op->reg1);
 				was_float=0;
 			}
 		}
@@ -1439,7 +1442,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	//ppce->Emit(op_jmp,p4_handler);
 
 	roml_patch t;
-    t.sh4_reg_data=op->reg1;
+    t.sh4_reg_data=sh4_dest_reg;
 	t.p4_access=p4_handler;
 	t.resume_offset=(u8)old_offset;
 	t.exit_point=ppce->CreateLabel(true,0);
@@ -1466,6 +1469,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 }
 void* nvw_lut[4]={(void*)WriteMem8,(void*)WriteMem16,(void*)WriteMem32,(void*)WriteMem32};
 void* nvr_lut[4]={(void*)ReadMem8,(void*)ReadMem16,(void*)ReadMem32,(void*)ReadMem32};
+
 #include "dc/mem/sh4_internal_reg.h"
 
 void apply_roml_patches()
@@ -1521,6 +1525,7 @@ void apply_roml_patches()
 			{
 				if (roml_patch_list[i].is_float)
 				{
+                    fra->SaveRegister(roml_patch_list[i].sh4_reg_data,roml_patch_list[i].reg_data);
                     fra->LoadRegisterGPR(R4,roml_patch_list[i].sh4_reg_data);
 				}
 				else
@@ -1537,9 +1542,7 @@ void apply_roml_patches()
 			{
 				if (roml_patch_list[i].is_float)
 				{
-					static u32 tmp;
-					ppce->emitStore32(&tmp,R3);
-					ppce->emitLoadFloat(roml_patch_list[i].reg_data,&tmp);
+                    fra->SaveRegisterGPR(roml_patch_list[i].sh4_reg_data,R3);
 				}
 				else
 				{
@@ -1558,7 +1561,7 @@ void apply_roml_patches()
 			ppce->emitStore32(&tmp,R3);
 			
 			EMIT_ADDI(ppce,R3,R3,4);
-			u32* target=GetRegPtr(roml_patch_list[i].reg_data);
+			u32* target=GetRegPtr(roml_patch_list[i].sh4_reg_data);
 
 			for (int j=1;j>=0;j--)
 			{

@@ -62,7 +62,7 @@ void irLoadSettings()
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/doa2/Dead or Alive 2 v1.100 (2000)(Tecmo)(NTSC)(US)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/jetgrind/Jet Grind Radio v1.005 (2000)(Sega)(NTSC)(US)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"uda:/dcisos/ikaruga/Ikaruga v1.002 (2002)(ESP)(NTSC)(JP)[!].gdi");
-//	strcpy(irsettings.DefaultImage,"uda:/dcisos/iso.gdi");
+	strcpy(irsettings.DefaultImage,"uda:/dcisos/iso.gdi");
 //	strcpy(irsettings.DefaultImage,"uda:/dcisos/rayman/Rayman 2 - The Great Escape v1.003 (2000)(Ubi Soft)(NTSC)(US)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"uda:/dcisos/shenmue/Shenmue v1.003 (2000)(Sega)(NTSC)(US)(Disc 1 of 4)[!][1S 51059-1S].gdi");
 //	strcpy(irsettings.DefaultImage,"uda:/dcisos/vt/Virtua Tennis v1.001 (2000)(Sega)(NTSC)(US)[!].gdi");

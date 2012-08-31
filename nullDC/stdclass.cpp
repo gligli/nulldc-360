@@ -88,7 +88,7 @@ void GetFileNameFromPath(wchar* path,wchar* outp)
 	strcpy(outp,path);
 }
 
-wchar AppPath[1024] = "sda:/nulldc-360/";
+wchar AppPath[1024] = "uda:/nulldc-360/";
 void GetApplicationPath(wchar* path,u32 size)
 {
 	strcpy(path,AppPath);

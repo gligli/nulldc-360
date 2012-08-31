@@ -63,7 +63,7 @@ void xenon_WriteSample(s16 r,s16 l)
         int i;
         for(i=0;i<buf48s;++i) buffer48[i]=bswap_16(buffer48[i]);
 
-//        while(xenon_sound_get_unplayed()>MAX_UNPLAYED);
+        while(xenon_sound_get_unplayed()>MAX_UNPLAYED);
   
         xenon_sound_submit(buffer48,buf48s*2);
         
