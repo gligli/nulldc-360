@@ -6,8 +6,6 @@
 
 __attribute__((aligned(65536))) struct Sh4RegContext sh4r;
 
-struct Sh4RegContext * vm_sh4r;
-
 __attribute__((aligned(128))) f32 sin_table[0x10000+0x4000];	//+0x4000 to avoid having to warp around twice on cos
 
 u32*  xf_hex=(u32*)sh4r.xf,*fr_hex=(u32*)sh4r.fr;

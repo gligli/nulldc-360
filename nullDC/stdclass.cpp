@@ -343,7 +343,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 //		printf("RamLockedWrite\n");
 		return NULL;
 	}
-	else if (((u32)(address-sh4_reserved_mem))<(704*1024*1024))
+	else if (((u32)(address-sh4_reserved_mem))<((512+48)*1024*1024))
 	{
 		CompiledBlockInfo* cbi=bm_ReverseLookup(srr0);
 
@@ -364,7 +364,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 	}
 	else if (((u32)(address-sh4_reserved_mem))<(768*1024*1024))
 	{
-        //printf("OCR access from SQ mapping %d %p %p %d\n",pir,srr0,dar,write);
+//        printf("reg access from SQ mapping %d %p %p %d\n",pir,srr0,dar,write);
         
         return roml_patch_for_reg_access((u32)srr0,true);
     }
