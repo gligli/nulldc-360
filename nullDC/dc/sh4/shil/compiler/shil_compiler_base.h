@@ -12,7 +12,6 @@ void shil_compile(shil_opcode* op);
 struct roml_patch
 {
 	ppc_Label* p4_access;
-	u8 resume_offset;
 	ppc_Label* exit_point;
 	u32 asz;
 	u32 type;
@@ -23,8 +22,6 @@ struct roml_patch
 	bool is_float;
 
 	u32 sh4_reg_data;
-    
-	ppc_Label* roml_search_lbl;
 };
 
 extern vector<roml_patch> roml_patch_list;

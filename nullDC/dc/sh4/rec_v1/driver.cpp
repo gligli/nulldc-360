@@ -24,6 +24,10 @@
 #include <float.h>
 
 #include <ppc/timebase.h>
+extern "C"
+{
+#include <ppc/vm.h>
+}
 
 //uh uh 
 volatile bool  rec_sh4_int_bCpuRun=false;
@@ -189,7 +193,10 @@ void naked DynaMainLoop()
 		"stw 4,Dynarec_Mainloop_end@l(3)		\n"
 
 		//
-		"lis " xstr(RSH4R) ",sh4r@ha			\n"
+//		"lis " xstr(RSH4R) ",sh4r@ha			\n"
+        "lis 3,vm_sh4r@ha                       \n"
+        "lwz " xstr(RSH4R) ",vm_sh4r@l(3)       \n"
+        
 		"lwz " xstr(RPC) ",0(" xstr(RSH4R) ")	\n"//sh4r+0 is pc
 	
 		//Max cycle count :)
@@ -489,6 +496,9 @@ void rec_Sh4_int_Init()
 	ResetAnalyser();
 	ResetBlockManager();
 
+    vm_sh4r=(Sh4RegContext*)0x74060000;
+    vm_create_user_mapping((u32)vm_sh4r,((u32)&sh4r)&~0x80000000,VM_USER_PAGE_SIZE,VM_WIMG_CACHED);
+    
 	log("recSh4 Init\n");
 }
 

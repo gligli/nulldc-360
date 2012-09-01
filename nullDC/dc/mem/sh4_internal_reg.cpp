@@ -1,6 +1,8 @@
 /*
 	Sh4 internal register routing (P4 & 'area 7')
 */
+#include <ppc/vm.h>
+
 #include "types.h"
 #include "sh4_internal_reg.h"
 
@@ -17,13 +19,10 @@
 #include "_vmem.h"
 #include "mmu.h"
 
-//64bytes of sq
-__attribute__((aligned(65536))) u8 sq_both[64];
+__attribute__((aligned(65536))) u8 * sq_page;
+__attribute__((aligned(128))) u8 ocr_page[OnChipRAM_SIZE];
 
-//i know , its because of templates :)
-#pragma warning( disable : 4127 /*4244*/)
-
-Array<u8> OnChipRAM;
+void roml_patch_for_sq_access(u32 addr);
 
 //All registers are 4 byte alligned
 
@@ -393,7 +392,9 @@ void __fastcall WriteMem_P4(u32 addr,T data)
 template <u32 sz,class T>
 T __fastcall ReadMem_sq(u32 addr)
 {
-	if (sz!=4)
+    TR  
+    
+    if (sz!=4)
 	{
 		log("Store Queue Error , olny 4 byte read are possible[x%X]\n",addr);
 		return 0xDE;
@@ -401,7 +402,7 @@ T __fastcall ReadMem_sq(u32 addr)
 
 	u32 united_offset=addr & 0x3C;
 
-	return (T)*(u32*)&sq_both[united_offset];
+	return (T)*(u32*)&sq_page[united_offset];
 }
 
 
@@ -409,22 +410,14 @@ T __fastcall ReadMem_sq(u32 addr)
 template <u32 sz,class T>
 void __fastcall WriteMem_sq(u32 addr,T data)
 {
+    roml_patch_for_sq_access(addr);
+    
 	if (sz!=4)
 		log("Store Queue Error , olny 4 byte writes are possible[x%X=0x%X]\n",addr,data);
-	//u32 offset = (addr >> 2) & 7; // 3 bits
+
 	u32 united_offset=addr & 0x3C;
 
-	/*if ((addr & 0x20)) // 0: SQ0, 1: SQ1
-	{
-	sq1_dw[offset] = data;
-	}
-	else
-	{
-	sq0_dw[offset] = data;
-	}
-	return;*/
-
-	*(u32*)&sq_both[united_offset]=data;
+	*(u32*)&sq_page[united_offset]=data;
 }
 
 
@@ -755,11 +748,11 @@ T __fastcall ReadMem_area7_OCR_T(u32 addr)
 	if (CCN_CCR.ORA)
 	{
 		if (sz==1)
-			return (T)OnChipRAM[addr&OnChipRAM_MASK];
+			return (T)ocr_page[(addr&OnChipRAM_MASK)^3];
 		else if (sz==2)
-			return (T)*(u16*)&OnChipRAM[addr&OnChipRAM_MASK];
+			return (T)*(u16*)&ocr_page[(addr&OnChipRAM_MASK)^2];
 		else if (sz==4)
-			return (T)*(u32*)&OnChipRAM[addr&OnChipRAM_MASK];
+			return (T)*(u32*)&ocr_page[addr&OnChipRAM_MASK];
 		else
 		{
 			log("ReadMem_area7_OCR_T: template SZ is wrong = %d\n",sz);
@@ -780,11 +773,11 @@ void __fastcall WriteMem_area7_OCR_T(u32 addr,T data)
 	if (CCN_CCR.ORA)
 	{
 		if (sz==1)
-			OnChipRAM[addr&OnChipRAM_MASK]=(u8)data;
+			ocr_page[(addr&OnChipRAM_MASK)^3]=(u8)data;
 		else if (sz==2)
-			*(u16*)&OnChipRAM[addr&OnChipRAM_MASK]=(u16)data;
+			*(u16*)&ocr_page[(addr&OnChipRAM_MASK)^2]=(u16)data;
 		else if (sz==4)
-			*(u32*)&OnChipRAM[addr&OnChipRAM_MASK]=data;
+			*(u32*)&ocr_page[addr&OnChipRAM_MASK]=data;
 		else
 		{
 			log("WriteMem_area7_OCR_T: template SZ is wrong = %d\n",sz);
@@ -799,8 +792,6 @@ void __fastcall WriteMem_area7_OCR_T(u32 addr,T data)
 //Init/Res/Term
 void sh4_internal_reg_Init()
 {
-	OnChipRAM.Resize(OnChipRAM_SIZE,false);
-
 	for (u32 i=0;i<30;i++)
 	{
 		if (i<CCN.Size)	CCN[i].flags=REG_NOT_IMPL;	//(16,true);	//CCN  : 14 registers
@@ -830,7 +821,7 @@ void sh4_internal_reg_Init()
 
 void sh4_internal_reg_Reset(bool Manual)
 {
-	OnChipRAM.Zero();
+	memset(ocr_page,0,OnChipRAM_SIZE);
 	//Reset register values
 	bsc_Reset(Manual);
 	ccn_Reset(Manual);
@@ -857,7 +848,6 @@ void sh4_internal_reg_Term()
 	cpg_Term();
 	ccn_Term();
 	bsc_Term();
-	OnChipRAM.Free();
 }
 //Mem map :)
 

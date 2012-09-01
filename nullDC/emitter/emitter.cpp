@@ -336,6 +336,7 @@ ppc_block::ppc_block()
 	labels.reserve(64);
 	do_disasm=false;
 	do_disasm_imm=false;
+    deactivate_rlis=false;
 }
 ppc_block::~ppc_block()
 {
@@ -423,9 +424,9 @@ ppc_gpr_reg ppc_block::getHighReg(u16 value)
 		return (ppc_reg)RSH4R;
 	}
 	
-	if (!last_lis_valid || last_lis!=value)
+	if (deactivate_rlis || !last_lis_valid || last_lis!=value)
 	{
-		last_lis_valid=true;
+		last_lis_valid=!deactivate_rlis;
 		last_lis=value;
 		EMIT_LIS(this,RLIS,value);
 	}

@@ -4,7 +4,7 @@
 #define OnChipRAM_SIZE (0x2000)
 #define OnChipRAM_MASK (OnChipRAM_SIZE-1)
 
-extern __attribute__((aligned(128))) u8 sq_both[64];
+extern __attribute__((aligned(65536))) u8 * sq_page;
 
 extern Array<RegisterStruct> CCN;		//CCN  : 14 registers
 extern Array<RegisterStruct> UBC;		//UBC  : 9 registers

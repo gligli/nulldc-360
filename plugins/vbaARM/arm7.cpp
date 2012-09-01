@@ -411,6 +411,9 @@ void CPUFiq()
 	pin on arm7
 */
 
+#ifdef _MUDFLAP
+__attribute__ ((optimize("O0")))
+#endif
 void arm_Run(u32 CycleCount)
 {
   if (!Arm7Enabled)

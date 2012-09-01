@@ -13,7 +13,7 @@ static unsigned long Offset = 0;
 static char *buf_global = NULL;
 static unsigned char bytes[4];
 
-static int ppc_buffer_read_memory (bfd_vma memaddr, bfd_byte *myaddr, u32 length, struct disassemble_info *info) {
+static int ppc_buffer_read_memory (bfd_vma memaddr, bfd_byte *myaddr, unsigned int length, struct disassemble_info *info) {
 	memcpy (myaddr, bytes, length);
 	return 0;
 }
@@ -40,10 +40,11 @@ static int buf_fprintf(void *stream, const char *format, ...) {
 	if (buf_global == NULL)
 		return 0;
 	va_start (ap, format);
- 	tmp = alloca (strlen (format)+strlen (buf_global)+2);
+ 	tmp = malloc (strlen (format)+strlen (buf_global)+2);
 	sprintf (tmp, "%s%s", buf_global, format);
 	vsprintf (buf_global, tmp, ap);
 	va_end (ap);
+    free(tmp);
 	return 0;
 }
 

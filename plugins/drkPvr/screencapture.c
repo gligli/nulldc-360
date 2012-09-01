@@ -1,4 +1,5 @@
 #include <png.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <time/time.h>
 #include <byteswap.h>
@@ -26,8 +27,8 @@ void doScreenCapture() {
 
         volatile unsigned int *screen = (unsigned int*) (long) (ai->base | 0x80000000);
 
-        unsigned int screen2[width * height];
-        png_bytep row_pointers[height];
+        unsigned int * screen2 =(unsigned int *)malloc(width * height * sizeof(unsigned int));
+        png_bytep * row_pointers=(png_bytep *)malloc(height* sizeof(png_bytep));
 
         int y, x;
         for (y = 0; y < height; ++y) {
@@ -58,6 +59,9 @@ void doScreenCapture() {
         fclose(outfp);
 
         printf("ScreenCapture : File saved to : %s\r\n", filename);
+        
+        free(screen2);
+        free(row_pointers);
     }
 
     do_capture = 0;

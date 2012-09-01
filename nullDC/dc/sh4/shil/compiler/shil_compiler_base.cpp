@@ -1071,11 +1071,10 @@ void readwrteparams3(u8 reg1,u8 reg2,u32 imm,u32 size,s32* fast_imm)
     }
 }
 //Emit needed calc. asm and return register that has the address :)
-ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,s32* fast_offset)
+ppc_reg  readwrteparams(shil_opcode* op,s32* fast_offset)
 {
 	assert(0==(op->flags & FLAG_IMM2));
 	assert(op->flags & FLAG_REG1);
-	*fast_reg=ERROR_REG;
 //	bool Loaded=false;
 
 	//can use
@@ -1185,36 +1184,23 @@ ppc_reg  readwrteparams(shil_opcode* op,ppc_reg* fast_reg,s32* fast_offset)
 
 const u32 m_unpack_sz[4]={1,2,4,8};
 //Ram Only Mem Lookup
-ppc_reg roml(ppc_reg reg,ppc_Label* lbl,u32* offset_Edit,int size,int rw)
+ppc_reg roml(ppc_reg reg,ppc_Label* lbl,s32 fast_offset,int size,int rw)
 {
 	ppc_reg addr_reg=R5;
 	
+    EMIT_ADDI(ppce,addr_reg,reg,fast_offset);
+
 	switch(size)
 	{
-		case FLAG_8:  EMIT_XORI(ppce,R6,reg,3); reg=R6; break;
-		case FLAG_16: EMIT_XORI(ppce,R6,reg,2); reg=R6; break;
+		case FLAG_8:  EMIT_XORI(ppce,addr_reg,addr_reg,3); break;
+		case FLAG_16: EMIT_XORI(ppce,addr_reg,addr_reg,2); break;
 	}
 
-
-#if 0
-	ppce->emitLoadImmediate32(R5,0xE0000000);
-	EMIT_CMPL(ppce,reg,R5,0);
-	ppce->emitBranchConditionalToLabel(lbl,0,PPC_CC_F,PPC_CC_NEG);
-	EMIT_RLWINM(ppce,R5,reg,0,3,31);
-	EMIT_ORIS(ppce,R5,R5,(u32)sh4_reserved_mem>>16);
-#else		
-	if (/*(reg==R3 && rw==0) ||*/ reg==R6)
-		addr_reg=reg;
-	else
-	{
-		ppce->emitMoveRegister(R5,reg);
-		addr_reg=R5;
-	}
+    // /!\ the following ops can be rewritten, don't change them
 	
-    verify((((u32)&sh4r)&0xf0000000)==0x80000000);
-	
-	EMIT_RLWIMI(ppce,addr_reg,RSH4R,31,0,2); // RSH4R is 0x8xxxxxxx, it's the only reason it's used here
-#endif
+	EMIT_RLWIMI(ppce,addr_reg,RSH4R,4,0,2); // RSH4R is 0x74060000, it's the only reason it's used here
+    ppce->MarkLabel(lbl);
+    ppce->write32(PPC_NOP);
 	
 	return addr_reg;
 }
@@ -1237,19 +1223,9 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		return;
 	}
 
-	u32 old_offset=ppce->ppc_indx;
-	ppc_reg fast_reg;
 	s32 fast_offset=0;
-	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_offset);
+	ppc_reg sh4_addr = readwrteparams(op,&fast_offset);
 	
-	old_offset=ppce->ppc_indx-old_offset;
-	/*ppc_Label* patch_point=*/ ppce->CreateLabel(true,0);
-	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
-	ppc_Label* roml_search_lbl = ppce->CreateLabel(false,0);
-
-	//Ram Only Mem Lookup
-	ppc_reg addr_reg=roml(reg_addr,p4_handler,&old_offset,size,0);
-
 	//mov to dest or temp
 	u32 is_float=IsInFReg(op->reg1);
 	ppc_reg destreg;
@@ -1277,16 +1253,16 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		}
 	}
 
-//	printf("destreg %d %d\n",destreg,reg_addr);
-	
-	ppce->MarkLabel(roml_search_lbl);
-	
+	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
+
+	ppc_reg ppc_addr=roml(sh4_addr,p4_handler,fast_offset,size,0);
+
 	if(is_float)
 	{
 		switch(size)
 		{
-			case FLAG_32: EMIT_LFS(ppce,destreg,fast_offset,addr_reg); break;
-			case FLAG_64: EMIT_LFD(ppce,destreg,fast_offset,addr_reg); break;
+			case FLAG_32: EMIT_LFS(ppce,destreg,0,ppc_addr); break;
+			case FLAG_64: EMIT_LFD(ppce,destreg,0,ppc_addr); break;
 			default: verify(false);
 		}
 	}
@@ -1294,10 +1270,10 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	{
 		switch(size)
 		{
-			case FLAG_8:  EMIT_LBZ(ppce,destreg,fast_offset,addr_reg); break;
-			case FLAG_16: EMIT_LHZ(ppce,destreg,fast_offset,addr_reg); break;
-			case FLAG_32: EMIT_LWZ(ppce,destreg,fast_offset,addr_reg); break;
-			case FLAG_64: EMIT_LFD(ppce,destreg,fast_offset,addr_reg); break;
+			case FLAG_8:  EMIT_LBZ(ppce,destreg,0,ppc_addr); break;
+			case FLAG_16: EMIT_LHZ(ppce,destreg,0,ppc_addr); break;
+			case FLAG_32: EMIT_LWZ(ppce,destreg,0,ppc_addr); break;
+			case FLAG_64: EMIT_LFD(ppce,destreg,0,ppc_addr); break;
 			default: verify(false);
 		}
 	}
@@ -1334,12 +1310,11 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 
     t.sh4_reg_data=sh4_dest_reg;
 	t.p4_access=p4_handler;
-	t.resume_offset=(u8)old_offset;
 	t.asz=size;
 	t.type=0;
 	t.is_float=is_float;
-	t.reg_addr=reg_addr;
-	t.fast_imm=fast_offset;
+	t.reg_addr=sh4_addr;
+    t.fast_imm=fast_offset;
 	if (size!=FLAG_64)
 	{
 		t.reg_data=destreg;
@@ -1350,9 +1325,6 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 		ReloadDouble(t.reg_data);
 	}
 	
-
-	t.roml_search_lbl=roml_search_lbl;
-
 	//emit_vmem_read(reg_addr,op->reg1,m_unpack_sz[size]);
 	roml_patch_list.push_back(t);
 }
@@ -1372,10 +1344,8 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 		return;
 	}
 
-	u32 old_offset=ppce->ppc_indx;
-	ppc_reg fast_reg;
 	s32 fast_offset=0;
-	ppc_reg reg_addr = readwrteparams(op,&fast_reg,&fast_offset);
+	ppc_reg sh4_addr = readwrteparams(op,&fast_offset);
 
 	ppc_reg rsrc;
     u8 sh4_dest_reg=op->reg1;
@@ -1408,49 +1378,38 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 		}
 	}
 	
-	old_offset=ppce->ppc_indx-old_offset;
-	
-	//ppc_Label* patch_point= ppce->CreateLabel(true,0);
 	ppc_Label* p4_handler = ppce->CreateLabel(false,0);
-	//Ram Only Mem Lookup
-	ppc_reg addr_reg = roml(reg_addr,p4_handler,&old_offset,size,1);
-	//mov [ecx],src
 
-	ppc_Label* roml_search_lbl = ppce->CreateLabel(true,0);
-	
+	ppc_reg ppc_addr = roml(sh4_addr,p4_handler,fast_offset,size,1);
+
 	if (was_float)
 	{
         switch(size)
 		{
-			case FLAG_32: EMIT_STFS(ppce,rsrc,fast_offset,addr_reg); break;
-			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,addr_reg); break;
+			case FLAG_32: EMIT_STFS(ppce,rsrc,0,ppc_addr); break;
+			case FLAG_64: EMIT_STFD(ppce,rsrc,0,ppc_addr); break;
 		}
 	}
 	else
 	{
 		switch(size)
 		{
-			case FLAG_8:  EMIT_STB(ppce,rsrc,fast_offset,addr_reg); break;
-			case FLAG_16: EMIT_STH(ppce,rsrc,fast_offset,addr_reg); break;
-			case FLAG_32: EMIT_STW(ppce,rsrc,fast_offset,addr_reg); break;
-			case FLAG_64: EMIT_STFD(ppce,rsrc,fast_offset,addr_reg); break;
+			case FLAG_8:  EMIT_STB(ppce,rsrc,0,ppc_addr); break;
+			case FLAG_16: EMIT_STH(ppce,rsrc,0,ppc_addr); break;
+			case FLAG_32: EMIT_STW(ppce,rsrc,0,ppc_addr); break;
+			case FLAG_64: EMIT_STFD(ppce,rsrc,0,ppc_addr); break;
 		}
 	}
-
-	
-	//if  (is_float)
-	//ppce->Emit(op_jmp,p4_handler);
 
 	roml_patch t;
     t.sh4_reg_data=sh4_dest_reg;
 	t.p4_access=p4_handler;
-	t.resume_offset=(u8)old_offset;
 	t.exit_point=ppce->CreateLabel(true,0);
 	t.asz=size;
 	t.type=1;
 	t.is_float=was_float != 0;
-	t.reg_addr=reg_addr;
-	t.fast_imm=fast_offset;
+	t.reg_addr=sh4_addr;
+    t.fast_imm=fast_offset;
 	if (size!=FLAG_64)
 	{
 		t.reg_data=rsrc;
@@ -1461,9 +1420,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 		FlushDouble(t.reg_data);
 	}
 
-	t.roml_search_lbl=roml_search_lbl;
-	
-	roml_patch_list.push_back(t);
+    roml_patch_list.push_back(t);
 	
 	//emit_vmem_write(reg_addr,op->reg1,m_unpack_sz[size]);
 }
@@ -1472,6 +1429,83 @@ void* nvr_lut[4]={(void*)ReadMem8,(void*)ReadMem16,(void*)ReadMem32,(void*)ReadM
 
 #include "dc/mem/sh4_internal_reg.h"
 
+extern "C"{
+#include <ppc/cache.h>
+}
+
+PowerPC_instr * __attribute__((aligned(65536))) roml_nop_offset=0;
+
+void roml_get_lr_nop()
+{
+}
+
+void * roml_patch_for_reg_access(u32 addr, bool jump_only)
+{
+    u32 noppos=addr-4;
+
+    PowerPC_instr * nop=(PowerPC_instr*)noppos;
+    PowerPC_instr * pre=nop-1;
+    PowerPC_instr * branch;
+    PowerPC_instr supposed_branch_op;
+    PowerPC_instr cur_op;
+    PowerPC_instr branch_op;
+
+    branch=nop;
+    do{
+
+        ++branch;
+
+        cur_op=*branch;
+
+        GEN_B(supposed_branch_op,-((u32)branch-noppos)>>2,0,0);
+
+    }while(cur_op!=supposed_branch_op);
+
+    ++branch; // skip dummy reverse branch
+
+    if(!jump_only)
+    {
+        GEN_B(branch_op,((u32)branch-noppos)>>2,0,0);
+
+        PowerPC_instr op=*pre;
+        op&=~(PPC_RB_MASK<<PPC_RB_SHIFT);
+        PPC_SET_SH(op,4);
+
+        *pre=op;
+        *nop=branch_op;
+
+        memicbi(pre,8);
+    }
+    
+    return branch;
+}
+
+void roml_patch_for_sq_access(u32 addr)
+{
+/*    if ((addr&0x03ffffff)>=0x800000)
+        return;*/
+    
+    verify(roml_nop_offset);
+    
+    PowerPC_instr * pre=roml_nop_offset-1;
+    PowerPC_instr op=*pre,op2;
+    u32 reg;
+
+    reg=(((u32)op)>>PPC_RA_SHIFT)&PPC_RA_MASK;
+    
+    printf("SQ Rewrite %p %p %d\n",roml_nop_offset+1,addr,reg);
+		
+    op&=~(PPC_RB_MASK<<PPC_RB_SHIFT);
+    PPC_SET_SH(op,12);
+
+    GEN_RLWINM(op2,reg,reg,0,25+1,16-1);
+        
+    *pre=op;
+    *roml_nop_offset=op2;
+
+    memicbi(pre,8);
+}
+
 void apply_roml_patches()
 {
 	for (u32 i=0;i<roml_patch_list.size();i++)
@@ -1479,45 +1513,19 @@ void apply_roml_patches()
 //		printf("apply_roml_patches %d %d\n",roml_patch_list[i].type,roml_patch_list[i].asz);
 		void * function=roml_patch_list[i].type==1 ?nvw_lut[roml_patch_list[i].asz]:nvr_lut[roml_patch_list[i].asz];
 		
-		ppc_Label* normal_write_nosq=ppce->CreateLabel(false,8);
-
-		ppce->emitBranchToLabel(roml_patch_list[i].roml_search_lbl,0);
+		ppce->emitBranchToLabel(roml_patch_list[i].p4_access,0);
+        
+        if(roml_patch_list[i].type==1 && roml_patch_list[i].asz>=FLAG_32)
+        {
+            ppce->emitBranch((void*)roml_get_lr_nop,1);
+            EMIT_MFLR(ppce,R8);
+            EMIT_ADDI(ppce,R8,R8,-ppce->ppc_indx+roml_patch_list[i].p4_access->target_opcode+4);
+            EMIT_LIS(ppce,R9,((u32)&roml_nop_offset)>>16);
+            EMIT_STW(ppce,R8,0,R9);
+        }
 		
-		ppce->MarkLabel(roml_patch_list[i].p4_access);
-
-		if(roml_patch_list[i].reg_addr!=R3 || roml_patch_list[i].fast_imm)
+		if(roml_patch_list[i].reg_addr!=R3 || roml_patch_list[i].fast_imm!=0)
 			EMIT_ADDI(ppce,R3,roml_patch_list[i].reg_addr,roml_patch_list[i].fast_imm);
-		
-		if (roml_patch_list[i].type==1 && (roml_patch_list[i].asz>=FLAG_32))
-		{
-			//check for SQ write
-			EMIT_RLWINM(ppce,R6,R3,16,16,31);
-			EMIT_CMPLI(ppce,R6,0xe000,0);
-			ppce->emitBranchConditionalToLabel(normal_write_nosq,0,PPC_CC_T, PPC_CC_NEG);
-			EMIT_CMPLI(ppce,R6,0xe400,0);
-			ppce->emitBranchConditionalToLabel(normal_write_nosq,0,PPC_CC_F, PPC_CC_NEG);
-
-			EMIT_RLWINM(ppce,R3,R3,0,26,29); // & 0x3c
-			EMIT_ORIS(ppce,R3,R3,((u32)sq_both)>>16);
-			if (FLAG_32==roml_patch_list[i].asz)
-			{
-				if(roml_patch_list[i].is_float)
-				{
-					EMIT_STFS(ppce,roml_patch_list[i].reg_data,0,R3);
-				}
-				else
-				{
-					EMIT_STW(ppce,roml_patch_list[i].reg_data,0,R3);
-				}
-			}
-			else
-			{
-				EMIT_STFD(ppce,FR0,0,R3);
-			}
-			ppce->emitBranchToLabel(roml_patch_list[i].exit_point,0);
-		}
-
-		ppce->MarkLabel(normal_write_nosq);
 		
 		if (roml_patch_list[i].asz!=FLAG_64)
 		{
@@ -1535,7 +1543,7 @@ void apply_roml_patches()
 						ppce->emitMoveRegister(R4,roml_patch_list[i].reg_data);
 				}
 			}
-
+            
 			ppce->emitBranch(function,1);
 			
 			if (roml_patch_list[i].type==0)
@@ -1581,12 +1589,18 @@ void apply_roml_patches()
 					ppce->emitLoad32(R3,&tmp);//get the 'low' address
 			}
 
+
+
 		}
+
+        if(roml_patch_list[i].type==1 && roml_patch_list[i].asz>=FLAG_32)
+        {
+            EMIT_LI(ppce,R8,0);
+            EMIT_LIS(ppce,R9,((u32)&roml_nop_offset)>>16);
+            EMIT_STW(ppce,R8,0,R9);
+        }
+
 		ppce->emitBranchToLabel(roml_patch_list[i].exit_point,0);
-		//ppce->MarkLabel(roml_patch_list[i].p4_access);
-		
-		//roml_patch_list[i].reg_data;
-		//emit_vmem_write(roml_patch_list[i].reg_addr,
 	}
 	roml_patch_list.clear();
 }
@@ -2231,8 +2245,8 @@ void __fastcall shil_compile_pref(shil_opcode* op)
 			
 			ppce->emitBranchConditionalToLabel(else_,0,PPC_CC_F,PPC_CC_ZER);
 			
-			EMIT_RLWINM(ppce,R3,R3,0,26,26);		
-			EMIT_ORIS(ppce,R3,R3,(u32)sq_both>>16);
+            EMIT_RLWIMI(ppce,R3,RSH4R,12,26+1,3-1); // RSH4R is 0x74060000, it's the only reason it's used here
+            EMIT_RLWINM(ppce,R3,R3,0,25+1,16-1);
 			
 			ppce->emitBranch((void*)threaded_TASQ,1);
 			ppce->emitBranchToLabel(after,0);

@@ -35,6 +35,7 @@ struct Sh4RegContext
 void GenerateSinCos();
 
 extern Sh4RegContext sh4r;
+extern Sh4RegContext * vm_sh4r;
 
 extern u32* xf_hex;
 extern u32* fr_hex;

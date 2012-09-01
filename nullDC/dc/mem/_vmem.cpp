@@ -42,7 +42,6 @@ _vmem_WriteMem32FP*		_vmem_WF32[0x1000];
 void* _vmem_MemInfo[0x10000];
 u8* sh4_reserved_mem;
 u8* sh4_ram_alt;	//alternative ram space map
-u8* sh4_mem_marks;	//used for marking ;p
 
 bool INLINE _vmem_translate(u32 addr,unat& entry_or_fptr)
 {
@@ -442,6 +441,7 @@ void _vmem_term()
 }
 #include "dc/pvr/pvr_if.h"
 #include "sh4_mem.h"
+#include "sh4_internal_reg.h"
 
 //i'm not sure not defining this works anymore
 //file mapping is used to create read-only mirrors, to increase speedeh!
@@ -451,7 +451,7 @@ void _vmem_term()
 #define MAP_VRAM_START_OFFSET (MAP_RAM_START_OFFSET+RAM_SIZE)
 #define MAP_ARAM_START_OFFSET (MAP_VRAM_START_OFFSET+VRAM_SIZE)
 
-void* _nvmem_map_buffer(u32 dst,u32 addrsz,u32 offset,u32 size)
+void* _nvmem_map_buffer(u32 dst,u32 addrsz,u32 size,bool ro_mirrors)
 {
 	void * rv=&sh4_reserved_mem[dst];
 	
@@ -466,7 +466,7 @@ void* _nvmem_map_buffer(u32 dst,u32 addrsz,u32 offset,u32 size)
 	for (u32 i=1;i<map_times;i++)
 	{
 		dst+=size;
-		vm_create_user_mapping((u32)&sh4_reserved_mem[dst],mem,size,VM_WIMG_CACHED_READ_ONLY); //FILE_MAP_READ
+        vm_create_user_mapping((u32)&sh4_reserved_mem[dst],mem,size,ro_mirrors?VM_WIMG_CACHED_READ_ONLY:VM_WIMG_CACHED); //FILE_MAP_READ
 	}
 
 	return rv;
@@ -479,7 +479,7 @@ void* _nvmem_unused_buffer(u32 start,u32 end)
 	return &sh4_reserved_mem[start];
 }
 
-#define map_buffer(dsts,dste,offset,sz) {ptr=_nvmem_map_buffer(dsts,dste-dsts,offset,sz);if (!ptr) return false;}
+#define map_buffer(dsts,dste,sz,ro_mirrors) {ptr=_nvmem_map_buffer(dsts,dste-dsts,sz,ro_mirrors);if (!ptr) return false;}
 #define unused_buffer(start,end) {ptr=_nvmem_unused_buffer(start,end);if (!ptr) return false;}
 
 
@@ -501,7 +501,7 @@ bool _vmem_reserve()
 	//[0x00800000,0x00A00000);
 	unused_buffer(0x00000000,0x01000000);
 	
-	ptr=_nvmem_map_buffer(0x20000000 | 0x00800000,0x00800000,MAP_ARAM_START_OFFSET,ARAM_SIZE);
+	ptr=_nvmem_map_buffer(0x18000000,0x00800000,ARAM_SIZE,true);
 	aica_ram.size=ARAM_SIZE;
 	aica_ram.data=(u8*)ptr;
 	//[0x01000000 ,0x04000000) -> unused
@@ -509,7 +509,7 @@ bool _vmem_reserve()
 	
 	//Area 1
 	//[0x04000000,0x05000000) -> vram (16mb, warped on dc)
-	map_buffer(0x04000000,0x05000000,MAP_VRAM_START_OFFSET,VRAM_SIZE);
+	map_buffer(0x04000000,0x05000000,VRAM_SIZE,true);
 	
 	vram.size=VRAM_SIZE;
 	vram.data=(u8*)ptr;
@@ -518,7 +518,7 @@ bool _vmem_reserve()
 	unused_buffer(0x05000000,0x06000000);
 
 	//[0x06000000,0x07000000) -> vram   mirror
-	map_buffer(0x06000000,0x07000000,MAP_VRAM_START_OFFSET,VRAM_SIZE);
+	map_buffer(0x06000000,0x07000000,VRAM_SIZE,true);
 
 	//[0x07000000,0x08000000) -> unused (32b path) mirror
 	unused_buffer(0x07000000,0x08000000);
@@ -532,7 +532,7 @@ bool _vmem_reserve()
 	//[0x0D000000,0x0E000000) -> main ram mirror
 	//[0x0E000000,0x0F000000) -> main ram mirror
 	//[0x0F000000,0x10000000) -> main ram mirror
-	map_buffer(0x0C000000,0x10000000,MAP_RAM_START_OFFSET,RAM_SIZE);
+	map_buffer(0x0C000000,0x10000000,RAM_SIZE,true);
 	
 	mem_b.size=RAM_SIZE;
 	mem_b.data=(u8*)ptr;
@@ -543,28 +543,14 @@ bool _vmem_reserve()
 	//Area 7
 	//all -> Unused 
 	//[0x10000000,0x20000000) -> unused
-	unused_buffer(0x10000000,0x20000000);
+	unused_buffer(0x10000000,0x18000000);
+	unused_buffer(0x1C000000,0x20000000);
 
-/*	sh4_ram_alt= (u8*)MapViewOfFile(mem_handle,FILE_MAP_READ |FILE_MAP_WRITE,0,0,RAM_SIZE);	//alternative ram map location, BE CAREFULL THIS BYPASSES DYNAREC PROTECTION LOGIC
-	if (sh4_ram_alt==0)
-		return false;*/
-
-	sh4_mem_marks=(u8*)0x78000000;//PAGE_SIZE*64*2,MEM_RESERVE,PAGE_NOACCESS
-	verify(sh4_mem_marks!=0);
-	
-
-	//Mark all except P4 as direct mapped
-	
-	
-	
-	u8* test = (u8*)memalign(VM_USER_PAGE_SIZE,38*VM_USER_PAGE_SIZE);
-	verify(0!=test);
-	vm_create_user_mapping((u32)sh4_mem_marks,(u64)test&0x7fffffff,38*VM_USER_PAGE_SIZE,VM_WIMG_CACHED); //38*PAGE_SIZE,MEM_COMMIT,PAGE_READWRITE
-
-	//Mark SQ as sq mapped
-	test = (u8*)memalign(VM_USER_PAGE_SIZE,VM_USER_PAGE_SIZE);
-	verify(0!=test);
-	vm_create_user_mapping((u32)&sh4_mem_marks[(38+64)*VM_USER_PAGE_SIZE],(u64)test&0x7fffffff,VM_USER_PAGE_SIZE,VM_WIMG_CACHED); //PAGE_SIZE,MEM_COMMIT,PAGE_READWRITE
+    //second mapping (for SQ access)
+    map_buffer(0x20000000,0x23000000,VM_USER_PAGE_SIZE,false);
+    sq_page=(u8*)ptr;
+    
+    memset(sq_page,0x42,VM_USER_PAGE_SIZE);
 
 	return sh4_reserved_mem!=0;
 }

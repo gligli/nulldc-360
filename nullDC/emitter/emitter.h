@@ -123,6 +123,8 @@ private:
 	dyna_finalizeFP* allocfin;
 	u32 bc_tab[0x4000];
 	u32 bc_tab_next_idx;
+	bool last_lis_valid;
+	u16 last_lis;
 public:
 
 	u8* ppc_buff;
@@ -131,10 +133,8 @@ public:
 	bool do_realloc;
 	bool do_disasm;
 	bool do_disasm_imm;
+    bool deactivate_rlis;
 	
-	bool last_lis_valid;
-	u16 last_lis;
-
 	ppc_block();
 	~ppc_block();
 	void ppc_buffer_ensure(u32 size);

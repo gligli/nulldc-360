@@ -323,37 +323,34 @@ void VArray2::UnLockRegion(u32 offset,u32 size)
 #include "dc/sh4/rec_v1/compiledblock.h"
 #include "dc/sh4/rec_v1/blockmanager.h"
 
+void * roml_patch_for_reg_access(u32 addr, bool jump_only);
+
 bool VramLockedWrite(u8* address);
 bool RamLockedWrite(u8* address,u32* sp);
-extern u8* sh4_mem_marks;
 extern u8* DynarecCache;
 extern u32 DynarecCacheSize;
-void * ExeptionHandler(int pir_,void * srr0,void * dar,int write)
+void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 {
 	u8* address=(u8*)dar;
 
 	if (VramLockedWrite(address))
 	{
 //		printf("VramLockedWrite\n");
-		return NULL;// EXCEPTION_CONTINUE_EXECUTION;
+		return NULL;
 	}
 	else if (RamLockedWrite(address,NULL))
 	{
-		printf("RamLockedWrite\n");
-		return NULL;// EXCEPTION_CONTINUE_EXECUTION;
+//		printf("RamLockedWrite\n");
+		return NULL;
 	}
-	else if (((u32)(address-sh4_reserved_mem))<(512*1024*1024) || ((u32)(address-sh4_mem_marks))<(64*2*PAGE_SIZE))
+	else if (((u32)(address-sh4_reserved_mem))<(704*1024*1024))
 	{
-		//printf("Rewrite %d %p %p %d ",pir,srr0,dar,write);
-		
-		u32 pos=(u32)srr0;
-		CompiledBlockInfo* cbi=bm_ReverseLookup((void*)pos);
+		CompiledBlockInfo* cbi=bm_ReverseLookup(srr0);
 
 		if (!cbi)
 		{
-			log("**DYNAREC_BUG: bm_ReverseLookup failed to resolve %08X, will blindly patch due to %08X**\n",pos,address);
-			log("**PLEASE REPORT THIS IF NOT ON THE ISSUE TRACKER ALREADY --raz**\n");
-			return NULL;// EXCEPTION_CONTINUE_SEARCH;
+			log("**DYNAREC_BUG: bm_ReverseLookup failed to resolve %08X, will blindly patch due to %08X**\n",srr0,address);
+			return NULL;
 		}
 
 #ifdef DEBUG
@@ -361,61 +358,21 @@ void * ExeptionHandler(int pir_,void * srr0,void * dar,int write)
 			log("Except in block %X | %X\n",cbi->Code,cbi);
 #endif
 
-#if 0
-		
-		//cbb->Rewrite
-		// find last branch and make it always branch (never load directly)
-		PowerPC_instr * branch=(PowerPC_instr*)pos;
-		PowerPC_instr branch_op;
-//		disassemble((u32)branch,* branch);
-		do{
-			--branch;
-			branch_op=*branch;
-		}while(branch_op>>PPC_OPCODE_SHIFT!=PPC_OPCODE_BC);
-		
-		branch_op&=~(0x1f<<21);
-		branch_op|=PPC_CC_A<<21;
-//		disassemble((u32)branch,branch_op);
-		branch_op-=4; // skip apply_roml_patch SQ stuff
-		*branch=branch_op;
-		memicbi(branch,4);
-		return branch+((branch_op>>2)&0x3fff);
-	
-#else
-		
-		PowerPC_instr * memop=(PowerPC_instr*)pos;
-		PowerPC_instr * branch;
-		PowerPC_instr supposed_branch_op;
-		PowerPC_instr cur_op;
-		PowerPC_instr branch_op;
-		
-		branch=memop;
-		do{
-
-			++branch;
-			
-			cur_op=*branch;
-			
-			GEN_B(supposed_branch_op,-((u32)branch-pos)>>2,0,0);
-
-		}while(cur_op!=supposed_branch_op);
-		
-		++branch; // skip dummy reverse branch
-		
-		GEN_B(branch_op,((u32)branch-pos)>>2,0,0);
-		
-		*memop=branch_op;
-		memicbi(memop,4);
-		return branch;
-		
-#endif
-
+		//printf("Rewrite %d %p %p %d\n",pir,srr0,dar,write);
+        
+        return roml_patch_for_reg_access((u32)srr0,false);
 	}
+	else if (((u32)(address-sh4_reserved_mem))<(768*1024*1024))
+	{
+        //printf("OCR access from SQ mapping %d %p %p %d\n",pir,srr0,dar,write);
+        
+        return roml_patch_for_reg_access((u32)srr0,true);
+    }
 	else
 	{
 		log("[GPF]Unhandled access to : 0x%X\n",address);
+    	return ((PowerPC_instr*)srr0)+1;
 	}
-	return NULL;// EXCEPTION_CONTINUE_SEARCH;
 }
 
 int msgboxf(char* text,unsigned int type,...)

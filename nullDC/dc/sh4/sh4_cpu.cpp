@@ -159,16 +159,17 @@ u64 time_pref=0;
 void __fastcall do_pref(u32 addr)
 {
 //	u64 prt=mftb();
-	
-	u32* sq = (u32*)&sq_both[addr& 0x20];
-/*
-    u32 oa=CCN_QACR_TR[(addr>>5)&1];
-	if(CCN_MMUCR.AT==0 && ((oa>>26)&7)==4)
-	{
-		libPvr.TaSQ(sq);
-		return;
-	}
-*/
+
+    u32 * sq=(u32*)(0x60000000 | ( addr & 0x1FFF0020));
+    
+//	u32* sq = (u32*)&sq_page[addr& 0x20];
+    
+/*    int i;
+    bool thr=false;
+    for (i=0;i<64;++i) if (sq_page[64+i]!=0x42) thr=true;
+    if (thr) printf("foirade %p\n",addr);
+    memset(&sq_page[64],0x42,64);*/
+
 	if (!mmu_TranslateSQW(addr))
 	{
 		log("Read Exeption From SQ WRITE \n");
@@ -605,9 +606,9 @@ sh4op(i0011_nnnn_mmmm_1111)
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 	s64 br=(s64)(s32)r[n]+(s64)(s32)r[m];
-	u32 rm=r[m];
+//	u32 rm=r[m];
 	u32 rn=r[n];
-	u8 tmp;
+//	u8 tmp;
 
 TR/*gli	__asm
 	{
@@ -675,9 +676,9 @@ sh4op(i0011_nnnn_mmmm_1011)
 		sr.T=0;
 	
 	r[n]-=r[m];
-	u32 rm=r[m];
+//	u32 rm=r[m];
 	u32 rn=r[n];
-	u8 tmp;
+//	u8 tmp;
 
 TR/*gli	__asm 
 	{

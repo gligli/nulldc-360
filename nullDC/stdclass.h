@@ -107,7 +107,7 @@ public:
 				for (u32 i=Size;i<size;i++)
 				{
 					u8*p =(u8*)&data[i];
-					int j;
+					u32 j;
 					for (j=0;j<sizeof(T);j++)
 					{
 						p[j]=0;
