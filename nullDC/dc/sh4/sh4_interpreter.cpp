@@ -28,7 +28,6 @@
 #define CPU_RATIO		(8)
 
 volatile bool threaded_subsystems=true;
-volatile bool threaded_internals=true;
 
 //uh uh 
 volatile bool  sh4_int_bCpuRun=false;
@@ -454,7 +453,6 @@ void ThreadedUpdate()
 
 static volatile bool running=false;
 static volatile bool update_pending=false;
-static volatile bool update_pending2=false;
 
 static void threaded_task()
 {
@@ -467,27 +465,13 @@ static void threaded_task()
 	}
 }
 
-static void threaded_task2()
-{
-	while(running)
-	{
-		if(update_pending2){
-    		  	UpdateTMU(448);
-				update_pending2=false;
-		}
-	}
-}
-
-
 static void threaded_term()
 {
 	running=false;
 	while (xenon_is_thread_task_running(4));
-	while (xenon_is_thread_task_running(5));
 }
 
 static u8 stack[0x100000];
-static u8 stack2[0x100000];
 
 void Sh4_int_Init() 
 {
@@ -498,8 +482,6 @@ void Sh4_int_Init()
 	running=true;
 	if (threaded_subsystems)
         xenon_run_thread_task(4,&stack[sizeof(stack)-0x100],(void*)threaded_task);
-	if (threaded_internals)
-    	xenon_run_thread_task(5,&stack2[sizeof(stack2)-0x100],(void*)threaded_task2);
 
     atexit(threaded_term);
 }
@@ -748,16 +730,7 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 	u64 ust=mftb();
 #endif
 
-    if(threaded_internals)
-    {
-        while(update_pending2) asm volatile("db16cyc");
-        update_pending2=true;
-    }
-    else
-    {
-        UpdateTMU(448);
-    }
-    
+    UpdateTMU(448);
     spgUpdatePvr(448);
     
 	if (!(update_cnt&0x7))

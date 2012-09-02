@@ -15,11 +15,11 @@ u32 tmu_prescaler_shift[3];
 u32 tmu_prescaler_mask[3];
 const u32 tmu_ch_bit[3]={1,2,4};
 
-volatile u32 tmu_regs_CNT[3];
-volatile u32 tmu_regs_COR[3];
-volatile u16 tmu_regs_CR[3];
+u32 tmu_regs_CNT[3];
+u32 tmu_regs_COR[3];
+u16 tmu_regs_CR[3];
 u32 old_mode[3] = {0xFFFF,0xFFFF,0xFFFF};
-volatile u8 TMU_TOCR,TMU_TSTR;
+u8 TMU_TOCR,TMU_TSTR;
 
 const InterruptID tmu_intID[3]={sh4_TMU0_TUNI0,sh4_TMU1_TUNI1,sh4_TMU2_TUNI2};
 
