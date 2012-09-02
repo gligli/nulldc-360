@@ -130,7 +130,7 @@ Optiongroup menu_zbuffer;
 Optiongroup menu_TCM;
 Optiongroup menu_widemode;
 Optiongroup menu_resolution;
-int oldmode=-1;
+u32 oldmode=-1;
 int osx=-1,osy=-1;
 
 
@@ -451,11 +451,6 @@ s32 FASTCALL InitPvr(pvr_init_params* param)
 		return rv_error;
 	}
 	UpdateRRect();
-	//olny the renderer cares about thread speciacific shit ..
-	if (!ThreadStart())
-	{
-		return rv_error;
-	}
 
 	threaded_init();
 	
@@ -465,8 +460,6 @@ s32 FASTCALL InitPvr(pvr_init_params* param)
 //called when exiting from sh4 thread , from the new thread context (for any thread speciacific de init) :P
 void FASTCALL TermPvr()
 {
-	ThreadEnd();
-
 	TermRenderer();
 	spg_Term();
 	Regs_Term();

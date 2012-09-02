@@ -1,3 +1,5 @@
+#include <deque>
+
 #include "threadedPvr.h"
 
 #include <stdio.h>
@@ -9,22 +11,29 @@
 #include <ppc/register.h>
 #include <ppc/atomic.h>
 #include <time/time.h>
+#include <bits/stl_bvector.h>
+#include "emitter/3DMath.h"
 
 #include "Renderer_if.h"
 #include "ta.h"
 #include "spg.h"
 
+using namespace std;
+
 volatile bool threaded_pvr=true;
 
 static volatile bool running=false;
 
-#define TA_DMA_MAX_SIZE 1048576
+#define TA_RING_MAX_COUNT 32768
 
-static volatile __attribute__((aligned(128))) u32 ta_data[2][TA_DMA_MAX_SIZE/4];
-static volatile int ta_size[2];
-static volatile int ta_cur=0;
+#define ta_ring_count(str) ((u32)abs((str[1]%TA_RING_MAX_COUNT)-(str[0]%TA_RING_MAX_COUNT)))
+#define ta_read_idx ta_idx[0]
+#define ta_write_idx ta_idx[1]
 
-static volatile bool ta_pending=false;
+static __attribute__((aligned(65536))) u32 ta_ring[TA_RING_MAX_COUNT][32/sizeof(u32)];
+
+static volatile  __attribute__((aligned(128)))  u64 ta_idx[2];
+
 static volatile bool ta_working=false;
 static volatile bool call_pending=false;
 
@@ -62,22 +71,25 @@ void threaded_ImmediateIRQ(u32 * data)
     }
 }
 
+u64 time_ta=0;
+
 void threaded_wait(bool wait_ta_working)
 {
     if(threaded_pvr)
     {
+        while(call_pending) asm volatile("db16cyc");
+        
         if(wait_ta_working)
-            while(ta_pending||call_pending||ta_working) asm volatile("db16cyc");
-        else
-            while(ta_pending||call_pending) asm volatile("db16cyc");
+            while(ta_ring_count(ta_idx)>0||ta_working) asm volatile("db16cyc");
     }
 }
 
 void threaded_call(void (*call)())
 {
+    threaded_wait(false);
+    
     if(threaded_pvr)
     {
-        threaded_wait(false);
         call_function=(volatile void (*)())call;
         if((void*)call) call_pending=true;
     }
@@ -89,22 +101,40 @@ void threaded_call(void (*call)())
 
 void threaded_TADma(u32* data,u32 size)
 {
-    if(threaded_pvr)
+    if(threaded_pvr && size<TA_RING_MAX_COUNT)
     {
-        while(ta_pending||call_pending) asm volatile("db16cyc");
+        verify(!((u32)data&0x1f));
         
-        verify(size*32<=TA_DMA_MAX_SIZE);
+        vector float v1,v2;
+        
+        u32 * lda=data;
+        u32 lsi=size;
 
-        u64 * d=(u64*)ta_data[ta_cur];
+        while(size>TA_RING_MAX_COUNT-ta_ring_count(ta_idx)) asm volatile("db16cyc");
+    
+        while(lsi)
+        {
+            u64 * d =(u64*) ta_ring[ta_write_idx%TA_RING_MAX_COUNT];
+            u64 * s =(u64*) lda;
+            
+#if 0
+            d[0]=s[0];d[1]=s[1];d[2]=s[2];d[3]=s[3];
+#else
+            LOAD_ALIGNED_VECTOR(v1,&s[0]);
+            LOAD_ALIGNED_VECTOR(v2,&s[2]);
+            STORE_ALIGNED_VECTOR(v1,&d[0]);
+            STORE_ALIGNED_VECTOR(v2,&d[2]);
+#endif
 
-        memcpy(d,data,size*32);
-
-        ta_size[ta_cur]=size;
-
-        ta_pending=true;
+            ++ta_write_idx;
+            
+            --lsi;
+            lda+=8;
+        }
     }
     else
     {
+        threaded_wait(true);
         TASplitter::Dma(data,size);
     }
 
@@ -122,22 +152,23 @@ void threaded_TASQ(u32* data)
 {
     if(threaded_pvr)
     {
-        while(ta_pending||call_pending) asm volatile("db16cyc");
+        vector float v1,v2;
         
-        u64 * d=(u64*)ta_data[ta_cur];
-        u64 * s=(u64*)data;
+        while(ta_ring_count(ta_idx)>=TA_RING_MAX_COUNT) asm volatile("db16cyc");
+    
+        u64 * d =(u64*) ta_ring[ta_write_idx%TA_RING_MAX_COUNT];
+        u64 * s =(u64*) data;
 
-        d[0]=s[0];
-        d[1]=s[1];
-        d[2]=s[2];
-        d[3]=s[3];
-
-        ta_size[ta_cur]=0;
-
-        ta_pending=true;
+        LOAD_ALIGNED_VECTOR(v1,&s[0]);
+        LOAD_ALIGNED_VECTOR(v2,&s[2]);
+        STORE_ALIGNED_VECTOR(v1,&d[0]);
+        STORE_ALIGNED_VECTOR(v2,&d[2]);
+        
+        ++ta_write_idx;
     }
     else
     {
+        threaded_wait(true);
     	TASplitter::SQ(data);
     }
     
@@ -148,27 +179,28 @@ static void threaded_task()
 {
 	while(running)
 	{
-		if(ta_pending)
-		{
-            u32 * data=(u32*)ta_data[ta_cur];
-			u32 size = ta_size[ta_cur];
-			
-			ta_cur=1-ta_cur;
-			
-    		ta_working=true;
-    		ta_pending=false;
-			
-			if (!size)
-			{
-				TASplitter::SQ(data);
-			}
-			else
-			{
-				TASplitter::Dma(data,size);
-			}
+        if(ta_ring_count(ta_idx)!=0)
+        {
+            u64  __attribute__((aligned(128))) lidx[2];
+            vector float vt;
 
-    		ta_working=false;
-		}
+            LOAD_ALIGNED_VECTOR(vt,ta_idx); // for atomicness
+            STORE_ALIGNED_VECTOR(vt,lidx);
+            
+            u32 ri=lidx[0]%TA_RING_MAX_COUNT;
+            u32 rc=ta_ring_count(lidx);
+            
+            u32 chunk=min(rc,(TA_RING_MAX_COUNT-ri));
+            u32 * chunk_start=ta_ring[ri];
+
+            ta_working=true;
+
+            TASplitter::Dma(chunk_start,chunk);            
+
+            ta_read_idx+=chunk;
+            
+            ta_working=false;
+        }
         
 		if(call_pending){
             (*call_function)();

@@ -2496,8 +2496,12 @@ nl:
 	void decode_pvr_vertex(u32 base,u32 ptr,Vertex* to);
 	u32 old_pal_mode;
     
-    void BeforeStartRender()
-    {
+	void StartRender()
+	{
+        threaded_wait(true);
+        
+        //printf("%08x 2\n",PARAM_BASE);
+
         SetCurrentPVRRC(PARAM_BASE);
 
 		VertexCount+= pvrrc.verts.used;
@@ -2505,16 +2509,7 @@ nl:
 		render_end_pending_cycles= pvrrc.verts.used*45;
 		//if (render_end_pending_cycles<500000)
 			render_end_pending_cycles+=500000;
-    }
-    
-	void StartRender()
-	{
-		threaded_wait(true);
 
-        //printf("%08x 2\n",PARAM_BASE);
-
-        BeforeStartRender();
-        
         if (old_pal_mode!=drkpvr_settings.Emulation.PaletteMode)
 		{
 			//mark pal texures dirty
@@ -3620,17 +3615,6 @@ nl:
 		VertexCount=0;
 		FrameCount=0;
 	}
-
-	bool ThreadStart()
-	{
-		return true;
-	}
-
-	void ThreadEnd()
-	{
-	}
-
-	
 
 	void ListCont()
 	{

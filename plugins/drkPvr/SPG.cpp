@@ -86,6 +86,7 @@ extern u64 time_rw_regs;
 extern u64 time_gdrom;
 extern u64 time_lookup;
 extern u64 time_pref;
+extern u64 time_ta;
 extern u32 gdromaccesses;
 
 void PrintBlocksRunCount();
@@ -181,6 +182,7 @@ void spgVBL()
 					time_gdrom=0;
 					time_lookup=0;
 					time_pref=0;
+					time_ta=0;
 					
 					for(i=0;i<0x10000;++i)
 					{
@@ -203,6 +205,7 @@ void spgVBL()
 					printf("RW regs: %.3f%%\n",100.0f*(float)time_rw_regs/(mftb()-time_dr_start));
 					printf("GDROM: %.3f%%\n",100.0f*(float)time_gdrom/(mftb()-time_dr_start));
 					printf("lookup: %.3f%%\n",100.0f*(float)time_lookup/(mftb()-time_dr_start));
+					printf("ta wait: %.3f%%\n",100.0f*(float)time_ta/(mftb()-time_dr_start));
 					break;
 				case 'b':
 					PrintBlocksRunCount();

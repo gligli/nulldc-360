@@ -20,8 +20,6 @@ void TermRenderer();
 void ResetRenderer(bool Manual);
 
 void HandleEvent(u32 evid,void* p);
-bool ThreadStart();
-void ThreadEnd();
 void VBlank();
 void BeforeStartRender();
 void StartRender();

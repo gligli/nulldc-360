@@ -97,7 +97,7 @@ void CPUSwap(u32 *a, u32 *b)
 	*a = c;
 }
 
-
+bool C_OUT;
 bool N_FLAG;
 bool Z_FLAG;
 bool C_FLAG;

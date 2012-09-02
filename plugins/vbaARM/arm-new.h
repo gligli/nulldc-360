@@ -1110,7 +1110,7 @@
       int base = (opcode >> 16) & 0x0F;\
       int shift = (opcode >> 7) & 0x1F;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       \
       if(shift) {\
@@ -1142,7 +1142,7 @@
       int base = (opcode >> 16) & 0x0F;\
       int shift = (opcode >> 7) & 0x1F;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         LOGICAL_LSR_REG\
@@ -1175,7 +1175,7 @@
       int base = (opcode >> 16) & 0x0F;\
       int shift = (opcode >> 7) & 0x1F;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         LOGICAL_ASR_REG\
@@ -1213,7 +1213,7 @@
       int base = (opcode >> 16) & 0x0F;\
       int shift = (opcode >> 7) & 0x1F;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         LOGICAL_ROR_REG\
@@ -1244,7 +1244,7 @@
       int base = (opcode >> 16) & 0x0F;\
       int shift = reg[(opcode >> 8)&15].B.B0;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         if(shift == 32) {\
@@ -1283,7 +1283,7 @@
       int base = (opcode >> 16) & 0x0F;\
       int shift = reg[(opcode >> 8)&15].B.B0;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         if(shift == 32) {\
@@ -1322,7 +1322,7 @@
       int base = (opcode >> 16) & 0x0F;\
       int shift = reg[(opcode >> 8)&15].B.B0;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift < 32) {\
         if(shift) {\
@@ -1363,7 +1363,7 @@
       int base = (opcode >> 16) & 0x0F;\
       int shift = reg[(opcode >> 8)&15].B.B0;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         shift &= 0x1f;\
@@ -1414,7 +1414,7 @@
       int shift = (opcode & 0xF00) >> 7;\
       int base = (opcode >> 16) & 0x0F;\
       int dest = (opcode >> 12) & 0x0F;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         LOGICAL_ROR_IMM\
@@ -1446,7 +1446,7 @@
       /* OP Rd,Rb,Rm LSL # */ \
       int shift = (opcode >> 7) & 0x1F;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       \
       if(shift) {\
@@ -1475,7 +1475,7 @@
        /* OP Rd,Rb,Rm LSR # */ \
       int shift = (opcode >> 7) & 0x1F;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         LOGICAL_LSR_REG\
@@ -1505,7 +1505,7 @@
        /* OP Rd,Rb,Rm ASR # */\
       int shift = (opcode >> 7) & 0x1F;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         LOGICAL_ASR_REG\
@@ -1540,7 +1540,7 @@
        /* OP Rd,Rb,Rm ROR # */\
       int shift = (opcode >> 7) & 0x1F;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         LOGICAL_ROR_REG\
@@ -1568,7 +1568,7 @@
       clockTicks++;\
       int shift = reg[(opcode >> 8)&15].B.B0;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         if(shift == 32) {\
@@ -1604,7 +1604,7 @@
       clockTicks++;\
       int shift = reg[(opcode >> 8)&15].B.B0;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         if(shift == 32) {\
@@ -1640,7 +1640,7 @@
       clockTicks++;\
       int shift = reg[(opcode >> 8)&15].B.B0;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift < 32) {\
         if(shift) {\
@@ -1678,7 +1678,7 @@
       clockTicks++;\
       int shift = reg[(opcode >> 8)&15].B.B0;\
       int dest = (opcode>>12) & 15;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         shift &= 0x1f;\
@@ -1726,7 +1726,7 @@
     {\
       int shift = (opcode & 0xF00) >> 7;\
       int dest = (opcode >> 12) & 0x0F;\
-      bool C_OUT = C_FLAG;\
+      C_OUT = C_FLAG;\
       u32 value;\
       if(shift) {\
         LOGICAL_ROR_IMM\
