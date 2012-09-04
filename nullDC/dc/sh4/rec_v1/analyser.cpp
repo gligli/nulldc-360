@@ -128,7 +128,6 @@ void AnalyseCode(BasicBlock* to)
 	to->flags.FpuMode = GET_CURRENT_FPU_MODE();
 
 	u32 block_ops=0;
-	u32 endpc;
 	for(;;)
 	{
 		u32 opcode=IReadMem16(pc);
@@ -154,7 +153,6 @@ void AnalyseCode(BasicBlock* to)
 
 		if (to->flags.EndAnalyse)
 		{
-			endpc=pc;
 			break;
 		}
 
@@ -166,9 +164,8 @@ void AnalyseCode(BasicBlock* to)
 			//after execution , resume to recompile from pc+2
 			//opcode is interpreted so pc is set , if update shit() is called , pc must remain
 
-			endpc=pc;
 			to->flags.ExitType =BLOCK_EXITTYPE_FIXED_CSC;
-			//to->flags.PerformModeLookup=1; we use BLOCK_EXITTYPE_FIXED_CSC from now on 
+
 			ilst->add(reg_pc,2);
 			break;
 		}
@@ -176,7 +173,6 @@ void AnalyseCode(BasicBlock* to)
 		if (block_ops>=(CPU_BASIC_BLOCK_SIZE))
 		{
 			to->flags.ExitType=BLOCK_EXITTYPE_FIXED;
-			endpc=pc;
 			to->TF_next_addr=pc+2;
 			break;
 		}

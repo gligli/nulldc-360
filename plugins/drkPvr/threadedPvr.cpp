@@ -80,7 +80,7 @@ void threaded_wait(bool wait_ta_working)
         while(call_pending) asm volatile("db16cyc");
         
         if(wait_ta_working)
-            while(ta_ring_count(ta_idx)>0||ta_working) asm volatile("db16cyc");
+            while(ta_working||ta_ring_count(ta_idx)>0) asm volatile("db16cyc");
     }
 }
 
@@ -109,12 +109,13 @@ void threaded_TADma(u32* data,u32 size)
         
         u32 * lda=data;
         u32 lsi=size;
+        u32 wi=ta_write_idx;
 
         while(size>TA_RING_MAX_COUNT-ta_ring_count(ta_idx)) asm volatile("db16cyc");
     
         while(lsi)
         {
-            u64 * d =(u64*) ta_ring[ta_write_idx%TA_RING_MAX_COUNT];
+            u64 * d =(u64*) ta_ring[wi%TA_RING_MAX_COUNT];
             u64 * s =(u64*) lda;
             
 #if 0
@@ -126,11 +127,12 @@ void threaded_TADma(u32* data,u32 size)
             STORE_ALIGNED_VECTOR(v2,&d[2]);
 #endif
 
-            ++ta_write_idx;
-            
+            ++wi;
             --lsi;
             lda+=8;
         }
+
+        ta_write_idx+=size;
     }
     else
     {
@@ -177,16 +179,16 @@ void threaded_TASQ(u32* data)
 
 static void threaded_task()
 {
+    u64  __attribute__((aligned(128))) lidx[2];
+    vector float vt;
+    
 	while(running)
 	{
-        if(ta_ring_count(ta_idx)!=0)
-        {
-            u64  __attribute__((aligned(128))) lidx[2];
-            vector float vt;
+        LOAD_ALIGNED_VECTOR(vt,ta_idx); // for atomicness
+        STORE_ALIGNED_VECTOR(vt,lidx);
 
-            LOAD_ALIGNED_VECTOR(vt,ta_idx); // for atomicness
-            STORE_ALIGNED_VECTOR(vt,lidx);
-            
+        if(ta_ring_count(lidx)!=0)
+        {
             u32 ri=lidx[0]%TA_RING_MAX_COUNT;
             u32 rc=ta_ring_count(lidx);
             
@@ -201,8 +203,8 @@ static void threaded_task()
             
             ta_working=false;
         }
-        
-		if(call_pending){
+        else if(call_pending)
+        {
             (*call_function)();
             call_pending=false;
 		}

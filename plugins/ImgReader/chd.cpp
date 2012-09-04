@@ -79,7 +79,7 @@ bool CHDDisc::TryOpen(wchar* file)
 			break;
 		//"TRACK:%d TYPE:%s SUBTYPE:%s FRAMES:%d PREGAP:%d PGTYPE:%s PGSUB:%s POSTGAP:%d"
 		char type[64],subtype[32],pgtype[32],pgsub[32];
-		int tkid,frames,pregap,postgap;
+		u32 tkid,frames,pregap,postgap;
 		sscanf(temp,CDROM_TRACK_METADATA2_FORMAT,&tkid,type,subtype,&frames,&pregap,pgtype,pgsub,&postgap);
 
 		if (tkid!=(tracks.size()+1) || (strcmp(type,"MODE1_RAW")!=0 && strcmp(type,"AUDIO")!=0) || strcmp(subtype,"NONE")!=0 || pregap!=0 || postgap!=0)

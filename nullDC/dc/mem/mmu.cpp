@@ -16,7 +16,7 @@
 
 #include "_vmem.h"
 
-#define printf_mmu
+#define printf_mmu(...)
 #define printf_win32 log
 
 //SQ fast remap , mailny hackish , assumes 1 mb pages

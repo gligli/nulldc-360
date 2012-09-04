@@ -14,13 +14,15 @@ bool shil_opcode::ReadsReg(Sh4RegType reg)
 {
 	bool used=false;
 
+    u32 r=reg;
+    
 	if(this->opcode==shilop_fipr)
 	{
-		if(((reg>=reg1) && (reg<=reg1+3)) || ((reg>=reg2) && (reg<=reg2+3)))
+		if(((r>=reg1) && (r<=reg1+3)) || ((r>=reg2) && (r<=reg2+3)))
 			return true;
 	}
 	
-	if (reg==reg_fpul)
+	if (r==reg_fpul)
 	{
 		if (this->opcode==shilop_floatfpul)
 			return true;
@@ -29,30 +31,30 @@ bool shil_opcode::ReadsReg(Sh4RegType reg)
 	if (this->flags & FLAG_REG1)
 	{
 		if (opcode!=shilop_mov && opcode!=shilop_movex && opcode!=shilop_readm)
-			used |= (reg1==(u32)reg) ;
+			used |= (reg1==r) ;
 	}
 
 	if (this->flags & FLAG_REG2)
 	{
-		used |= (reg2==(u32)reg);
+		used |= (reg2==r);
 	}
 
 	if (this->flags & FLAG_R0)
-		used |= (r0==(u32)reg) ;
+		used |= (r0==r) ;
 
 	if (this->flags & FLAG_GBR)
-		used |= (reg_gbr==(u32)reg) ;
+		used |= (reg_gbr==r) ;
 
 	if (this->flags & FLAG_MACH)
 	{
 		if (opcode!=shilop_mul)
-			used |= ((u32)reg_mach==(u32)reg) ;
+			used |= ((u32)reg_mach==r) ;
 	}
 
 	if (this->flags & FLAG_MACL)
 	{
 		if (opcode!=shilop_mul)
-			used |= ((u32)reg_macl==(u32)reg) ;
+			used |= ((u32)reg_macl==r) ;
 	}
 
 	return used;
@@ -677,6 +679,12 @@ void shil_stream::ftrv(Sh4RegType fv_n)
 {
 	emitReg(shilop_ftrv,fv_n,GetFloatFlags(fv_n,NoReg));
 }
+
+void shil_stream::frchg()
+{
+	emit32(shilop_frchg,0);
+}
+
 void shil_stream::floatfpul(Sh4RegType frn)
 {
 	emitReg(shilop_floatfpul,frn,GetFloatFlags(frn,NoReg));
@@ -856,7 +864,9 @@ char* shil_names[]=
 	"fsca",
 	"fsrra",
 	"div32",
-	"fcmp"
+	"fcmp",
+    "pref",
+    "frchg"
 };
 char* GetShilName(shil_opcodes ops)
 {

@@ -1337,8 +1337,12 @@ rsh4op(i1111_nnnn_0100_1101)
 //frchg                    
 rsh4op(i1111_1011_1111_1101)
 {
-	shil_interpret(op);
-	return;
+    // needed for some obscure reason related to BLOCK_EXITTYPE_FIXED_CSC
+    need_rpctmp;
+    ilst->mov(reg_pc,pc);
+
+    ilst->frchg();
+    return;
 
 	//iNimp("frchg");
  	//sh4r.fpscr.FR = 1 - sh4r.fpscr.FR;
@@ -1350,7 +1354,6 @@ rsh4op(i1111_1011_1111_1101)
 //fschg                    
 rsh4op(i1111_0011_1111_1101)
 {
-
 	shil_interpret(op);
 	return;
 

@@ -127,6 +127,9 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 	virtual ppc_fpr_reg GetRegister(ppc_fpr_reg d_reg,u32 reg,u32 mode)
 	{
 		ensure_valid(reg);
+        
+        ppce->vectorWriteBack(reg);
+        
 		if (IsRegAllocated(reg))
 		{
 			fprinfo* r1=  GetInfo(reg);
@@ -186,7 +189,9 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 			u32 * rp = (u32*) GetRegPtr(reg);
 			ppce->emitStoreFloat(rp,from);			
 		}
-	}
+	
+        ppce->vectorReload(reg);
+    }
 	
 	virtual void SaveRegister(u32 reg,float* from)
 	{
@@ -207,6 +212,8 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 			rp = (u32*) GetRegPtr(reg);
 			ppce->emitStoreFloat(rp,FR0);
 		}
+	
+        ppce->vectorReload(reg);
 	}
 	//FlushRegister		: write reg to reg location , and reload it on next use that needs reloading
 	virtual void FlushRegister(u32 reg)
@@ -215,7 +222,9 @@ class SimpleFPRRegAlloc:public FloatRegAllocator
 		if (IsRegAllocated(reg))
 		{
 			WriteBackRegister(reg);
+            ppce->vectorWriteBack(reg);
 			ReloadRegister(reg);
+            ppce->vectorReload(reg);
 		}
 	}
 	virtual void FlushRegister_xmm(ppc_fpr_reg reg)

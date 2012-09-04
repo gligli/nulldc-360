@@ -458,8 +458,8 @@ void sb_WriteMem(u32 addr,u32 data,u32 sz)
 			EMUERROR4("ERROR :wrong size write on register ; offset=%x , data=%x,sz=%d",offset,data,sz);
 	}
 #endif
-	if ((rflags & REG_NOT_IMPL))
-		EMUERROR3("Write to System Control Regs , not  implemented , addr=%x,data=%x\n",addr,data);
+/*	if ((rflags & REG_NOT_IMPL))
+		EMUERROR3("Write to System Control Regs , not  implemented , addr=%x,data=%x\n",addr,data);*/
 }
 
 u32 SB_FFST_rc;

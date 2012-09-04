@@ -245,6 +245,7 @@ enum shil_opcodes
 	shilop_fcmp,
 
 	shilop_pref,
+	shilop_frchg,
 
 	shilop_count,
 };
@@ -460,6 +461,7 @@ public :
 	void div(Sh4RegType r0,Sh4RegType r1,Sh4RegType r2,u32 flags);
 	void fcmp(Sh4RegType to,Sh4RegType from);
 	void pref(Sh4RegType addr);
+	void frchg();
 
 	//misc
 	void shil_ifb(u32 opcode,u32 pc);

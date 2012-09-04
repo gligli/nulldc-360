@@ -105,10 +105,10 @@ bool parse_mds(wchar *mds_filename,bool verbose)
 	}
 
     // get some data from header
-    int mds_header_size = 0x70;
+//    int mds_header_size = 0x70;
     int mds_datablock_size = 0x50;
     int mds_extrablock_size = 0x08;
-    int mds_footer_size = 0x16;
+//    int mds_footer_size = 0x16;
     int mds_version = read_binary(char, mds_content, 0x0010);
     int mds_revision = read_binary(char, mds_content, 0x0011);
     int mds_sessions = read_binary(unsigned char, mds_content, 0x0014);
@@ -164,19 +164,19 @@ bool parse_mds(wchar *mds_filename,bool verbose)
 			int extrablock_offset = sessions[mds_current_session].extrablocks_offset+mds_extrablock_size*datablock;
 
 			int mode = read_binary(unsigned char, mds_content, datablock_offset+0x0000);
-			int smth1 = read_binary(unsigned char, mds_content, datablock_offset+0x0001);
+			/*int smth1 = read_binary(unsigned char, mds_content, datablock_offset+0x0001);*/
 			int flags = read_binary(unsigned short, mds_content, datablock_offset+0x0002);
 			int track = read_binary(unsigned char, mds_content, datablock_offset+0x0004);
-			int smth2 = read_binary(int, mds_content, datablock_offset+0x0005);
+			/*int smth2 = read_binary(int, mds_content, datablock_offset+0x0005);*/
 			int pmin = read_binary(unsigned char, mds_content, datablock_offset+0x0009);
 			int psec = read_binary(unsigned char, mds_content, datablock_offset+0x000a);
 			int pfrm = read_binary(unsigned char, mds_content, datablock_offset+0x000b);
-			int smth3 = read_binary(int, mds_content, datablock_offset+0x000c);
+			/*int smth3 = read_binary(int, mds_content, datablock_offset+0x000c);*/
 			int sectorsize = read_binary(unsigned short, mds_content, datablock_offset+0x0010);
-			int smth4 = read_binary(int, mds_content, datablock_offset+0x0014);
-			int smth5 = read_binary(int, mds_content, datablock_offset+0x0018);
-			int smth6 = read_binary(int, mds_content, datablock_offset+0x001c);
-			int smth7 = read_binary(int, mds_content, datablock_offset+0x0020);
+			/*int smth4 = read_binary(int, mds_content, datablock_offset+0x0014);*/
+			/*int smth5 = read_binary(int, mds_content, datablock_offset+0x0018);*/
+			/*int smth6 = read_binary(int, mds_content, datablock_offset+0x001c);*/
+			/*int smth7 = read_binary(int, mds_content, datablock_offset+0x0020);*/
 			int sector = read_binary(int, mds_content, datablock_offset+0x0024);
 			__int64 offset = read_binary(__int64, mds_content, datablock_offset+0x0028);
 			int pregap = read_binary(int, mds_content, extrablock_offset+0x0000);

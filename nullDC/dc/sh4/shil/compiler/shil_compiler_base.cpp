@@ -31,47 +31,19 @@ typedef void __fastcall shil_compileFP(shil_opcode* op);
 
 bool inited=false;
 
-//[R|W][sz][M/F][addr]
-__attribute__((aligned(128)))
-void* mio_pvt[2][4][2][8];
-
-/*
-int fallbacks=0;
-int native=0;
-*/
-u32 T_jcond_value;
-
 u32 reg_pc_temp_value;
 
-
-union _Cmp64
-{
-	struct
-	{
-		u32 l;
-		u32 h;
-	};
-	u64 v;
-};
-
-//more helpers
-//ensure mode is 32b (for floating point)
-void c_Ensure32()
-{
-	assert(sh4r.fpscr.PR==0);
-}
-//emit a call to c_Ensure32 
 bool Ensure32()
 {
-	//gli ppce->emitBranch((void*)c_Ensure32,1);
-	return true;
+	assert(sh4r.fpscr.PR==0);
+    return true;
 }
 
 //Register managment related
 //Get a pointer to a reg
 u32* GetRegPtr(u32 reg)
 {
-	if (reg==reg_pc_temp)
+    if (reg==reg_pc_temp)
 		return &reg_pc_temp_value;
 
 	u32* rv=Sh4_int_GetRegisterPtr((Sh4RegType)reg);
@@ -82,6 +54,7 @@ u32* GetRegPtr(Sh4RegType reg)
 {
 	return GetRegPtr((u8)reg);
 }
+
 bool IsFpuReg(u32 reg)
 {
 	return (reg >=fr_0 && reg<=xf_15);
@@ -97,6 +70,14 @@ u32 IsInFReg(u32 reg)
 	return 0;
 }
 
+void WriteBackDouble(u32 reg)
+{
+	if(IsInFReg(reg))
+	{
+		fra->WriteBackRegister(reg);
+		fra->WriteBackRegister(reg+1);
+	}
+}
 void FlushDouble(u32 reg)
 {
 	if(IsInFReg(reg))
@@ -272,34 +253,17 @@ void fastcall op_reg(shil_opcode* op,PowerPC_instr ppc, bool setRB, int rot, boo
 	assert(0==(op->flags & (FLAG_IMM2)));
 	assert(op->flags & FLAG_REG1);
 	assert(0==(op->flags & FLAG_REG2));
-	if (ira->IsRegAllocated(op->reg1))
-	{
-		ppc_gpr_reg r1=LoadReg(R3,op->reg1);
-		assert(r1!=R3);
-		
-		PPC_SET_RD(ppc,r1);
-		PPC_SET_RA(ppc,r1);
-		if (setRB) PPC_SET_RB(ppc,r1);
-		ppce->write32(ppc);
-		
-		op_reg_rot(r1,rot,carry);
-		
-		SaveReg(op->reg1,r1);
-	}
-	else
-	{
-		u32 * ptr = GetRegPtr(op->reg1);
-		ppce->emitLoad32(R4,ptr);
-		
-		PPC_SET_RD(ppc,R4);
-		PPC_SET_RA(ppc,R4);
-		if (setRB) PPC_SET_RB(ppc,R4);
-		ppce->write32(ppc);
 
-		op_reg_rot(R4,rot,carry);
-		
-		ppce->emitStore32(ptr,R4);
-	}
+    ppc_gpr_reg r1=LoadReg(R3,op->reg1);
+
+    PPC_SET_RD(ppc,r1);
+    PPC_SET_RA(ppc,r1);
+    if (setRB) PPC_SET_RB(ppc,r1);
+    ppce->write32(ppc);
+
+    op_reg_rot(r1,rot,carry);
+
+    SaveReg(op->reg1,r1);
 }
 
 //_vmem for dynarec ;)
@@ -372,7 +336,7 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 	if (sz==FLAG_64)
 	{
 		reg=GetSingleFromDouble((u8)reg);
-		FlushDouble(reg);
+		WriteBackDouble(reg);
 	}
 
 	void* ptr;
@@ -440,6 +404,8 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 		case FLAG_64:
 			verify(IsFpuReg(reg));
 			
+            ppce->vectorWriteBack(reg);
+            
 			if (rw==0)
 			{
 				ppce->emitLoadDouble(FR0,(u32*)ptr);
@@ -450,6 +416,9 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 				ppce->emitLoadDouble(FR0,GetRegPtr(reg));
 				ppce->emitStoreDouble((u32*)ptr,FR0);
 			}
+
+            ppce->vectorReload(reg);
+            
 			break;
 		}
 	}
@@ -526,6 +495,11 @@ void emit_vmem_op_compat_const(ppc_block* ppce,u32 rw,u32 sz,u32 addr,u32 reg)
 		}
 		while(doloop);
 	}
+
+	if (sz==FLAG_64)
+	{
+		ReloadDouble(reg);
+	}
 }
 
 //#define REG_ALLOC_COUNT			 (shil_compile_slow_settings.RegAllocCount)
@@ -573,10 +547,10 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		if (op->flags & FLAG_IMM1)
 			flags|=mov_flag_imm_2;
 
-		if (IsInFReg(op->reg1))
+		if (IsFpuReg(op->reg1))
 			flags|=mov_flag_XMM_1;
 		
-		if (((op->flags & FLAG_IMM1)==0) && IsInFReg(op->reg2))
+		if (((op->flags & FLAG_IMM1)==0) && IsFpuReg(op->reg2))
 			flags|=mov_flag_XMM_2;
 
 		if (IsFpuReg(op->reg1)==false && ira->IsRegAllocated(op->reg1))
@@ -621,14 +595,12 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		ppc_fpr_reg fpr2=ERROR_REG;
 		if (flags & mov_flag_XMM_1)
 		{
-			fpr1=fra->GetRegister(FR0,op->reg1,RA_NODATA);
-			assert(fpr1!=FR0);
+            fpr1=fra->GetRegister(FR0,op->reg1,RA_NODATA);
 		}
 
 		if (flags & mov_flag_XMM_2)
 		{
 			fpr2=fra->GetRegister(FR0,op->reg2,RA_DEFAULT);
-			assert(fpr2!=FR0);
 		}
 
 		ppc_gpr_reg gpr1=ERROR_REG;
@@ -657,16 +629,24 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 			break;
 		case XMMtoGPR:
 			{
+                ppce->vectorWriteBack(op->reg1);
+
 				//write back to mem location
 				ppce->emitStoreFloat(GetRegPtr(op->reg1),fpr2);
 				//mark that the register has to be reloaded from there
 				ira->ReloadRegister(op->reg1);
+
+                ppce->vectorReload(op->reg1);
 			}
 			break;
 		case XMMtoM32:
 			{
+                ppce->vectorWriteBack(op->reg1);
+
 				//copy to mem location
 				ppce->emitStoreFloat(GetRegPtr(op->reg1),fpr2);
+
+                ppce->vectorReload(op->reg1);
 			}
 			break;
 
@@ -690,7 +670,9 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 			break;
 		case M32toXMM:
 			{
-				ppce->emitLoadFloat(fpr1,GetRegPtr(op->reg2));
+                ppce->vectorWriteBack(op->reg2);
+
+                ppce->emitLoadFloat(fpr1,GetRegPtr(op->reg2));
 				fra->SaveRegister(op->reg1,fpr1);
 			}
 			break;
@@ -783,8 +765,10 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 		u8 dest=GetSingleFromDouble((u8)op->reg1);
 		u8 source=GetSingleFromDouble((u8)op->reg2);
 
-		FlushDouble(source);
-		
+        ppce->vectorWriteBack(source);
+        ppce->vectorWriteBack(dest);
+		WriteBackDouble(source);
+
 		ppce->emitLoad32(R4,GetRegPtr(source));
 		ppce->emitLoad32(R3,GetRegPtr(source+1));
 //		ppce->Emit(op_movlps,FR0,GetRegPtr(source));
@@ -794,6 +778,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 //		ppce->Emit(op_movlps,GetRegPtr(dest),FR0);
 
 		ReloadDouble(dest);
+        ppce->vectorReload(dest);
 	}
 }
 
@@ -831,17 +816,8 @@ void __fastcall shil_compile_movex(shil_opcode* op)
 			else
 				r1= LoadReg(R3,op->reg1);	//get or alocate reg 1 , load data b/c it's gona be used
 
-			if (ira->IsRegAllocated(op->reg2))
-			{
-				ppc_gpr_reg r2= LoadReg(R4,op->reg2);
-				assert(r2!=R4);//reg 2 must be allocated
-				EMIT_EXTSH(ppce,r1,r2);
-			}
-			else
-			{
-				ppce->emitLoad32(R4,(u16*)GetRegPtr(op->reg2));
-				EMIT_EXTSH(ppce,r1,R4);
-			}
+            ppc_gpr_reg r2= LoadReg(R4,op->reg2);
+            EMIT_EXTSH(ppce,r1,r2);
 			SaveReg(op->reg1,r1);	//ensure it is saved
 		}
 		else
@@ -852,17 +828,8 @@ void __fastcall shil_compile_movex(shil_opcode* op)
 			else
 				r1= LoadReg(R3,op->reg1);	//get or alocate reg 1 , load data b/c it's gona be used
 
-			if (ira->IsRegAllocated(op->reg2))
-			{
-				ppc_gpr_reg r2= LoadReg(R4,op->reg2);
-				assert(r2!=R4);//reg 2 must be allocated
-				EMIT_RLWINM(ppce,r1,r2,0,16,31);
-			}
-			else
-			{
-				ppce->emitLoad32(R4,(u16*)GetRegPtr(op->reg2));
-				EMIT_RLWINM(ppce,r1,R4,0,16,31);
-			}
+            ppc_gpr_reg r2= LoadReg(R4,op->reg2);
+            EMIT_RLWINM(ppce,r1,r2,0,16,31);
 			SaveReg(op->reg1,r1);	//ensure it is saved
 		}
 	}
@@ -1227,7 +1194,7 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	ppc_reg sh4_addr = readwrteparams(op,&fast_offset);
 	
 	//mov to dest or temp
-	u32 is_float=IsInFReg(op->reg1);
+	u32 is_float=IsFpuReg(op->reg1);
 	ppc_reg destreg;
 	if (size==FLAG_64)
 	{
@@ -1284,9 +1251,14 @@ void __fastcall shil_compile_readm(shil_opcode* op)
 	if (size==FLAG_64)
 	{
 		sh4_dest_reg=GetSingleFromDouble((u8)op->reg1);
+        
+        ppce->vectorWriteBack(sh4_dest_reg);
+        
 		ppce->emitStoreDouble(GetRegPtr(sh4_dest_reg),FR0);
 		t.exit_point=ppce->CreateLabel(true,0);
 		ReloadDouble(sh4_dest_reg);
+        
+        ppce->vectorReload(sh4_dest_reg);
 	}
 	else
 	{
@@ -1333,7 +1305,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 {
 	//sse_WBF(op->reg1);//Write back possibly readed reg
 	u32 size=op->flags&3;
-	u32 is_float=IsInFReg(op->reg1);
+	u32 is_float=IsFpuReg(op->reg1);
 	u32 was_float=is_float;
 	//if constant read , and on ram area , make it a direct mem access
 	//_watch_ mmu
@@ -1353,7 +1325,9 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	if (size==FLAG_64)
 	{
 		sh4_dest_reg=GetSingleFromDouble((u8)op->reg1);
-		FlushDouble(sh4_dest_reg);
+
+        ppce->vectorWriteBack(sh4_dest_reg);
+		WriteBackDouble(sh4_dest_reg);
 		ppce->emitLoadDouble(FR0,GetRegPtr(sh4_dest_reg));
 		rsrc=FR0;
 	}
@@ -1417,7 +1391,7 @@ void __fastcall shil_compile_writem(shil_opcode* op)
 	else
 	{
 		t.reg_data=(ppc_reg)GetSingleFromDouble((u8)op->reg1);
-		FlushDouble(t.reg_data);
+		ReloadDouble(t.reg_data);
 	}
 
     roml_patch_list.push_back(t);
@@ -1493,7 +1467,7 @@ void roml_patch_for_sq_access(u32 addr)
 
     reg=(((u32)op)>>PPC_RA_SHIFT)&PPC_RA_MASK;
     
-    printf("SQ Rewrite %p %p %d\n",roml_nop_offset+1,addr,reg);
+//    printf("SQ Rewrite %p %p %d\n",roml_nop_offset+1,addr,reg);
 		
     op&=~(PPC_RB_MASK<<PPC_RB_SHIFT);
     PPC_SET_SH(op,12);
@@ -1569,6 +1543,9 @@ void apply_roml_patches()
 			ppce->emitStore32(&tmp,R3);
 			
 			EMIT_ADDI(ppce,R3,R3,4);
+
+            ppce->vectorWriteBack(roml_patch_list[i].sh4_reg_data);
+            
 			u32* target=GetRegPtr(roml_patch_list[i].sh4_reg_data);
 
 			for (int j=1;j>=0;j--)
@@ -1649,31 +1626,15 @@ void __fastcall shil_compile_cmp(shil_opcode* op)
 	{
 		assert(((s32)op->imm1>=-32768 && (s32)op->imm1<=32767));
 		assert(0==(op->flags & (FLAG_REG2|FLAG_IMM2)));
-		if (ira->IsRegAllocated(op->reg1))
-		{
-			ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
-			if (op->flags & FLAG_LOGICAL_CMP)
-			{
-				EMIT_CMPLI(ppce,r1,op->imm1,0);
-			}
-			else
-			{
-				EMIT_CMPI(ppce,r1,op->imm1,0);
-			}
-		}
-		else
-		{
-			ppce->emitLoad32(R3,GetRegPtr(op->reg1));
-			if (op->flags & FLAG_LOGICAL_CMP)
-			{
-				EMIT_CMPLI(ppce,R3,op->imm1,0);
-			}
-			else
-			{
-				EMIT_CMPI(ppce,R3,op->imm1,0);
-			}
-		}
-		//eflags is used w/ combination of SaveT
+        ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
+        if (op->flags & FLAG_LOGICAL_CMP)
+        {
+            EMIT_CMPLI(ppce,r1,op->imm1,0);
+        }
+        else
+        {
+            EMIT_CMPI(ppce,r1,op->imm1,0);
+        }
 	}
 	else
 	{
@@ -1681,30 +1642,15 @@ void __fastcall shil_compile_cmp(shil_opcode* op)
 		assert(op->flags & FLAG_REG2);
 
 		ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
-		if (ira->IsRegAllocated(op->reg2))
-		{
-			ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
-			if (op->flags & FLAG_LOGICAL_CMP)
-			{
-				EMIT_CMPL(ppce,r1,r2,0);
-			}
-			else
-			{
-				EMIT_CMP(ppce,r1,r2,0);
-			}
-		}
-		else
-		{
-			ppce->emitLoad32(R3,GetRegPtr(op->reg2));
-			if (op->flags & FLAG_LOGICAL_CMP)
-			{
-				EMIT_CMPL(ppce,r1,R3,0);
-			}
-			else
-			{
-				EMIT_CMP(ppce,r1,R3,0);
-			}
-		}
+        ppc_gpr_reg r2 = LoadReg(R3,op->reg2);
+        if (op->flags & FLAG_LOGICAL_CMP)
+        {
+            EMIT_CMPL(ppce,r1,r2,0);
+        }
+        else
+        {
+            EMIT_CMP(ppce,r1,r2,0);
+        }
 		//eflags is used w/ combination of SaveT
 	}
 }
@@ -1715,17 +1661,8 @@ void __fastcall shil_compile_test(shil_opcode* op)
 	{
 		assert((op->imm1&0xffff)==op->imm1);
 		assert(0==(op->flags & (FLAG_REG2|FLAG_IMM2)));
-		if (ira->IsRegAllocated(op->reg1))
-		{
-			ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
-			EMIT_ANDI(ppce,R0,r1,op->imm1);
-		}
-		else
-		{
-			ppce->emitLoad32(R3,GetRegPtr(op->reg1));
-			EMIT_ANDI(ppce,R0,R3,op->imm1);
-		}
-		//eflags is used w/ combination of SaveT
+        ppc_gpr_reg r1 = LoadReg(R4,op->reg1);
+        EMIT_ANDI(ppce,R0,r1,op->imm1);
 	}
 	else
 	{
@@ -2006,14 +1943,6 @@ void __fastcall shil_compile_div32(shil_opcode* op)
 }
 #endif
 
-//Fpu alloc helpers
-#define fa_r1r2 (1|2)
-#define fa_r1m2 (1|0)
-#define fa_m1r2 (0|2)
-#define fa_m1m2 (0|0)
-
-#define frs(op) (IsInFReg(op->reg1)|(IsInFReg(op->reg2)<<1))
-
 //Fpu consts
 #define pi (3.14159265f)
 
@@ -2025,47 +1954,10 @@ __attribute__((aligned(128))) float mm_1[4]={1.0f,1.0f,1.0f,1.0f};
 
 void fpr_reg_to_reg(shil_opcode* op,PowerPC_instr ppc,bool useRC)
 {
-/*	printf("fpr_reg_to_reg %d\n",frs(op));
-	disassemble(0,ppc);*/
-/*	switch (frs(op))
-	{
-	case fa_r1r2:*/
-		{
-			ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			ppc_fpr_reg r2=fra->GetRegister(FR1,op->reg2,RA_DEFAULT);
-			EMIT_SET_RDRARB(ppc,r1,r1,r2,0,useRC);
-			fra->SaveRegister(op->reg1,r1);
-		}
-/*		break;
-	case fa_r1m2:
-		{
-			ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			assert(r1!=FR0);
-			ppce->emitLoadFloat(FR0,GetRegPtr(op->reg2));
-			EMIT_SET_RDRARB(ppc,r1,r1,FR0,0,useRC);
-			fra->SaveRegister(op->reg1,r1);
-		}
-		break;
-	case fa_m1r2:
-		{
-			ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			ppc_fpr_reg r2=fra->GetRegister(FR0,op->reg2,RA_DEFAULT);
-			assert(r1==FR0);
-			assert(r2!=FR0);
-			EMIT_SET_RDRARB(ppc,r1,r1,r2,0,useRC);
-			fra->SaveRegister(op->reg1,r1);
-		}
-		break;
-	case fa_m1m2:
-		{
-			ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			assert(r1==FR0);
-			ppce->emitLoadFloat(FR1,GetRegPtr(op->reg2));
-			EMIT_SET_RDRARB(ppc,r1,r1,FR1,0,useRC);
-			fra->SaveRegister(op->reg1,r1);
-		}
-		break;
-	}*/
+    ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
+    ppc_fpr_reg r2=fra->GetRegister(FR1,op->reg2,RA_DEFAULT);
+    EMIT_SET_RDRARB(ppc,r1,r1,r2,0,useRC);
+    fra->SaveRegister(op->reg1,r1);
 }
 
 //#define SSE_s(op,sseop) sse_reg_to_reg(op,sseop);
@@ -2153,19 +2045,9 @@ void __fastcall shil_compile_fneg(shil_opcode* op)
 	if (sz==FLAG_32)
 	{
 		assert(!IsReg64 ((Sh4RegType)op->reg1));
-		if (IsInFReg(op->reg1))
-		{
-			ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			assert(r1!=FR0);
-			EMIT_FNEG(ppce,r1,r1);
-			fra->SaveRegister(op->reg1,r1);
-		}
-		else
-		{
-			ppce->emitLoadFloat(FR0,GetRegPtr(op->reg1));
-			EMIT_FNEG(ppce,FR0,FR0);
-			ppce->emitStoreFloat(GetRegPtr(op->reg1),FR0);
-		}
+        ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
+        EMIT_FNEG(ppce,r1,r1);
+        fra->SaveRegister(op->reg1,r1);
 	}
 	else
 	{
@@ -2184,19 +2066,10 @@ void __fastcall shil_compile_fabs(shil_opcode* op)
 	if (sz==FLAG_32)
 	{
 		assert(!IsReg64 ((Sh4RegType)op->reg1));
-		if (IsInFReg(op->reg1))
-		{
-			ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			assert(r1!=FR0);
-			EMIT_FABS(ppce,r1,r1);
-			fra->SaveRegister(op->reg1,r1);
-		}
-		else
-		{
-			ppce->emitLoadFloat(FR0,GetRegPtr(op->reg1));
-			EMIT_FABS(ppce,FR0,FR0);
-			ppce->emitStoreFloat(GetRegPtr(op->reg1),FR0);
-		}
+
+        ppc_fpr_reg r1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
+        EMIT_FABS(ppce,r1,r1);
+        fra->SaveRegister(op->reg1,r1);
 	}
 	else
 	{
@@ -2287,23 +2160,9 @@ void __fastcall shil_compile_fcmp(shil_opcode* op)
 		assert(!IsReg64((Sh4RegType)op->reg1));
 		assert(Ensure32());
 
-		//ppce->Emit(op_movss,XMM0,GetRegPtr(op->reg1));
 		ppc_fpr_reg fr1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-		
-		//ppce->SSE_UCOMISS_M32_to_XMM(XMM0,GetRegPtr(op->reg2));
-		if (fra->IsRegAllocated(op->reg2))
-		{
-			ppc_fpr_reg fr2=fra->GetRegister(FR0,op->reg2,RA_DEFAULT);
-			assert(fr2!=FR0);
-			EMIT_FCMPU(ppce,fr1,fr2,0);
-			//ppce->Emit(op_ucomiss, fr1,fr2);
-		}
-		else
-		{
-			ppce->emitLoadFloat(FR1,GetRegPtr(op->reg2));
-			EMIT_FCMPU(ppce,fr1,FR1,0);
-//			ppce->Emit(op_ucomiss ,fr1,);
-		}
+        ppc_fpr_reg fr2=fra->GetRegister(FR0,op->reg2,RA_DEFAULT);
+        EMIT_FCMPU(ppce,fr1,fr2,0);
 	}
 	else
 	{
@@ -2345,20 +2204,9 @@ void __fastcall shil_compile_fsqrt(shil_opcode* op)
 
 		assert(!IsReg64((Sh4RegType)op->reg1));
 		//RSQRT vs SQRTSS -- why rsqrt no workie ? :P -> RSQRT = 1/SQRTSS
-		if (fra->IsRegAllocated(op->reg1))
-		{
-			ppc_fpr_reg fr1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-			assert(fr1!=FR0);
-			EMIT_FSQRT(ppce,fr1,fr1);
-			fra->SaveRegister(op->reg1,fr1);
-		}
-		else
-		{
-			ppce->emitLoadFloat(FR0,GetRegPtr(op->reg1));
-			EMIT_FSQRT(ppce,FR0,FR0);
-			ppce->emitStoreFloat(GetRegPtr(op->reg1),FR0);
-		}
-		
+        ppc_fpr_reg fr1=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
+        EMIT_FSQRT(ppce,fr1,fr1);
+        fra->SaveRegister(op->reg1,fr1);
 	}
 	else
 	{
@@ -2549,6 +2397,54 @@ void __fastcall shil_compile_fsca(shil_opcode* op)
 	}
 }
 //Vector opcodes ;)
+
+void __fastcall shil_compile_frchg(shil_opcode* op)
+{
+    u32 i;
+    for(i=fr_0;i<=fr_15;++i)
+        fra->WriteBackRegister(i);
+
+    EMIT_LWZ(ppce,R3,offsetof(Sh4RegContext,fpscr),RSH4R);
+   
+    EMIT_VOR(ppce,R10,RXF0,RXF0);
+    EMIT_VOR(ppce,R11,RXF4,RXF4);
+    EMIT_VOR(ppce,R12,RXF8,RXF8);
+    EMIT_VOR(ppce,R13,RXF12,RXF12);
+
+    //sh4r.fpscr.FR = 1 - sh4r.fpscr.FR;
+	//sh4r.old_fpscr=sh4r.fpscr;
+    EMIT_XORIS(ppce,R3,R3,0x20);
+    EMIT_STW(ppce,R3,offsetof(Sh4RegContext,fpscr),RSH4R);
+    EMIT_STW(ppce,R3,offsetof(Sh4RegContext,old_fpscr),RSH4R);
+    
+    EMIT_LI(ppce,R5,offsetof(Sh4RegContext,fr[0]));
+    EMIT_LVX(ppce,RXF0,R5,RSH4R);
+    EMIT_LI(ppce,R6,offsetof(Sh4RegContext,fr[4]));
+    EMIT_LVX(ppce,RXF4,R6,RSH4R);
+    EMIT_LI(ppce,R7,offsetof(Sh4RegContext,fr[8]));
+    EMIT_LVX(ppce,RXF8,R7,RSH4R);
+    EMIT_LI(ppce,R8,offsetof(Sh4RegContext,fr[12]));
+    EMIT_LVX(ppce,RXF12,R8,RSH4R);
+
+    EMIT_STVX(ppce,R10,R5,RSH4R);
+    EMIT_STVX(ppce,R11,R6,RSH4R);
+    EMIT_STVX(ppce,R12,R7,RSH4R);
+    EMIT_STVX(ppce,R13,R8,RSH4R);
+    
+    for(i=fr_0;i<=fr_15;++i)
+        fra->ReloadRegister(i);
+#if 0
+    EMIT_LI(ppce,R5,offsetof(Sh4RegContext,xf[0]));
+    EMIT_STVX(ppce,RXF0,R5,RSH4R);
+    EMIT_LI(ppce,R6,offsetof(Sh4RegContext,xf[4]));
+    EMIT_STVX(ppce,RXF4,R6,RSH4R);
+    EMIT_LI(ppce,R7,offsetof(Sh4RegContext,xf[8]));
+    EMIT_STVX(ppce,RXF8,R7,RSH4R);
+    EMIT_LI(ppce,R8,offsetof(Sh4RegContext,xf[12]));
+    EMIT_STVX(ppce,RXF12,R8,RSH4R);
+#endif    
+}
+
 void __fastcall shil_compile_ftrv(shil_opcode* op)
 {
 	assert(0==(op->flags & (FLAG_IMM1|FLAG_IMM2|FLAG_REG2)));
@@ -2556,23 +2452,6 @@ void __fastcall shil_compile_ftrv(shil_opcode* op)
 	if (sz==FLAG_32)
 	{
 #if 0
-		fra->FlushRegister(op->reg1);
-		fra->FlushRegister(op->reg1+1);
-		fra->FlushRegister(op->reg1+2);
-		fra->FlushRegister(op->reg1+3);
-
-		assert(!IsReg64((Sh4RegType)op->reg1));
-		assert(Ensure32());
-
-		ppce->emitLoadImmediate32(R3,(u32)GetRegPtr(op->reg1));
-		ppce->emitLoadImmediate32(R4,(u32)GetRegPtr(xf_0));
-		ppce->emitBranch((void*)Mat44TransformVector,1);
-		
-		fra->ReloadRegister(op->reg1);
-		fra->ReloadRegister(op->reg1+1);
-		fra->ReloadRegister(op->reg1+2);
-		fra->ReloadRegister(op->reg1+3);
-#else
 		ppc_reg v0=fra->GetRegister(FR1,op->reg1,RA_FORCE);
 		ppc_reg v1=fra->GetRegister(FR2,op->reg1+1,RA_FORCE);
 		ppc_reg v2=fra->GetRegister(FR3,op->reg1+2,RA_FORCE);
@@ -2619,6 +2498,41 @@ void __fastcall shil_compile_ftrv(shil_opcode* op)
 
 		fra->SaveRegister(op->reg1+2,FR0);
 		fra->SaveRegister(op->reg1+3,FR13);
+#else
+		fra->WriteBackRegister(op->reg1);
+		fra->WriteBackRegister(op->reg1+1);
+		fra->WriteBackRegister(op->reg1+2);
+		fra->WriteBackRegister(op->reg1+3);
+
+		assert(!IsReg64((Sh4RegType)op->reg1));
+		assert(Ensure32());
+
+		ppce->emitLoadImmediate32(R3,(u32)GetRegPtr(op->reg1));
+
+        // inlined equivalent of Mat44TransformVector
+        
+        ppce->write32(0x11C0038C);//	vspltisw	%vr14,	0		
+        EMIT_LVX(ppce,R0,R0,R3);
+        
+        ppce->write32(0x1140028C);//	vspltw	%vr10,	%vr0,	0	
+        EMIT_VOR(ppce,R1,RXF0,RXF0);
+        ppce->write32(0x1121028C);//	vspltw	%vr9,	%vr0,	1	
+        ppce->write32(0x114A706E);//	vmaddfp	%vr10,	%vr10,	%vr1,	%vr14
+        EMIT_VOR(ppce,R12,RXF4,RXF4);
+        ppce->write32(0x1022028C);//	vspltw	%vr1,	%vr0,	2	
+        ppce->write32(0x1003028C);//	vspltw	%vr0,	%vr0,	3	
+        EMIT_VOR(ppce,R11,RXF8,RXF8);
+        ppce->write32(0x1189532E);//	vmaddfp	%vr12,	%vr9,	%vr12,	%vr10
+        EMIT_VOR(ppce,R13,RXF12,RXF12);
+        ppce->write32(0x102162EE);//	vmaddfp	%vr1,	%vr1,	%vr11,	%vr12
+        ppce->write32(0x10000B6E);//	vmaddfp	%vr0,	%vr0,	%vr13,	%vr1
+        
+        EMIT_STVX(ppce,R0,R0,R3);
+        
+		fra->ReloadRegister(op->reg1);
+		fra->ReloadRegister(op->reg1+1);
+		fra->ReloadRegister(op->reg1+2);
+		fra->ReloadRegister(op->reg1+3);
 #endif
 	}
 	else
@@ -2694,7 +2608,7 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	if (OpTyp[op->imm1] !=Normal)
 		SaveReg(reg_pc,op->imm2);
 	
-#if 1
+#if 0
 	// bunch of heuristics to lower the number of flushed regs per ifb ops
 	
 	if (OpTyp[op->imm1] !=Normal)
@@ -2771,7 +2685,7 @@ shil_compileFP* sclt[shilop_count]=
 	shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,
 	shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,
 	shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,shil_compile_nimp,
-	shil_compile_nimp,shil_compile_nimp
+	shil_compile_nimp,shil_compile_nimp,shil_compile_nimp
 };
 
 void SetH(shil_opcodes op,shil_compileFP* ha)
@@ -2832,6 +2746,7 @@ void sclt_Init()
 	SetH(shilop_fsrra,shil_compile_fsrra);
 	SetH(shilop_floatfpul,shil_compile_floatfpul);
 	SetH(shilop_fsca,shil_compile_fsca);
+	SetH(shilop_frchg,shil_compile_frchg);
 	SetH(shilop_ftrv,shil_compile_ftrv);
 	SetH(shilop_fipr,shil_compile_fipr);
 	SetH(shilop_div32,shil_compile_div32);

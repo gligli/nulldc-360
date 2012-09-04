@@ -25,6 +25,7 @@ void BeforeStartRender();
 void StartRender();
 void EndRender();
 void HandleLocks();
+void HandleCache();
 
 void ListCont();
 void ListInit();

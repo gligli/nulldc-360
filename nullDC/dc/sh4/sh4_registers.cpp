@@ -118,11 +118,43 @@ INLINE void ChangeFP()
 {
 	u32 temp[16];
 
+	if (settings.dynarec.Enable)
+	{
+		asm volatile(
+			"lis 3,sh4r@h				\n"
+			"li 4,(48+0)*4              \n" // &sh4r.xf[0]
+			"li 5,(48+4)*4              \n" // &sh4r.xf[4]
+			"li 6,(48+8)*4              \n" // &sh4r.xf[8]
+			"li 7,(48+12)*4             \n" // &sh4r.xf[12]
+        
+			"stvx " xstr(RXF0) ",4,3	\n"
+			"stvx " xstr(RXF4) ",5,3	\n"
+			"stvx " xstr(RXF8) ",6,3	\n"
+			"stvx " xstr(RXF12) ",7,3	\n"
+		:::"3","4","5","6","7");
+	}
+	
 	for (int i=0;i<16;i++)
 	{
 		temp[i]=fr_hex[i];
 		fr_hex[i]=xf_hex[i];
 		xf_hex[i]=temp[i];
+	}
+
+	if (settings.dynarec.Enable)
+	{
+		asm volatile(
+			"lis 3,sh4r@h				\n"
+			"li 4,(48+0)*4              \n"
+			"li 5,(48+4)*4              \n"
+			"li 6,(48+8)*4              \n"
+			"li 7,(48+12)*4             \n"
+        
+			"lvx " xstr(RXF0) ",4,3     \n"
+			"lvx " xstr(RXF4) ",5,3     \n"
+			"lvx " xstr(RXF8) ",6,3     \n"
+			"lvx " xstr(RXF12) ",7,3	\n"
+		:::"3","4","5","6","7");
 	}
 }
 

@@ -41,6 +41,13 @@ extern int ppc_condition_flags[][3];
 #define RSH4R 2
 #define RLIS 14
 
+// altivec XF handling
+
+#define RXF0 20
+#define RXF4 (RXF0+1)
+#define RXF8 (RXF0+2)
+#define RXF12 (RXF0+3)
+
 #include "PowerPC.h"
 extern "C" {
 int disassemble(u32 a, u32 op);
@@ -186,6 +193,9 @@ public:
 	void emitBranchToLabel(ppc_Label * lab,int lk);
 	void emitDebugValue(u32 value);
 	void emitDebugReg(ppc_gpr_reg reg);
+
+    void vectorWriteBack(u32 reg);
+    void vectorReload(u32 reg);
 };
 
 #define EMIT_B(ppce,dst,aa,lk) \
@@ -402,6 +412,13 @@ public:
 {PowerPC_instr ppc;GEN_MFCR(ppc,rt);ppce->write32(ppc);}
 #define EMIT_MCRXR(ppce,bf) \
 {PowerPC_instr ppc;GEN_MCRXR(ppc,bf);ppce->write32(ppc);}
+
+#define EMIT_LVX(ppce,vd,ra,rb) \
+{PowerPC_instr ppc=0x7C0000CE;PPC_SET_RD(ppc,vd);PPC_SET_RA(ppc,ra);PPC_SET_RB(ppc,rb);ppce->write32(ppc);}
+#define EMIT_STVX(ppce,vs,ra,rb) \
+{PowerPC_instr ppc=0x7C0001CE;PPC_SET_RD(ppc,vs);PPC_SET_RA(ppc,ra);PPC_SET_RB(ppc,rb);ppce->write32(ppc);}
+#define EMIT_VOR(ppce,vd,va,vb) \
+{PowerPC_instr ppc=0x10000484;PPC_SET_RD(ppc,vd);PPC_SET_RA(ppc,va);PPC_SET_RB(ppc,vb);ppce->write32(ppc);}
 
 // debug
 

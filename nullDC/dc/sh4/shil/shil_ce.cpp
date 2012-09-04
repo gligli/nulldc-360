@@ -29,7 +29,7 @@ shil_ce_FP* shil_ce_lut[shilop_count]=
 	shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,
 	shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,
 	shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,shil_ce_nimp,
-	shil_ce_nimp,shil_ce_nimp
+	shil_ce_nimp,shil_ce_nimp,shil_ce_nimp
 };
 void SetShilHanlder(shil_opcodes op,shil_ce_FP* ha)
 {
@@ -85,6 +85,7 @@ shilh(jcond);
 shilh(jmp);
 shilh(mul);
 
+shilh(frchg);
 shilh(ftrv);
 shilh(fsqrt);
 shilh(fipr);
@@ -158,6 +159,7 @@ void Init_ce()
 	SetShilHanlder(shilop_jmp,shil_ce_jmp);
 	SetShilHanlder(shilop_mul,shil_ce_mul);
 
+	SetShilHanlder(shilop_frchg,shil_ce_frchg);
 	SetShilHanlder(shilop_ftrv,shil_ce_ftrv);
 	SetShilHanlder(shilop_fsqrt,shil_ce_fsqrt);
 	SetShilHanlder(shilop_fipr,shil_ce_fipr);
@@ -966,6 +968,11 @@ shilh(fneg)
 	return false;
 }
 shilh(fsub)
+{
+	DefHanlder(op,bb,il);
+	return false;
+}
+shilh(frchg)
 {
 	DefHanlder(op,bb,il);
 	return false;

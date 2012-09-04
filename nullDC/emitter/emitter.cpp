@@ -40,6 +40,7 @@ bool IsS8(u32 value)
 		return false;
 }
 
+
 //ppc_Label 
 /*
 //ppc_ptr/ppc_ptr_imm
@@ -611,3 +612,36 @@ void ppc_block::emitDebugReg(ppc_gpr_reg reg)
 	emitLoad32(R4,&r[4]);	
 	emitLoad32(R5,&r[5]);	
 }
+
+void  ppc_block::vectorWriteBack(u32 reg)
+{
+    if (reg>=xf_0 && reg<=xf_15)
+    {
+        u32 vr=(reg-xf_0)/4;
+        printf("VectorWriteBack %d %d\n",reg,vr);
+        switch (vr)
+        {
+            case 0: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[0]));  EMIT_STVX(this,RXF0,RTMP,RSH4R);  break;
+            case 1: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[4]));  EMIT_STVX(this,RXF4,RTMP,RSH4R);  break;
+            case 2: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[8]));  EMIT_STVX(this,RXF8,RTMP,RSH4R);  break;
+            case 3: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[12])); EMIT_STVX(this,RXF12,RTMP,RSH4R); break;
+        }
+    }
+}
+
+void  ppc_block::vectorReload(u32 reg)
+{
+    if (reg>=xf_0 && reg<=xf_15)
+    {
+        u32 vr=(reg-xf_0)/4;
+        printf("VectorReload %d %d\n",reg,vr);
+        switch (vr)
+        {
+            case 0: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[0]));  EMIT_LVX(this,RXF0,RTMP,RSH4R);  break;
+            case 1: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[4]));  EMIT_LVX(this,RXF4,RTMP,RSH4R);  break;
+            case 2: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[8]));  EMIT_LVX(this,RXF8,RTMP,RSH4R);  break;
+            case 3: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[12])); EMIT_LVX(this,RXF12,RTMP,RSH4R); break;
+        }
+    }
+}
+

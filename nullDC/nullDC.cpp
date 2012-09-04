@@ -232,6 +232,16 @@ int main()
 	return rv;
 }
 
+#ifdef _MUDFLAP
+extern "C" 
+{
+int __wrap_main(){
+    mf_check((void*)0x8b0b9c00,1024,0,1,0);
+    return main();
+}
+}
+#endif
+
 void LoadSettings()
 {
 	settings.dynarec.Enable=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.Enabled",1)!=0;
