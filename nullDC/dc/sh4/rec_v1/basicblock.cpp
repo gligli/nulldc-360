@@ -231,28 +231,8 @@ u32 ret_cache_total=0;
 #define RET_CACHE_PTR_MASK_OR ( RET_CACHE_SZ*2 )
 #define RET_CACHE_STACK_OFFSET_A (RET_CACHE_SZ)
 #define RET_CACHE_STACK_OFFSET_B (RET_CACHE_SZ+4)
-/*__declspec(align(512)) //must be 16* size
-struct 
-{
-	u32 waste[RET_CACHE_SIZE];//force top bit to 1
-	CompiledBlockInfo* ptr[RET_CACHE_SIZE];//force top bit to 1,store ptrs here
-	u32 data[RET_CACHE_SIZE*2];//entrys for addr (the *2 is to make sure align is right =P)
-}ret_cache;
-
-u32* call_ret_cache_ptr=ret_cache.data;
-*/
 
 ret_cache_entry* __attribute__((externally_visible)) ret_cache_base;
-//new idea : build the BRT on the stack
-//
-//
-//......
-//ESP+132 CBB ptr
-//ESP+128 first address
-//ESP+124 ..esp can be on these values , this space is 'NOT USED' , called functions can (And will) use it
-//...
-//ESP+0
-
 CompiledBlockInfo* Curr_block;
 
 //sp is 0 if manual discard
@@ -482,94 +462,19 @@ bool BasicBlock::Compile()
 
 	SetCompiledBlockInfo(cBB);
 
-	/*
-	//that is a realy nice debug helper :)
-	ppce->Emit(op_mov32,&Curr_block,(u32)cBB);
-	*/
-
 	ppc_Label* block_begin = ppce->CreateLabel(true,0);
 	ppc_Label* block_exit = ppce->CreateLabel(false,0);
 
-	/*
-	ppce->Emit(op_mov32,ECX,(u32)cBB);
-	ppce->Emit(op_call,ppc_ptr_imm(CheckBlock));
-	*/
-
-/*
 	// block run count tool
-	ppce->emitLoad32(R3,&cBB->run_count);
+/*	ppce->emitLoad32(R3,&cBB->run_count);
 	EMIT_ADDI(ppce,R3,R3,1);
-	ppce->emitStore32(&cBB->run_count,R3);
-*/
+	ppce->emitStore32(&cBB->run_count,R3);*/
 	
 	verify(cycles<0x10000);
 	EMIT_ADDI(ppce,RCYCLES,RCYCLES,-cycles);
 	EMIT_CMPI(ppce,RCYCLES,0,0);
 	
 	ppce->emitBranchConditionalToLabel(block_exit,0,PPC_CC_T,PPC_CC_NEG);
-
-#if 0 //gli not needed (blocks invalidation done using icache invalidation info)
-	if (flags.ProtectionType==BLOCK_PROTECTIONTYPE_MANUAL)
-	{
-#ifdef COUNT_BLOCK_LOCKTYPE_USAGE
-		ppce->Emit(op_add32,&manbs,1);
-#endif
-		int sz=Size();
-		verify(sz!=0);
-
-		int i=0;
-		
-		//that can be optimised a lota :p
-		ppc_Label* exit_discard_block= ppce->CreateLabel(false,0);
-		ppc_Label* execute_block= ppce->CreateLabel(false,8);
-		verify(sz!=0);
-
-		while(sz>=4)
-		{
-			u32* pmem=(u32*)GetMemPtr(start+i,4);
-//			printf("man %p %08x %d\n",pmem,*pmem,sz);
-			ppce->emitLoad32(R3,pmem);
-			ppce->emitLoadImmediate32(R4,*pmem);
-			EMIT_CMPL(ppce,R3,R4,0);
-
-			if (sz==4)
-			{
-				ppce->emitBranchConditionalToLabel(execute_block,0,PPC_CC_T,PPC_CC_ZER);
-			}
-			else
-			{
-				ppce->emitBranchConditionalToLabel(exit_discard_block,0,PPC_CC_F,PPC_CC_ZER);
-			}
-			i+=4;
-			sz-=4;
-		}
-		if (sz>=2)
-		{
-			//die("lol");
-			u16* pmem=(u16*)GetMemPtr(start+i,2);
-//			printf("man %p %04x %d\n",pmem,*pmem,sz);
-			ppce->emitLoad16(R3,pmem);
-			EMIT_CMPLI(ppce,R3,*pmem,0);
-			
-			ppce->emitBranchConditionalToLabel(execute_block,0,PPC_CC_T,PPC_CC_ZER);
-
-			i+=2;
-			sz-=2;
-		}
-		verify(sz==0);
-
-		ppce->MarkLabel(exit_discard_block);
-		ppce->emitLoadImmediate32((ppc_reg)RPC,start);
-		ppce->emitLoadImmediate32(R3,(u32)cBB);
-		ppce->emitBranch((void*)SuspendBlock,1);
-		ppce->emitBranch((void*)Dynarec_Mainloop_no_update,0);
-		ppce->MarkLabel(execute_block);
-	}
-#ifdef COUNT_BLOCK_LOCKTYPE_USAGE
-	else
-		ppce->Emit(op_add32,&lockbs,1);
-#endif
-#endif
 
 	fra=GetFloatAllocator();
 	ira=GetGPRtAllocator();
@@ -579,7 +484,6 @@ bool BasicBlock::Compile()
 
 	ira->BeforeEmit();
 	fra->BeforeEmit();
-
 	
 	shil_compiler_init(ppce,ira,fra);
 

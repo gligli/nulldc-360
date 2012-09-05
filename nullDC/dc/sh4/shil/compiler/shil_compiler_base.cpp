@@ -2608,7 +2608,7 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	if (OpTyp[op->imm1] !=Normal)
 		SaveReg(reg_pc,op->imm2);
 	
-#if 0
+#if 1
 	// bunch of heuristics to lower the number of flushed regs per ifb ops
 	
 	if (OpTyp[op->imm1] !=Normal)
