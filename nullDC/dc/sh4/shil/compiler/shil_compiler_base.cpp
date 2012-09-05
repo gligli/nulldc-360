@@ -2214,7 +2214,9 @@ void __fastcall shil_compile_fsqrt(shil_opcode* op)
 	}
 }
 
-//#define _FAST_fssra
+#define _FAST_fsrra
+
+static float float_half=0.5;
 
 void __fastcall shil_compile_fsrra(shil_opcode* op)
 {
@@ -2224,31 +2226,20 @@ void __fastcall shil_compile_fsrra(shil_opcode* op)
 	{
 		assert(Ensure32());
 		assert(!IsReg64((Sh4RegType)op->reg1));
-		//maby need to calculate 1/sqrt manualy ? -> yes , it seems rcp is not as accurate as needed :)
-		//-> no , it wasn that , rcp=1/x , RSQRT=1/srqt tho
 
-		//ppce->SSE_SQRTSS_M32_to_XMM(XMM1,GetRegPtr(op->reg1));	//XMM1=sqrt
-		//ppce->Emit(op_movss,XMM0,(u32*)mm_1);			//XMM0=1
-		//ppce->SSE_DIVSS_XMM_to_XMM(XMM0,XMM1);					//XMM0=1/sqrt
-		//or
-		//ppce->SSE_RSQRTSS_M32_to_XMM(XMM0,GetRegPtr(op->reg1));//XMM0=APPR(1/sqrt(fr1))
-		//-> im using Approximate version , since this is an aproximate opcode on sh4 too
-		//i hope x86 isnt less accurate ..
-
-		ppc_fpr_reg fr=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
-#ifdef _FAST_fssra
-		// Using the frsqrte instruction for the initial estimate followed
-		// by 2 iterations of Newton-Raphson to get sufficient accuracy.
-		EMIT_FRSQRTE(ppce,FR1,fr);
-		EMIT_FMUL(ppce,FR3,FR1,fr,0);
-		EMIT_FMUL(ppce,FR2,FR1,FRHALF,0);
-		EMIT_FNMSUB(ppce,FR3,FR1,FR3,FRONE);
-		EMIT_FMADDS(ppce,FR1,FR2,FR3,FR1);		
-		EMIT_FMUL(ppce,FR3,FR1,fr,0);
-		EMIT_FMUL(ppce,FR2,FR1,FRHALF,0);
-		EMIT_FNMSUB(ppce,FR3,FR1,FR3,FRONE);
-		EMIT_FMADDS(ppce,fr,FR2,FR3,FR1);		
+#ifdef _FAST_fsrra
+        /* Compute an approximation 1/sqrt(x) with one Newton-Raphson refinement step */
+        
+        ppce->emitLoadFloat(FR6,&float_half);
+        ppc_fpr_reg fr=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
+        EMIT_FADD(ppce,FR4,FRONE,FR6,0);
+        EMIT_FRSQRTE(ppce,FR1,fr);
+		EMIT_FMUL(ppce,FR3,FR1,FR1,0);
+		EMIT_FMUL(ppce,FR5,fr,FR6,0);
+		EMIT_FNMSUB(ppce,FR3,FR3,FR5,FR4);
+        EMIT_FMUL(ppce,fr,FR1,FR3,0);
 #else
+		ppc_fpr_reg fr=fra->GetRegister(FR0,op->reg1,RA_DEFAULT);
 		EMIT_FSQRTS(ppce,fr,fr);
 		EMIT_FDIV(ppce,fr,FRONE,fr,0);
 #endif
