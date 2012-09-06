@@ -144,29 +144,9 @@ u64 time_lookup=0;
 
 void naked DynaMainLoop()
 {
-#ifdef XENON
 	asm volatile (
 		"lis 3,old_esp@ha						\n"
 		"stw 1,old_esp@l(3)						\n"
-
-		//Allocate the ret cache table on stack
-		//format :
-		
-		//[table] <- 'on'=1 , 'off' = 1 , 'index'=0
-		//[waste] <- 'on'=1 , 'off' = 0 , 'index'=0
-
-		"subi 1,1," xstr(RET_CACHE_SZ*4-1)		"\n" //allign to RET_CACHE_SZ*4 
-		"li 3," xstr(RET_CACHE_SZ*4-1)			"\n"
-		"andc 1,1,3								\n" //(1kb for 32 entry cache) <- now , we are '00'
-		"subi 1,1," xstr(RET_CACHE_SZ*2)		"\n" //<- now we are '10'
-
-		//now store it !
-		"lis 3,ret_cache_base@ha				\n"
-		"addi 4,1," xstr(RET_CACHE_SZ)			"\n"
-		"stw 4,ret_cache_base@l(3)				\n" //pointer to the table base ;)
-
-		//Reset it !
-		"bl ret_cache_reset						\n"
 
 		// constant regs
 		"lis 3,float_zero@ha					\n"
@@ -233,8 +213,7 @@ void naked DynaMainLoop()
 		"ori 5,5,BlockLookupGuess@l				\n"
 		"lwzx 4,5,4								\n"
 	
-		"lis 5,sh4r+4@ha						\n" //sh4r+4 is fpscr
-		"lwz 5,sh4r+4@l(5)						\n"
+		"lwz 5,4(" xstr(RSH4R) ")   			\n" //sh4r+4 is fpscr
 		"lwz 6,0(4)								\n"
 		"cmp 0,6," xstr(RPC) "					\n"
 		"bne full_lookup						\n"
@@ -250,9 +229,7 @@ void naked DynaMainLoop()
 		"addi 6,6,1								\n"
 		"stw 6,16(4)							\n"
 */
-#ifdef _BM_CACHE_STATS
-		add fast_lookups,1;
-#endif
+
 		"lwz 3,8(4)								\n"
 		"mtctr 3								\n"
 		"bctr									\n"
@@ -262,8 +239,7 @@ void naked DynaMainLoop()
 			return FindCode_full(address,fastblock);
 		}*/
 "full_lookup:									\n"
-		"lis 5,sh4r+0@ha						\n" //sh4r+0 is pc
-		"stw " xstr(RPC) ",sh4r+0@l(5)			\n"
+		"stw " xstr(RPC) ",0(" xstr(RSH4R) ")	\n" //sh4r+0 is pc
 		"mr 3," xstr(RPC) "						\n"
 
 		"bl FindCode_full						\n"
@@ -272,12 +248,13 @@ void naked DynaMainLoop()
 
 		".align 4								\n"
 "do_update:										\n"
-		"bl UpdateSystem						\n"
-		"cmp 0,3,0								\n"
-		"beqlr									\n"
-		
-		"lis 5,sh4r+0@ha						\n" //sh4r+0 is pc
-		"lwz " xstr(RPC) ",sh4r+0@l(5)			\n"
+		"mflr " xstr(RPC) "                     \n" // RPC is only used as a temp here
+        "bl UpdateSystem						\n"
+		"mtlr " xstr(RPC) "                     \n"
+		"cmplwi 3,0                             \n"
+        "beqlr                                  \n"
+	
+		"lwz " xstr(RPC) ",0(" xstr(RSH4R) ")	\n" //sh4r+0 is pc
 		
 		//check for exit
 		"lis 6,rec_sh4_int_bCpuRun@ha			\n"
@@ -294,130 +271,6 @@ void naked DynaMainLoop()
 		"blr									\n"
 	::: "15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"
 		,"%fr16","%fr17","%fr18","%fr19","%fr20","%fr21","%fr22","%fr23","%fr24","%fr25","%fr26","%fr27","%fr28","%fr29","%fr30","%fr31");
-
-	// ecx 3 edx 4 eax 5
-				
-#else
-	__asm
-	{
-		//save corrupted regs
-		push esi;
-		push edi;
-		push ebx;
-		push ebp;
-
-		mov old_esp,esp;
-
-		//Allocate the ret cache table on stack
-		//format :
-		
-		//[table] <- 'on'=1 , 'off' = 1 , 'index'=0
-		//[waste] <- 'on'=1 , 'off' = 0 , 'index'=0
-
-		sub esp,RET_CACHE_SZ*4-1;	//allign to RET_CACHE_SZ*4 
-		and esp,~(RET_CACHE_SZ*4-1);	//(1kb for 32 entry cache) <- now , we are '00'
-		sub esp,RET_CACHE_SZ*2;		//<- now we are '10'
-
-		//now store it !
-		mov ret_cache_base,esp;
-		add ret_cache_base,RET_CACHE_SZ;	//pointer to the table base ;)
-
-		//Reset it !
-		call ret_cache_reset;
-
-		//misc pointers needed
-		mov block_stack_pointer,esp;
-		mov Dynarec_Mainloop_no_update,offset no_update;
-		mov Dynarec_Mainloop_no_update_fast,offset no_update;
-		mov Dynarec_Mainloop_do_update,offset do_update;
-		mov Dynarec_Mainloop_end,offset end_of_mainloop;
-		//Max cycle count :)
-		mov rec_cycles,(CPU_TIMESLICE*9/10);
-
-		jmp no_update;
-
-		//some utility code :)
-
-		//partial , faster lookup. When we know the mode hasnt changed :)
-
-		align 16
-no_update:
-		/*
-		//called if no update is needed
-		
-		call GetRecompiledCodePointer;
-		*/
-		
-		/*
-		#define LOOKUP_HASH_SIZE	0x4000
-		#define LOOKUP_HASH_MASK	(LOOKUP_HASH_SIZE-1)
-		#define GetLookupHash(addr) ((addr>>2)&LOOKUP_HASH_MASK)
-
-		*/
-		/*
-		CompiledBlockInfo* fastblock;
-		fastblock=BlockLookupGuess[GetLookupHash(address)];
-		*/
-		mov ecx,pc;
-		mov edx,ecx;
-		and edx,(LOOKUP_HASH_MASK<<2);
-
-		mov edx,[BlockLookupGuess + edx]
-		
-
-		/*
-		if ((fastblock->start==address) && 
-			(fastblock->cpu_mode_tag ==fpscr.PR_SZ)
-			)
-		{
-			fastblock->lookups++;
-			return fastblock->Code;
-		}*/
-		
-		mov eax,fpscr;
-		cmp [edx],ecx;
-		jne full_lookup;
-		
-		shr eax,19;
-		and eax,0x3;
-		cmp [edx+12],eax;
-		jne full_lookup;
-		add dword ptr[edx+16],1;
-#ifdef _BM_CACHE_STATS
-		add fast_lookups,1;
-#endif
-		jmp dword ptr[edx+8];
-		/*
-		else
-		{
-			return FindCode_full(address,fastblock);
-		}*/
-full_lookup:
-		call FindCode_full
-		jmp eax;
-
-		align 16
-do_update:
-		//called if update is needed
-		mov ecx,CPU_TIMESLICE;
-		add rec_cycles,ecx;
-		//ecx=cycles
-		call UpdateSystem;
-
-		//check for exit
-		cmp rec_sh4_int_bCpuRun,0;
-		jne no_update;
-
-		//exit from function
-		mov esp,old_esp;
-		pop ebp;
-		pop ebx;
-		pop edi;
-		pop esi;
-end_of_mainloop:
-		ret;
-	}
-#endif
 }
 
 u64 time_dr_start=0;

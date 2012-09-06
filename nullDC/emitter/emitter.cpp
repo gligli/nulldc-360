@@ -618,7 +618,7 @@ void  ppc_block::vectorWriteBack(u32 reg)
     if (reg>=xf_0 && reg<=xf_15)
     {
         u32 vr=(reg-xf_0)/4;
-        printf("VectorWriteBack %d %d\n",reg,vr);
+//        printf("VectorWriteBack %d %d\n",reg,vr);
         switch (vr)
         {
             case 0: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[0]));  EMIT_STVX(this,RXF0,RTMP,RSH4R);  break;
@@ -634,7 +634,7 @@ void  ppc_block::vectorReload(u32 reg)
     if (reg>=xf_0 && reg<=xf_15)
     {
         u32 vr=(reg-xf_0)/4;
-        printf("VectorReload %d %d\n",reg,vr);
+//        printf("VectorReload %d %d\n",reg,vr);
         switch (vr)
         {
             case 0: EMIT_LI(this,RTMP,offsetof(Sh4RegContext,xf[0]));  EMIT_LVX(this,RXF0,RTMP,RSH4R);  break;

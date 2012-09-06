@@ -267,7 +267,7 @@ int UpdateINTC()
 
     if(rv) return UpdateINTCDoINT();
 
-    return 0;
+    return rv;
 #endif
 }
 

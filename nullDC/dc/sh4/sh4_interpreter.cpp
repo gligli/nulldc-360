@@ -406,6 +406,8 @@ u32 update_cnt = 0;
 //medium update is 448*8=3584 cycles
 //slow update is 448*16=7168  cycles
 
+extern bool reset_cache;
+
 //14336 Cycles
 void __fastcall VerySlowUpdate()
 {
@@ -729,7 +731,8 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 #ifdef PROF_UPDATESYSTEM	
 	u64 ust=mftb();
 #endif
-
+    int rv=reset_cache;
+    
     UpdateTMU(448);
     spgUpdatePvr(448);
     
@@ -738,7 +741,7 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 
 	update_cnt++;
 
-	int rv=UpdateINTC();
+	rv=rv||UpdateINTC();
 	
 #ifdef PROF_UPDATESYSTEM	
 	ust=mftb()-ust;

@@ -224,60 +224,14 @@ void __attribute__((naked)) bb_link_compile_inject_TT_stub(CompiledBlockInfo* pt
 }
 #endif
 
-u32 ret_cache_hits=0;
-u32 ret_cache_total=0;
-
-#define RET_CACHE_PTR_MASK_AND (0xFFFFFFFF - (RET_CACHE_SZ)  )
-#define RET_CACHE_PTR_MASK_OR ( RET_CACHE_SZ*2 )
-#define RET_CACHE_STACK_OFFSET_A (RET_CACHE_SZ)
-#define RET_CACHE_STACK_OFFSET_B (RET_CACHE_SZ+4)
-
-ret_cache_entry* __attribute__((externally_visible)) ret_cache_base;
 CompiledBlockInfo* Curr_block;
 
 //sp is 0 if manual discard
 void CBBs_BlockSuspended(CompiledBlockInfo* block,u32* sp)
-{/*
-	u32* sp_inblock=block_stack_pointer-1;
-
-	if(sp_inblock==sp)
-	{
-		//log("Exeption within the same block !\n");
-	}
-	else
-	{
-		if (sp!=0)
-		{
-			//log("Exeption possibly within the same block ; 0x%X\n",sp_inblock[-1]);
-			//log("Block EP : 0x%X , sz : 0x%X\n",block->Code,block->size);
-		}
-	}
-	*/
-	if (ret_cache_base==0)
-		return;
-	for (int i=0;i<RET_CACHE_COUNT;i++)
-	{
-		if (ret_cache_base[i].cBB == block)
-		{
-			ret_cache_base[i].addr=0xFFFFFFFF;
-			ret_cache_base[i].cBB=0;
-		}
-	}
+{
 }
 
 extern "C" { // called from asm
-
-void __attribute__((externally_visible)) ret_cache_reset()
-{
-	printf("ret_cache_base %08x\n",ret_cache_base);
-	if (ret_cache_base==0)
-		return;
-	for (int i=0;i<RET_CACHE_COUNT;i++)
-	{
-		ret_cache_base[i].addr=0xFFFFFFFF;
-		ret_cache_base[i].cBB=0;
-	}
-}
 
 void __fastcall CheckBlock(CompiledBlockInfo* block)
 {
@@ -409,6 +363,7 @@ void FASTCALL RewriteBasicBlockGuess_NULL(CompiledBlockInfo* cBB)
 	ppce->Generate();
 	delete ppce;
 }
+
 void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB)
 {
 //	printf("RewriteBasicBlock %d %d\n",cBB->Rewrite.Type,cBB->Rewrite.RCFlags);
@@ -432,23 +387,8 @@ void naked ret_cache_misscall()
 	__asm jmp [Dynarec_Mainloop_no_update];
 }
 #endif
-void ret_cache_push(CompiledBlockInfo* cBB,ppc_block* ppce)
-{
-//	ppce->do_disasm=true;
-	EMIT_ADDI(ppce,R1,R1,8); //add the ptr ;)
-#if 0	
-	ppce->emitLoadImmediate32(R3,RET_CACHE_PTR_MASK_AND);
-	EMIT_AND(ppce,R1,R1,R3);
-#else
-	EMIT_RLWIMI(ppce,R1,R1,10,23,23);
-#endif
-	//Adress
-	ppce->emitLoadImmediate32(R3,cBB->TT_next_addr);
-	EMIT_STW(ppce,R3,RET_CACHE_STACK_OFFSET_A,R1);
-	//Block
-	ppce->emitLoadImmediate32(R3,(u32)cBB);
-	EMIT_STW(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
-}
+
+
 bool BasicBlock::Compile()
 {
 	FloatRegAllocator*		fra;
@@ -508,9 +448,6 @@ bool BasicBlock::Compile()
 	switch(flags.ExitType)
 	{
 	case BLOCK_EXITTYPE_DYNAMIC_CALL:	//same as below , sets call guess
-		{
-			ret_cache_push(cBB,ppce);
-		}
 	case BLOCK_EXITTYPE_DYNAMIC:		//not guess 
 		{
 			cBB->Rewrite.Type=3;
@@ -525,23 +462,7 @@ bool BasicBlock::Compile()
 		break;
 	case BLOCK_EXITTYPE_RET:			//guess
 		{
-			EMIT_LWZ(ppce,R4,RET_CACHE_STACK_OFFSET_A,R1);
-			EMIT_LWZ(ppce,R3,RET_CACHE_STACK_OFFSET_B,R1);
-			EMIT_CMP(ppce,(ppc_reg)RPC,R4,0);
-			
-			ppce->emitBranchConditional(Dynarec_Mainloop_no_update,PPC_CC_F,PPC_CC_ZER,0,false);
-
-			//Get the block ptr
-
-			EMIT_ADDI(ppce,R1,R1,-8);
-			EMIT_RLWIMI(ppce,R1,R1,10,23,23);
-
-			EMIT_LWZ(ppce,R4,offsetof(CompiledBlockInfo,pTT_next_addr),R3);
-
-			EMIT_ORI(ppce,R1,R1,RET_CACHE_PTR_MASK_OR);
-			
-			EMIT_MTCTR(ppce,R4);
-			EMIT_BCTR(ppce);
+            ppce->emitBranch(Dynarec_Mainloop_no_update,0);
 		}
 		break;
 	case BLOCK_EXITTYPE_COND:			//linkable
@@ -587,9 +508,6 @@ bool BasicBlock::Compile()
 		} 
 		break;
 	case BLOCK_EXITTYPE_FIXED_CALL:		//same as below
-		{
-			ret_cache_push(cBB,ppce);
-		}
 	case BLOCK_EXITTYPE_FIXED:			//linkable
 		{
 			if (cBB->TF_next_addr==cBB->start)
@@ -637,6 +555,7 @@ bool BasicBlock::Compile()
 	ira->SaveRegister(reg_pc,start);
 	ira->FlushRegister(reg_pc);  // UpdateSystem needs pc ...
 	ppce->emitBranch((void*)Dynarec_Mainloop_do_update,1);
+	ira->ReloadRegister(reg_pc);
 	ppce->emitBranchToLabel(block_begin,0);
 
 	//apply roml patches and generate needed code
