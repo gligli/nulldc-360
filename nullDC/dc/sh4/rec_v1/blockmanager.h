@@ -46,7 +46,6 @@ void InitBlockManager();
 void ResetBlockManager();
 void TermBlockManager();
 
-extern u8* DynarecCache;
 extern u32 DynarecCacheSize;
 
 void* dyna_malloc(u32 size);
@@ -81,3 +80,10 @@ extern CompiledBlockInfo*			BlockLookupGuess[LOOKUP_HASH_SIZE];
 //#define COUNT_BLOCK_LOCKTYPE_USAGE
 extern u32 manbs;
 extern u32 lockbs;
+
+#define DYNA_MEM_POOL_SIZE 32*1024*1024
+
+extern "C"
+{
+extern u8 __attribute__ ((aligned(65536))) dyna_mem_pool[DYNA_MEM_POOL_SIZE];
+}

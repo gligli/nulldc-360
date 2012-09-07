@@ -42,12 +42,11 @@
 // Average list size : 3.4 blocks
 //
 
-#define DYNA_MEM_POOL_SIZE 32*1024*1024
-
 void FASTCALL RewriteBasicBlock(CompiledBlockInfo* cBB);
 
 #include <vector>
 #include <algorithm>
+#include "driver.h"
 
 #define BLOCK_LUT_GUESS
 //#define DEBUG_BLOCKLIST
@@ -567,7 +566,7 @@ BasicBlockEP* __fastcall FindCode_fast(u32 address)
 }
 BasicBlockEP* __attribute__((externally_visible)) __fastcall FindCode_full(u32 address,CompiledBlockInfo* fastblock)
 {
-	CompiledBlockInfo* thisblock;
+    CompiledBlockInfo* thisblock;
 
 	BlockList* blklist = GetLookupBlockList(address);
 #ifdef _BM_CACHE_STATS
@@ -588,7 +587,7 @@ BasicBlockEP* __attribute__((externally_visible)) __fastcall FindCode_full(u32 a
 
 	thisblock->lookups++;
 #ifdef BLOCK_LUT_GUESS
-	if (fastblock->lookups<=thisblock->lookups)
+	if (fastblock && fastblock->lookups<=thisblock->lookups)
 	{
 		BlockLookupGuess[GetLookupHash(address)]=thisblock;
 	}
@@ -765,6 +764,7 @@ void __fastcall _SuspendAllBlocks()
 {
 	log("Reseting Dynarec Cache...\n");
 	ResetBlocks(false);
+    DynaLookupReset();
 	reset_cache=false;
 }
 //called from a manualy invalidated block
@@ -869,7 +869,10 @@ void DumpBlockMappings()
 
 //Memory allocator
 
+extern "C"
+{
 u8 __attribute__ ((aligned(65536))) dyna_mem_pool[DYNA_MEM_POOL_SIZE];
+}
 
 void init_memalloc(u32 size)
 {

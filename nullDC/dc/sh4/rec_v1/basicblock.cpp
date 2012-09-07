@@ -4,7 +4,6 @@
 #include "dc/sh4/sh4_registers.h"
 #include "emitter/emitter.h"
 #include "emitter/regalloc/ppc_fpregalloc.h"
-#include <memory>
 #include <stdbool.h>
 #include "recompiler.h"
 #include "dc/sh4/sh4_interpreter.h"
@@ -677,7 +676,9 @@ void CompiledBlockInfo::AddRef(CompiledBlockInfo* block)
 }
 void CompiledBlockInfo::Suspend()
 {
-	for (u32 i=0;i<blocks_to_clear.size();i++)
+    DynaLookupUnmap(start,end);
+
+    for (u32 i=0;i<blocks_to_clear.size();i++)
 	{
 		if (blocks_to_clear[i])
 		{

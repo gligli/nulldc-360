@@ -28,6 +28,7 @@ extern "C"
 {
 #include <ppc/vm.h>
 }
+#include <malloc.h>
 
 //uh uh 
 volatile bool  rec_sh4_int_bCpuRun=false;
@@ -47,6 +48,7 @@ u32 __attribute__((externally_visible)) rec_cycles=0;
 void* __attribute__((externally_visible)) Dynarec_Mainloop_no_update;
 void* __attribute__((externally_visible)) Dynarec_Mainloop_do_update;
 void* __attribute__((externally_visible)) Dynarec_Mainloop_end;
+
 
 void DynaPrintLinkStart();
 void DynaPrintLinkEnd();
@@ -142,6 +144,122 @@ f32 __attribute__((externally_visible)) float_one=1.0f;
 
 u64 time_lookup=0;
 
+///////////////////////////////////////////////////////////////////////////////
+
+#define DYNA_LOOKUP_SIZE (RAM_SIZE/2) // one sh4 op is 2 bytes
+#define DYNA_LOOKUP_BYTE_SIZE (DYNA_LOOKUP_SIZE*4)
+
+u32 * __attribute__((aligned(VM_USER_PAGE_SIZE))) sh4_pc_to_ppc=NULL; 
+u32 __attribute__((aligned(VM_USER_PAGE_SIZE))) sh4_pc_to_ppc_full_lookup[VM_USER_PAGE_SIZE/sizeof(void*)];
+
+extern "C" {
+
+void __attribute__((naked)) DynaFullLookup()
+{
+    asm volatile (
+		"mr 3," xstr(RPC) "						\n" 
+		"stw 3,0(" xstr(RSH4R) ")               \n" //sh4r+0 is pc
+        "li 4,0                                 \n"
+		"bl FindCode_full						\n"
+        "mtctr 3								\n"
+//"bctr\n"
+        "rlwinm 5," xstr(RPC) ",16,0x1FFF       \n"
+        "cmplwi 5,0x0c00                        \n"
+        "bltctr                                 \n"
+        // make sure target is in recompiled code
+        "lis 4,dyna_mem_pool@ha                  \n"
+        "addi 4,4,dyna_mem_pool@l               \n"
+        "cmplw 3,4                              \n"
+        "bltctr                                 \n"
+        "addis 4,4," xstr(DYNA_MEM_POOL_SIZE>>16) "\n"
+        "cmplw 3,4                              \n"
+        "bgectr                                 \n"
+        // update lookup table
+        "lis 5,sh4_pc_to_ppc@ha                 \n"
+        "lwz 5,sh4_pc_to_ppc@l(5)               \n"
+        "rlwinm 6," xstr(RPC) ",1,0x01fffffc    \n"
+        "stwx 3,5,6                             \n"
+        "bctr                                   \n"
+    );
+
+}
+
+}
+
+void DynaLookupMap(u32 start_pc, u32 end_pc, void* ppc_code)
+{
+    u32 i;
+    
+    if((start_pc&0x1FFFFFFF)<0x08000000 || (start_pc&0x1FFFFFFF)>=0x10000000)
+        return;
+    
+//    printf("s %p e %p code %p\n",start_pc,end_pc,ppc_code);
+    
+    u32* addr=(u32*)(((start_pc<<1)&0x0FFFFFFC)|0x30000000);
+    
+    for(i=start_pc;i<=end_pc;i+=2)
+    {
+        sh4_pc_to_ppc[(i>>1)&(DYNA_LOOKUP_SIZE-1)]=(u32)ppc_code;
+
+        verify(*addr==(u32)ppc_code);
+        
+        ++addr;
+    }
+}
+
+void DynaLookupUnmap(u32 start_pc, u32 end_pc)
+{
+    DynaLookupMap(start_pc,end_pc,(void*)DynaFullLookup);
+}
+
+void DynaLookupReset()
+{
+    int i;
+    for(i=0;i<DYNA_LOOKUP_SIZE;i+=4)
+    {
+        sh4_pc_to_ppc[i]=(u32)DynaFullLookup;
+        sh4_pc_to_ppc[i+1]=(u32)DynaFullLookup;
+        sh4_pc_to_ppc[i+2]=(u32)DynaFullLookup;
+        sh4_pc_to_ppc[i+3]=(u32)DynaFullLookup;
+    }
+}
+
+void DynaLookupInit()
+{
+    if(!sh4_pc_to_ppc)
+        sh4_pc_to_ppc=(u32*)memalign(VM_USER_PAGE_SIZE,DYNA_LOOKUP_BYTE_SIZE);
+    
+    printf("sh4_pc_to_ppc %p %p\n",sh4_pc_to_ppc,&sh4_pc_to_ppc);
+    
+    DynaLookupReset();
+    
+    u32 i;
+
+    for(i=0;i<VM_USER_PAGE_SIZE/sizeof(void*);++i)
+    {
+        sh4_pc_to_ppc_full_lookup[i]=(u32)DynaFullLookup;
+    }
+
+    u32 virt=0x30000000;
+    
+    for(i=0;i<0x8000000;i+=VM_USER_PAGE_SIZE)
+    {
+        vm_create_user_mapping(virt,(u32)sh4_pc_to_ppc_full_lookup&0x7fffffff,VM_USER_PAGE_SIZE,VM_WIMG_CACHED_READ_ONLY);
+        virt+=VM_USER_PAGE_SIZE;
+    }
+
+
+    for(i=0;i<4;++i)
+    {
+        vm_create_user_mapping(virt,(u32)sh4_pc_to_ppc&0x7fffffff,DYNA_LOOKUP_BYTE_SIZE,VM_WIMG_CACHED);
+        virt+=DYNA_LOOKUP_BYTE_SIZE;
+    }
+    
+    verify(virt==0x40000000);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void naked DynaMainLoop()
 {
 	asm volatile (
@@ -191,60 +309,11 @@ void naked DynaMainLoop()
 
 		".align 4								\n"
 "no_update:										\n"
-		/*
-		//called if no update is needed
-		
-		call GetRecompiledCodePointer;
-		*/
-		
-		/*
-		#define LOOKUP_HASH_SIZE	0x4000
-		#define LOOKUP_HASH_MASK	(LOOKUP_HASH_SIZE-1)
-		#define GetLookupHash(addr) ((addr>>2)&LOOKUP_HASH_MASK)
-
-		*/
-		/*
-		CompiledBlockInfo* fastblock;
-		fastblock=BlockLookupGuess[GetLookupHash(address)];
-		*/
-		
-		"rlwinm 4," xstr(RPC) ",0," xstr(LOOKUP_HASH_MASK<<2)	"\n"
-		"lis 5,BlockLookupGuess@h				\n"
-		"ori 5,5,BlockLookupGuess@l				\n"
-		"lwzx 4,5,4								\n"
-	
-		"lwz 5,4(" xstr(RSH4R) ")   			\n" //sh4r+4 is fpscr
-		"lwz 6,0(4)								\n"
-		"cmp 0,6," xstr(RPC) "					\n"
-		"bne full_lookup						\n"
-
-/*gli usefull?
-		"rlwinm 5,5,32-19,30,31					\n"
-	
-		"lwz 6,12(4)							\n"
-		"cmp 0,6,5								\n"
-		"bne full_lookup						\n"
-				
-		"lwz 6,16(4)							\n"
-		"addi 6,6,1								\n"
-		"stw 6,16(4)							\n"
-*/
-
-		"lwz 3,8(4)								\n"
-		"mtctr 3								\n"
-		"bctr									\n"
-		/*
-		else
-		{
-			return FindCode_full(address,fastblock);
-		}*/
-"full_lookup:									\n"
-		"stw " xstr(RPC) ",0(" xstr(RSH4R) ")	\n" //sh4r+0 is pc
-		"mr 3," xstr(RPC) "						\n"
-
-		"bl FindCode_full						\n"
-		"mtctr 3								\n"
-		"bctr									\n"
+		"rlwinm 6," xstr(RPC) ",1,0x0ffffffc    \n"
+        "oris 6,6,0x3000                        \n"
+        "lwz 4,0(6)                             \n"
+        "mtctr 4                                \n"
+        "bctr                                   \n"
 
 		".align 4								\n"
 "do_update:										\n"
@@ -350,6 +419,8 @@ void rec_Sh4_int_Init()
 
     vm_create_user_mapping(0x74060000,((u32)&sh4r)&~0x80000000,VM_USER_PAGE_SIZE,VM_WIMG_CACHED);
     
+    DynaLookupInit();
+    
 	log("recSh4 Init\n");
 }
 
@@ -365,3 +436,4 @@ bool rec_Sh4_int_IsCpuRunning()
 {
 	return rec_sh4_int_bCpuRun;
 }
+
