@@ -1,6 +1,15 @@
 #include "nullDC/plugins/plugin_header.h"
 #include "nullDC/plugins/gui_plugin_header.h"
 
+#ifdef USE_GUI
+#include <input/input.h>
+#include <usb/usbmain.h>
+
+// gui messages
+void ErrorPrompt(const char *msg);
+void InfoPrompt(const char *msg);
+#endif
+
 #include <cstring>
 
 wchar emu_name[128];
@@ -36,6 +45,7 @@ void EXPORT_CALL guiUnload()
 
 void EXPORT_CALL Mainloop()
 {
+	TR
 }
 
 int EXPORT_CALL guiMsgBox(wchar* text,int type)

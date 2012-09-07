@@ -473,7 +473,7 @@ static void threaded_term()
 	while (xenon_is_thread_task_running(4));
 }
 
-static u8 stack[0x100000];
+static  __attribute__((section(".lowbuffers"),aligned(256))) u8 stack[0x100000];
 
 void Sh4_int_Init() 
 {

@@ -43,16 +43,15 @@ void cfgSetStr(wchar* key,const wchar* v)
 	emu.ConfigSaveStr("ImageReader",key,v);
 }
 void irLoadSettings()
-{
+{	
+#ifndef USE_GUI
 	irsettings.PatchRegion=cfgGetInt("PatchRegion",0)!=0;
 	irsettings.LoadDefaultImage=cfgGetInt("LoadDefaultImage",0)!=0;
+	
 	cfgGetStr("DefaultImage",irsettings.DefaultImage,"defualt.gdi");
 	cfgGetStr("LastImage",irsettings.LastImage,"c:\\game.gdi");
-	
-	irsettings.LoadDefaultImage=false;
-	irsettings.LoadDefaultImage=true;
 
-    strcpy(irsettings.DefaultImage,"sda:/dcisos/soulcalibur/Soul Calibur v1.000 (1999)(Namco)(NTSC)(US)[!][4S T-1401N].gdi");
+//    strcpy(irsettings.DefaultImage,"sda:/dcisos/soulcalibur/Soul Calibur v1.000 (1999)(Namco)(NTSC)(US)[!][4S T-1401N].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/chuchu/ChuChu Rocket! v1.007 (2000)(Sega)(NTSC)(US)(en-ja)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/sonic/Sonic Adventure International v1.003 (1999)(Sega)(NTSC)(JP)(M5)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/ct/Crazy Taxi v1.004 (1999)(Sega)(NTSC)(US)[!][10S 51035].gdi");
@@ -62,11 +61,13 @@ void irLoadSettings()
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/doa2/Dead or Alive 2 v1.100 (2000)(Tecmo)(NTSC)(US)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"sda:/dcisos/jetgrind/Jet Grind Radio v1.005 (2000)(Sega)(NTSC)(US)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"uda:/dcisos/ikaruga/Ikaruga v1.002 (2002)(ESP)(NTSC)(JP)[!].gdi");
-	strcpy(irsettings.DefaultImage,"uda:/dcisos/iso.gdi");
+//	strcpy(irsettings.DefaultImage,"uda:/dcisos/iso.gdi");
 //	strcpy(irsettings.DefaultImage,"uda:/dcisos/rayman/Rayman 2 - The Great Escape v1.003 (2000)(Ubi Soft)(NTSC)(US)[!].gdi");
 //	strcpy(irsettings.DefaultImage,"uda:/dcisos/shenmue/Shenmue v1.003 (2000)(Sega)(NTSC)(US)(Disc 1 of 4)[!][1S 51059-1S].gdi");
 //	strcpy(irsettings.DefaultImage,"uda:/dcisos/vt/Virtua Tennis v1.001 (2000)(Sega)(NTSC)(US)[!].gdi");
-//  strcpy(irsettings.DefaultImage,"uda:/dcisos/zombie/Zombie Revenge v1.001 (1999)(Sega)(NTSC)(US)[!].gdi");
+	strcpy(irsettings.DefaultImage,"uda:/dcisos/zombie/Zombie Revenge v1.001 (1999)(Sega)(NTSC)(US)[!].gdi");
+#endif
+	irsettings.LoadDefaultImage=true;
 	irsettings.PatchRegion=true;
 }
 void irSaveSettings()

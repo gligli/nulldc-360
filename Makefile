@@ -1,3 +1,5 @@
+# ! PLEASE REMOVE IT
+DEVKITXENON=/usr/local/xenon
 #---------------------------------------------------------------------------------
 # Clear the implicit built in rules
 #---------------------------------------------------------------------------------
@@ -8,6 +10,10 @@ $(error "Please set DEVKITXENON in your environment. export DEVKITXENON=<path to
 endif
 
 include $(DEVKITXENON)/rules
+
+GUI_SRC		:=	gui gui/gui gui/images gui/sounds gui/fonts gui/lang gui/utils
+GUI_INC		:=	gui
+GUI_FLAGS	:=	-DUSE_GUI -DNO_SOUND
 
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
@@ -25,9 +31,10 @@ SOURCES		:=	nullDC nullDC/dc nullDC/dc/aica nullDC/dc/asic nullDC/dc/gdrom nullD
 			plugins/nullAICA \
 			plugins/vbaARM \
 			plugins/nullExtDev \
-			plugins/XMaple
+			plugins/XMaple \
+			$(GUI_SRC)
 DATA		:=	  
-INCLUDES	:=	files nullDC . nullDC/dc/sh4
+INCLUDES	:=	files nullDC . nullDC/dc/sh4 $(GUI_INC)
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -38,7 +45,7 @@ MCHK = -Wl,-wrap,malloc -Wl,-wrap,realloc -Wl,-wrap,calloc -Wl,-wrap,free -DMCHK
 OPTIFLAGS = -fvisibility=default -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 #-flto -fuse-linker-plugin 
 
 ASFLAGS	= -Wa,$(INCLUDE) -Wa,-a32
-CFLAGS	= $(OPTIFLAGS) -g -pipe -Wall -Wno-format -Wno-write-strings -Wno-strict-aliasing $(MACHDEP) $(INCLUDE) -D__POWERPC__
+CFLAGS	= $(OPTIFLAGS) $(GUI_FLAGS) -g -pipe -Wall -Wno-format -Wno-write-strings -Wno-strict-aliasing $(MACHDEP) $(INCLUDE) -D__POWERPC__
 CXXFLAGS	=	$(CFLAGS)
 
 MACHDEP_LD =  -DXENON -m32 -maltivec -fno-pic -mhard-float -L$(DEVKITXENON)/xenon/lib/32 -u read -u _start -u exc_base
@@ -48,7 +55,7 @@ LDFLAGS	= -g $(OPTIFLAGS) $(MACHDEP_LD)
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lpng -lz -lfat -lxenon -lm
+LIBS	:=	-lpng -lbz2 -lfreetype -lbz2 -lz -lfat -lntfs -lxtaf -lext2fs -lxenon -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -78,6 +85,10 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+TTFFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.ttf)))
+LANGFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.lang)))
+PNGFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.png)))
+PCMFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.pcm)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -90,7 +101,10 @@ endif
 
 export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
-					$(sFILES:.s=.o) $(SFILES:.S=.o)
+					$(sFILES:.s=.o) $(SFILES:.S=.o) \
+					$(TTFFILES:.ttf=.ttf.o) $(LANGFILES:.lang=.lang.o) \
+					$(PNGFILES:.png=.png.o) \
+					$(PCMFILES:.pcm=.pcm.o)
 
 #---------------------------------------------------------------------------------
 # build a list of include paths
@@ -98,7 +112,7 @@ export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					-I$(CURDIR)/$(BUILD) \
-					-I$(LIBXENON_INC)
+					-I$(LIBXENON_INC) -I$(LIBXENON_INC)/freetype2
 
 #---------------------------------------------------------------------------------
 # build a list of library paths
@@ -112,7 +126,7 @@ export OUTPUT	:=	$(CURDIR)/$(TARGET)
 #---------------------------------------------------------------------------------
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile -j4
 
 #---------------------------------------------------------------------------------
 clean:
@@ -130,6 +144,25 @@ DEPENDS	:=	$(OFILES:.o=.d)
 $(OUTPUT).elf32: $(OUTPUT).elf
 $(OUTPUT).elf: $(OFILES)
 
+#---------------------------------------------------------------------------------
+# This rule links in binary data with these extensions: ttf lang png pcm
+#---------------------------------------------------------------------------------
+%.ttf.o : %.ttf
+	@echo $(notdir $<)
+	$(bin2o)
+	
+%.lang.o : %.lang
+	@echo $(notdir $<)
+	$(bin2o)
+
+%.png.o : %.png
+	@echo $(notdir $<)
+	$(bin2o)
+	
+%.pcm.o : %.pcm
+	@echo $(notdir $<)
+	$(bin2o)
+
 -include $(DEPENDS)
 
 #---------------------------------------------------------------------------------
@@ -139,7 +172,7 @@ endif
 #source/ffs_content.c: genffs.py data/ps.psu data/vs.vsu
 #	python genffs.py > source/ffs_content.c
 
+# ced config
 run: $(BUILD) $(OUTPUT).elf32
-	cp $(OUTPUT).elf32 /tftpboot/xenon
-	$(PREFIX)strip /tftpboot/xenon
-#	/home/dev360/run
+	cp $(OUTPUT).elf32 /srv/tftp/tftpboot/xenon
+	$(PREFIX)strip /srv/tftp/tftpboot/xenon
