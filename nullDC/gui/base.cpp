@@ -532,6 +532,7 @@ void DestroyGUI()
 }
 void GuiLoop()
 {
+	TR
 	libgui.Mainloop();
 
 	//Make sure emulation is stoped

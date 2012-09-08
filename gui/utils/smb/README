@@ -1,0 +1,40 @@
+ps2-smbman - PS2 SMB (Simple Message Block) driver
+--------------------------------------------------
+
+This is an IOP irx module to be used on PlayStation2 and give access to
+an 'smb' device. Some devctl ops are supported in order to perform the 
+logon/logoff, get the share list, open/close a share or query disk 
+informations.
+
+I'll give more details about smbman use here in this file later.
+
+To build sources you need the PS2SDK:
+https://github.com/ps2dev/ps2sdk
+
+---------------------------------------------------------------------
+For linux users, a note about Samba;
+
+To allow using user security mode, with NTLM auth on my Samba server,
+I've changed the followind settings in my /etc/samba/smb.conf file:
+
+security = user
+encrypt passwords = yes
+
+"encrypt passwords" can be set to no to send PlainText passwords.
+
+After that, you need to add a user and set his password:
+> sudo smbpasswd -a your_user
+
+LM auth is by default disabled on Samba, to enable it:
+lanman auth = yes
+
+CAREFUL: once you change the "lanman auth" setting, it seems you need
+to update you passwords with smbpasswd.
+
+To allow write to your share "read only" flag must be set properly
+in share definition section:
+read only = no
+
+----------------------------------------------------------------
+This is research software. It comes with absolutely no warranty.
+

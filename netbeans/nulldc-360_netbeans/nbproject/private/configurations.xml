@@ -4,7 +4,7 @@
   <confs>
     <conf name="Default" type="0">
       <toolsSet>
-        <developmentServer>root@x360dev:22</developmentServer>
+        <developmentServer>localhost</developmentServer>
         <platform>2</platform>
       </toolsSet>
       <dbx_gdbdebugger version="1">

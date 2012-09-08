@@ -11,6 +11,10 @@
 
 #if REND_API == REND_D3D
 
+#ifdef USE_GUI
+extern "C" struct XenosDevice * GetVideoDevice();
+#endif
+
 #define MAX_VERTEX_COUNT 1024*1024
 
 extern char inc_vs[];
@@ -3536,10 +3540,13 @@ nl:
 	//--------------------------------------------------------------------------------------
 	void InitDevice()
 	{
+#ifndef USE_GUI
 		xe = &_xe;
 			/* initialize the GPU */
 		Xe_Init(xe);
-
+#else
+		xe = GetVideoDevice();
+#endif
 			/* create a render target (the framebuffer) */
 		struct XenosSurface *fb = Xe_GetFramebufferSurface(xe);
 		Xe_SetRenderTarget(xe, fb);
@@ -3556,8 +3563,10 @@ nl:
 
 		fog_texture=Xe_CreateTexture(xe,128,1,0,XE_FMT_8888|XE_FMT_ARGB,0);
 		pal_texture=Xe_CreateTexture(xe,16,64,0,XE_FMT_8888|XE_FMT_ARGB,0);
-
+		
+#ifndef USE_GUI
 		edram_init(xe);
+#endif
 		
 		int i;
 		for(i=0;i<10;++i){

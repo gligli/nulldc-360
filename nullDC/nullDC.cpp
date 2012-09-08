@@ -64,8 +64,9 @@ int RunDC(int argc, wchar* argv[])
 		sh4_cpu=Get_Sh4Interpreter();
 		log("Using Interpreter\n");
 	}
-	
+#ifndef USE_GUI	// force start in gui mode
 	if (settings.emulator.AutoStart)
+#endif
 		Start_DC();
 
 	GuiLoop();
@@ -187,6 +188,78 @@ cleanup:
 	return rv;
 }
 
+#ifdef USE_GUI
+#include "../plugins/ImgReader/ImgReader.h"
+
+int nulldc_init()
+{
+	static int already_initilised = 0;
+	int argc = 1;
+	int rv = 0;
+	char* argv[] = {"uda:/xenon.elf"};
+
+	if (already_initilised == 0) {
+		
+		_vmem_reserve();
+		
+		if (ParseCommandLine(argc, argv)) {
+			log("\n\n(Exiting due to command line, without starting nullDC)\n");
+			return -1;
+		}
+
+		if (!cfgOpen()) {
+			msgboxf(_T("Unable to open config file"), MBX_ICONERROR);
+			return -4;
+		}
+		LoadSettings();
+
+		if (!CreateGUI()) {
+			msgboxf(_T("Creating GUI failed\n"), MBX_ICONERROR);
+			return -1;
+		}		
+
+		wchar* temp_path = GetEmuPath(_T("data/"));
+
+		bool lrf = LoadRomFiles(temp_path);
+
+		free(temp_path);
+
+		if (!lrf) {
+			rv = -3;
+			TR
+			DestroyGUI();
+			SaveSettings();	
+		}
+
+		EnumPlugins();
+
+		while (!plugins_Load()) {
+			if (!plugins_Select()) {
+				TR
+				msgboxf(_T"Unable to load plugins -- exiting\n", MBX_ICONERROR);
+				rv = -2;
+				DestroyGUI();
+				SaveSettings();	
+			}
+		}
+
+	}
+	already_initilised = 1;
+	
+	return rv;
+}
+
+int nulldc_main(char * filename)
+{
+	int argc = 1;
+	char* argv[] = {"uda:/xenon.elf"};	
+	
+	strcpy(irsettings.DefaultImage, filename);
+	printf("Filename : %s\n", filename);
+	
+	return RunDC(argc,argv);
+}
+#else
 int main()
 {
 	int argc=1;
@@ -231,6 +304,7 @@ int main()
 	_vmem_release();
 	return rv;
 }
+#endif
 
 #ifdef _MUDFLAP
 extern "C" 
@@ -255,7 +329,7 @@ void LoadSettings()
 	settings.dreamcast.region=1; //gli USA cfgLoadInt(_T"nullDC",_T"Dreamcast.Region",3);
 	settings.dreamcast.broadcast=4; //gli cfgLoadInt(_T"nullDC",_T"Dreamcast.Broadcast",4);
 
-	settings.emulator.AutoStart=1; //gli cfgLoadInt(_T"nullDC",_T"Emulator.AutoStart",0)!=0;
+	settings.emulator.AutoStart=0; //gli cfgLoadInt(_T"nullDC",_T"Emulator.AutoStart",0)!=0;
 	settings.emulator.NoConsole=cfgLoadInt(_T"nullDC",_T"Emulator.NoConsole",0)!=0;
 
 	//make sure values are valid

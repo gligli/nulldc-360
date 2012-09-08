@@ -88,11 +88,19 @@ void GetFileNameFromPath(wchar* path,wchar* outp)
 	strcpy(outp,path);
 }
 
+#ifndef USE_GUI
 wchar AppPath[1024] = "uda:/nulldc-360/";
 void GetApplicationPath(wchar* path,u32 size)
 {
 	strcpy(path,AppPath);
 }
+#else
+wchar AppPath[1024] = "nulldc-360/";
+void GetApplicationPath(wchar* path,u32 size)
+{
+	strcpy(path,AppPath);
+}
+#endif
 
 wchar* GetEmuPath(const wchar* subpath)
 {
@@ -375,6 +383,11 @@ void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 	}
 }
 
+#ifdef USE_GUI
+void ErrorPrompt(const char *msg);
+void InfoPrompt(const char *msg);
+#endif
+
 int msgboxf(char* text,unsigned int type,...)
 {
 	va_list args;
@@ -383,7 +396,7 @@ int msgboxf(char* text,unsigned int type,...)
 	va_start(args, type);
 	vsprintf(temp, text, args);
 	va_end(args);
-
+#ifndef USE_GUI
 	printf("[msgboxf] %s\n",temp);
 	
 	if (libgui.MsgBox!=0)
@@ -392,6 +405,17 @@ int msgboxf(char* text,unsigned int type,...)
 	}
 /*gli	else
 		return MessageBox(NULL,temp,VER_SHORTNAME,type | MB_TASKMODAL);*/
+#else
+	switch(type)
+	{
+		case MBX_ICONERROR:
+			ErrorPrompt(temp);
+			break;
+		default:
+			InfoPrompt(temp);
+			break;
+	}
+#endif
 	return 0;
 }
 

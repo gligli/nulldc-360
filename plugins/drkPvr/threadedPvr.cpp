@@ -211,7 +211,7 @@ static void threaded_task()
 	}
 }
 
-static u8 stack[0x100000];
+static  __attribute__((section(".lowbuffers"),aligned(256)))  u8 stack[0x100000];
 
 void threaded_init()
 {
