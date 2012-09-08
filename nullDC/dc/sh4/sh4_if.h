@@ -159,7 +159,19 @@ struct __attribute__((packed))  StatusReg
 #endif
 		u32 m_full;
 	};
-	u32 T;
+	u32 T_;
+    
+    INLINE u32 GetT()
+    {
+        GetFull(true);
+        return T_;
+    }
+    
+    INLINE void SetT(u32 t)
+    {
+        SetFull((GetFull(true)&~1) | (t&1),true);
+    }
+    
 	INLINE u32 GetFull(bool autoDR)
 	{
         if (autoDR && settings.dynarec.Enable)
@@ -173,21 +185,21 @@ struct __attribute__((packed))  StatusReg
                 "1:                            \n"
                 :[Tloc] "+r" (Tloc)
             );
-            T=Tloc;
+            T_=Tloc;
         }
 
-		return (m_full&STATUS_MASK) | (T&1);
+		return (m_full&STATUS_MASK) | (T_&1);
 	}
 
 	INLINE void SetFull(u32 value,bool autoDR)
 	{
 		m_full=value & STATUS_MASK;
-		T=value&1;
+		T_=value&1;
 
         if (autoDR && settings.dynarec.Enable)
         {
             //gli dynarec T needs to be up to date
-            u32 Tloc=T;
+            u32 Tloc=T_;
             asm volatile (
                 "cmplwi %[Tloc],0              \n"  
                 "crnor " xstr(CR_T_FLAG) ",2,2 \n"

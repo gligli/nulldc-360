@@ -218,19 +218,19 @@ sh4op(i0000_0000_0100_1000)
 //sett                          
 sh4op(i0000_0000_0001_1000)
 {
-	sr.T = 1;
+	sr.SetT( 1);
 } 
 
 //clrt                          
 sh4op(i0000_0000_0000_1000)
 {
-	sr.T = 0;
+	sr.SetT( 0);
 } 
 //movt <REG_N>                  
 sh4op(i0000_nnnn_0010_1001)
 {
 	u32 n = GetN(op);
-	r[n] = sr.T;
+	r[n] = sr.GetT();
 } 
 //************************ Reg Compares ************************
 //cmp/pz <REG_N>                
@@ -239,9 +239,9 @@ sh4op(i0100_nnnn_0001_0001)
 	u32 n = GetN(op);
 
 	if (((s32)r[n]) >= 0)
-		sr.T = 1;
+		sr.SetT( 1);
 	else
-		sr.T = 0;
+		sr.SetT( 0);
 }
 
 //cmp/pl <REG_N>                
@@ -250,9 +250,9 @@ sh4op(i0100_nnnn_0001_0101)
 	//iNimp("cmp/pl <REG_N>");
 	u32 n = GetN(op);
 	if ((s32)r[n] > 0) 
-		sr.T = 1;
+		sr.SetT( 1);
 	else 
-		sr.T = 0;
+		sr.SetT( 0);
 }
 
 //cmp/eq #<imm>,R0              
@@ -260,9 +260,9 @@ sh4op(i1000_1000_iiii_iiii)
 {
 	u32 imm = (u32)(s32)(GetSImm8(op));
 	if (r[0] == imm)
-		sr.T =1;
+		sr.SetT(1);
 	else
-		sr.T =0;
+		sr.SetT(0);
 }
 
 //cmp/eq <REG_M>,<REG_N>        
@@ -273,9 +273,9 @@ sh4op(i0011_nnnn_mmmm_0000)
 	u32 m = GetM(op);
 
 	if (r[m] == r[n])
-		sr.T = 1;
+		sr.SetT( 1);
 	else
-		sr.T = 0;
+		sr.SetT( 0);
 }
 
 //cmp/hs <REG_M>,<REG_N>        
@@ -284,9 +284,9 @@ sh4op(i0011_nnnn_mmmm_0010)
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 	if (r[n] >= r[m])
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 }
 
 //cmp/ge <REG_M>,<REG_N>        
@@ -296,9 +296,9 @@ sh4op(i0011_nnnn_mmmm_0011)
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 	if ((s32)r[n] >= (s32)r[m])
-		sr.T = 1;
+		sr.SetT( 1);
 	else 
-		sr.T = 0;
+		sr.SetT( 0);
 }
 
 //cmp/hi <REG_M>,<REG_N>        
@@ -308,9 +308,9 @@ sh4op(i0011_nnnn_mmmm_0110)
 	u32 m = GetM(op);
 
 	if (r[n] > r[m])
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 }
 
 //cmp/gt <REG_M>,<REG_N>        
@@ -321,9 +321,9 @@ sh4op(i0011_nnnn_mmmm_0111)
 	u32 m = GetM(op);
 
 	if (((s32)r[n]) > ((s32)r[m]))
-		sr.T = 1;
+		sr.SetT( 1);
 	else 
-		sr.T = 0;
+		sr.SetT( 0);
 }
 
 //cmp/str <REG_M>,<REG_N>       
@@ -343,8 +343,8 @@ sh4op(i0010_nnnn_mmmm_1100)
 	LH=(temp&0x0000FF00)>>8;
 	LL=temp&0x000000FF;
 	HH=HH&&HL&&LH&&LL;
-	if (HH==0) sr.T=1;
-	else sr.T=0;
+	if (HH==0) sr.SetT(1);
+	else sr.SetT(0);
 }
 
 //tst #<imm>,R0                 
@@ -353,9 +353,9 @@ sh4op(i1100_1000_iiii_iiii)
 	//iNimp("tst #<imm>,R0");
 	u32 utmp1 = r[0] & GetImm8(op);
 	if (utmp1 == 0) 
-		sr.T = 1;
+		sr.SetT( 1);
 	else 
-		sr.T = 0;
+		sr.SetT( 0);
 }
 //tst <REG_M>,<REG_N>           
 sh4op(i0010_nnnn_mmmm_1000)
@@ -364,9 +364,9 @@ sh4op(i0010_nnnn_mmmm_1000)
 	u32 m = GetM(op);
 
 	if ((r[n] & r[m])!=0)
-		sr.T=0;
+		sr.SetT(0);
 	else
-		sr.T=1;
+		sr.SetT(1);
 
 }
 //************************ mulls! ************************ 
@@ -473,7 +473,7 @@ void FASTCALL sh4_div0u()
 {
 	sr.Q = 0;
 	sr.M = 0;
-	sr.T = 0;
+	sr.SetT( 0);
 }
 //div0u                         
 sh4op(i0000_0000_0001_1001)
@@ -484,7 +484,7 @@ void FASTCALL sh4_div0s(u32 rn,u32 rm)
 {
 	sr.Q=rn>>31;
 	sr.M=rm>>31;
-	sr.T=sr.M^sr.Q;
+	sr.SetT(sr.M^sr.Q);
 }
 //div0s <REG_M>,<REG_N>         
 sh4op(i0010_nnnn_mmmm_0111)
@@ -504,7 +504,7 @@ u32 FASTCALL sh4_div1(u32 rn,u32 rm)
 	sr.Q = (u8)((0x80000000 & rn) !=0);
 
 	rn <<= 1;
-	rn |= sr.T;
+	rn |= sr.GetT();
 
 	tmp0 = rn;	// this need only be done once here ..
 	tmp2 = rm;
@@ -539,7 +539,7 @@ u32 FASTCALL sh4_div1(u32 rn,u32 rm)
 			sr.Q	= (sr.Q==0) ? (u8)(tmp1==0) : tmp1 ;
 		}
 	}
-	sr.T = (sr.Q==sr.M);
+	sr.SetT( (sr.Q==sr.M));
 
 	return rn;
 	/*
@@ -547,7 +547,7 @@ u32 FASTCALL sh4_div1(u32 rn,u32 rm)
 	u32 op2=(u32)(s32)r[n];
 	u32 oldq=sr.Q;
 	sr.Q=(r[n]>>31)&1;
-	op2=(op2<<1)| (sr.T);
+	op2=(op2<<1)| (sr.GetT());
 
 	u32 of=0;
 	if (oldq==sr.M)
@@ -564,9 +564,9 @@ u32 FASTCALL sh4_div1(u32 rn,u32 rm)
 	}
 
 	sr.Q=(sr.Q^sr.M)^of;
-	sr.T=1^(sr.Q ^ sr.M);
+	sr.SetT(1^(sr.Q ^ sr.M);
 	r[n]=(u32)op2;*/
-	//log("Q %d , S %d , T %d , r[n] %d, r[m] %d\n",sr.Q,sr.S,sr.T,r[n],r[m]);
+	//log("Q %d , S %d , T %d , r[n] %d, r[m] %d\n",sr.Q,sr.S,sr.GetT(),r[n],r[m]);
 }
 //div1 <REG_M>,<REG_N>          
 sh4op(i0011_nnnn_mmmm_0100)
@@ -588,15 +588,15 @@ sh4op(i0011_nnnn_mmmm_1110)
 	u32 tmp1 = r[n] + r[m];
 	u32 tmp0 = r[n];
 
-	r[n] = tmp1 + sr.T;
+	r[n] = tmp1 + sr.GetT();
 
 	if (tmp0 > tmp1)
-		sr.T = 1;
+		sr.SetT( 1);
 	else
-		sr.T = 0;
+		sr.SetT( 0);
 	
 	if (tmp1 > r[n])
-		sr.T = 1;
+		sr.SetT( 1);
 }
 
 // addv <REG_M>,<REG_N>          
@@ -617,21 +617,21 @@ TR/*gli	__asm
 		add eax,ecx;
 		seto tmp;//cond = (@cf ==> flip(F(o)[msb]))
 		movzx ebx,tmp;
-		mov [sr.T],ebx;
+		mov [sr.GetT()],ebx;
 	};*/
 
 	r[n]=rn;
 	
 	if (br >=0x80000000)
-		sr.T=1;
+		sr.SetT(1);
 	else if (br < (s64) (0xFFFFFFFF80000000u))
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 	if (br>>32)
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 	
 	r[n]+=r[m];
 }
@@ -645,15 +645,15 @@ sh4op(i0011_nnnn_mmmm_1010)
 
 	u32 tmp1 = (u32)(((s32)r[n]) - ((s32)r[m]));
 	u32 tmp0 = r[n];
-	r[n] = tmp1 - sr.T;
+	r[n] = tmp1 - sr.GetT();
 
 	if (tmp0 < tmp1)
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 	
 	if (tmp1 < r[n])
-		sr.T=1;
+		sr.SetT(1);
 }
 
 //subv <REG_M>,<REG_N>          
@@ -665,15 +665,15 @@ sh4op(i0011_nnnn_mmmm_1011)
 	s64 br=(s64)(s32)r[n]-(s64)(s32)r[m];
 	
 	if (br >=0x80000000)
-		sr.T=1;
+		sr.SetT(1);
 	else if (br < (s64) (0xFFFFFFFF80000000u))
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 	if (br>>32)
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 	
 	r[n]-=r[m];
 //	u32 rm=r[m];
@@ -687,7 +687,7 @@ TR/*gli	__asm
 		sub eax,ecx;
 		seto tmp;//cond = (@cf ==> flip(F(o)[msb]))
 		movzx ebx,tmp;
-		mov [sr.T],ebx;
+		mov [sr.GetT()],ebx;
 	};*/
 
 	r[n]=rn;
@@ -698,9 +698,9 @@ sh4op(i0100_nnnn_0001_0000)
 	u32 n = GetN(op);
 	r[n]-=1;
 	if (r[n] == 0)
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 }
 
 //negc <REG_M>,<REG_N>          
@@ -710,20 +710,20 @@ sh4op(i0110_nnnn_mmmm_1010)
 	u32 n = GetN(op);
 	u32 m = GetM(op);
 
-	//r[n]=-r[m]-sr.T;
+	//r[n]=-r[m]-sr.GetT();
 	u32 tmp=0-r[m];
-	r[n]=tmp-sr.T;
+	r[n]=tmp-sr.GetT();
 	
 	if (0<tmp)
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 
 	if (tmp<r[n]) 
-		sr.T=1;
+		sr.SetT(1);
 
 	//NO , T IS *_CARRY_* , *NOT* sign :)
-	//sr.T=r[n]>>31;
+	//sr.SetT(r[n]>>31;
 }
 
 
@@ -752,14 +752,14 @@ sh4op(i0100_nnnn_0000_0000)
 {//ToDo : Check This [26/4/05]
 	u32 n = GetN(op);
 
-	sr.T = r[n] >> 31;
+	sr.SetT( r[n] >> 31);
 	r[n] <<= 1;
 }
 //shal <REG_N>                  
 sh4op(i0100_nnnn_0010_0000)
 {
 	u32 n=GetN(op);
-	sr.T=r[n]>>31;
+	sr.SetT(r[n]>>31);
 	r[n]=((s32)r[n])<<1;
 }
 
@@ -768,7 +768,7 @@ sh4op(i0100_nnnn_0010_0000)
 sh4op(i0100_nnnn_0000_0001)
 {//ToDo : Check This [26/4/05]
 	u32 n = GetN(op);
-	sr.T = r[n] & 0x1;
+	sr.SetT( r[n] & 0x1);
 	r[n] >>= 1;
 }
 
@@ -778,7 +778,7 @@ sh4op(i0100_nnnn_0010_0001)
 	//iNimp("shar <REG_N>");
 	u32 n = GetN(op);
 
-	sr.T=r[n] & 1;
+	sr.SetT(r[n] & 1);
 	r[n]=((s32)r[n])>>1;
 }
 
@@ -836,9 +836,9 @@ sh4op(i0100_nnnn_mmmm_1101)
 
 u32 FASTCALL sh4_rotcl(u32 rn)
 {
-	u32 t = sr.T;
+	u32 t = sr.GetT();
 
-	sr.T = rn >> 31;
+	sr.SetT( rn >> 31);
 
 	rn <<= 1;
 	rn|=t;
@@ -863,19 +863,19 @@ sh4op(i0100_nnnn_0000_0100)
 	//return;
 	/*
 	if ((r[n] & 0x80000000)!=0)
-	sr.T=1;
+	sr.SetT(1;
 	else
-	sr.T = 0;*/
+	sr.SetT( 0;*/
 
-	sr.T=r[n]>>31;
+	sr.SetT(r[n]>>31);
 
 	r[n] <<= 1;
 
-	/*if (sr.T!=0)
+	/*if (sr.GetT()!=0)
 	r[n] |= 0x00000001;
 	else
 	r[n] &= 0xFFFFFFFE;*/
-	r[n]|=sr.T;
+	r[n]|=sr.GetT();
 }
 
 //rotcr <REG_N>                 
@@ -896,13 +896,13 @@ sh4op(i0100_nnnn_0010_0101)
 
 
 	/*
-	if (sr.T == 1) 
+	if (sr.SetT(= 1) 
 	r[n] |= 0x80000000;
 	else 
 	r[n] &= 0x7FFFFFFF;*/
-	r[n] |=sr.T<<31;
+	r[n] |=sr.GetT()<<31;
 
-	sr.T = temp;
+	sr.SetT( temp);
 	/*if (temp == 1) 
 	T = 1;
 	else 
@@ -915,9 +915,9 @@ sh4op(i0100_nnnn_0000_0101)
 {
 	//iNimp("rotr <REG_N>");//check ++
 	u32 n = GetN(op);
-	sr.T = r[n] & 0x1;
+	sr.SetT( r[n] & 0x1);
 	r[n] >>= 1;
-	r[n] |= (sr.T << 31);
+	r[n] |= (sr.GetT() << 31);
 }					
 //************************ byte reorder/sign ************************
 //swap.b <REG_M>,<REG_N>        
@@ -996,9 +996,9 @@ sh4op(i1100_1100_iiii_iiii)
 	temp &= imm;
 
 	if (temp==0)
-		sr.T=1;
+		sr.SetT(1);
 	else
-		sr.T=0;
+		sr.SetT(0);
 }
 
 
@@ -1051,7 +1051,7 @@ sh4op(i0100_nnnn_0001_1011)
 
 	WriteMem8(r[n], val);
 	
-	sr.T=srT;
+	sr.SetT(srT);
 }
 
 //************************ Opcodes that read/write the status registers ************************

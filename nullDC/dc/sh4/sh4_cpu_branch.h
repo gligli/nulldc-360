@@ -60,7 +60,7 @@ sh4op(i0000_nnnn_0010_0011)
 // bf <bdisp8>                   
  sh4op(i1000_1011_iiii_iiii)
 {//ToDo : Check Me [26/4/05]  | Check DELAY SLOT [28/1/06]
-	if (sr.T==0)
+	if (sr.GetT()==0)
 	{
 		//direct jump
 		pc = (u32)((GetSImm8(op))*2 + 4 + pc );
@@ -72,7 +72,7 @@ sh4op(i0000_nnnn_0010_0011)
 // bf.s <bdisp8>                 
  sh4op(i1000_1111_iiii_iiii)
 {
-	if (sr.T==0)
+	if (sr.GetT()==0)
 	{
 		//delay 1 instruction
 		u32 newpc=(u32) ( (GetSImm8(op)<<1) + pc+2);//pc+2 is done after
@@ -85,7 +85,7 @@ sh4op(i0000_nnnn_0010_0011)
 // bt <bdisp8>                   
  sh4op(i1000_1001_iiii_iiii)
 {
-	if (sr.T==1)
+	if (sr.GetT()==1)
 	{
 		//direct jump
 		pc = (u32) ( (GetSImm8(op)<<1) + pc+2);
@@ -96,7 +96,7 @@ sh4op(i0000_nnnn_0010_0011)
 // bt.s <bdisp8>                 
  sh4op(i1000_1101_iiii_iiii)
 {
-	if (sr.T == 1)
+	if (sr.GetT() == 1)
 	{
 		//delay 1 instruction
 		u32 newpc=(u32) ( (GetSImm8(op)<<1) + pc+2);//pc+2 is done after

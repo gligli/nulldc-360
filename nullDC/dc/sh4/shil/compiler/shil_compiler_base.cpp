@@ -2639,20 +2639,8 @@ void __fastcall shil_compile_shil_ifb(shil_opcode* op)
 	ppce->emitStore32(&op_usage[op->imm1],R3);
 #endif
 
-	// get T flag for interp
-	EMIT_CROR(ppce,PPC_CC_ZER,CR_T_FLAG,CR_T_FLAG);
-	EMIT_LI(ppce,R3,1);
-	EMIT_BC(ppce,2,0,0,PPC_CC_T,PPC_CC_ZER);
-	EMIT_LI(ppce,R3,0);
-	ppce->emitStore32(GetRegPtr(reg_sr_T),R3);
-	
 	ppce->emitLoadImmediate32(R3,op->imm1);
 	ppce->emitBranch((void*)OpPtr[op->imm1],1);
-
-	// store interp T flag for dynarec
-	ppce->emitLoad32(R3,GetRegPtr(reg_sr_T));
-	EMIT_CMPLI(ppce,R3,0,0);
-	EMIT_CRNOR(ppce,CR_T_FLAG,PPC_CC_ZER,PPC_CC_ZER);
 }
 
 

@@ -213,9 +213,6 @@ void fastcall VirtualInterrupt(u32 id)
 u32 no_interrupts,yes_interrupts;
 //#endif
 
-int UpdateINTC_C();
-
-extern "C" { // called from ASM
 int __attribute__((externally_visible)) UpdateINTCDoINT()
 {
 	u32 ecx=intr.interrupt_vpend&intr.interrupt_vmask;
@@ -232,7 +229,7 @@ int __attribute__((externally_visible)) UpdateINTCDoINT()
 		return UpdateINTC();			
 	}
 }
-}
+
 #define ASM_INTC
 
 int UpdateINTC()

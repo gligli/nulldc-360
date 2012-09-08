@@ -184,14 +184,14 @@ sh4op(i1111_nnnn_mmmm_0100)
 		u32 n = GetN(op);
 		u32 m = GetM(op);
 
-		sr.T = (fr[m] == fr[n]) ? 1 : 0;
+		sr.SetT( (fr[m] == fr[n]) ? 1 : 0);
 	}
 	else
 	{
 		u32 n = (op >> 9) & 0x07;
 		u32 m = (op >> 5) & 0x07;
 		START64();
-		sr.T = (GetDR(m) == GetDR(n)) ? 1 : 0;
+		sr.SetT( (GetDR(m) == GetDR(n)) ? 1 : 0);
 		END64();	
 	}
 }
@@ -204,9 +204,9 @@ sh4op(i1111_nnnn_mmmm_0101)
 		u32 m = GetM(op);
 
 		if (fr[n] > fr[m])
-			sr.T = 1;
+			sr.SetT( 1);
 		else
-			sr.T = 0;
+			sr.SetT( 0);
 	}
 	else
 	{
@@ -215,9 +215,9 @@ sh4op(i1111_nnnn_mmmm_0101)
 		
 		START64();
 		if (GetDR(n) > GetDR(m))
-			sr.T = 1;
+			sr.SetT( 1);
 		else
-			sr.T = 0;
+			sr.SetT( 0);
 		END64();
 	}
 }
