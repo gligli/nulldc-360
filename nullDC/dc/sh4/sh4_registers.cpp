@@ -3,6 +3,7 @@
 #include "types.h"
 #include "sh4_registers.h"
 #include "intc.h"
+#include "rec_v1/driver.h"
 
 __attribute__((aligned(65536))) struct Sh4RegContext sh4r;
 
@@ -18,6 +19,15 @@ u32*  xf_hex=(u32*)sh4r.xf,*fr_hex=(u32*)sh4r.fr;
 
 void SaveSh4Regs(Sh4RegContext* to)
 {
+	if (settings.dynarec.Enable)
+	{
+		asm volatile(
+			"lis 3,sh4r@h				\n"
+			"stw " xstr(RPC) ",0(3)     \n"
+			"stw " xstr(RPR) ",65*4(3)  \n"
+		:::"3");
+	}
+
     SAVE_REG_A(r);
 	SAVE_REG_A(r_bank);
 
@@ -69,6 +79,15 @@ void LoadSh4Regs(Sh4RegContext* from)
 
 	LOAD_REG(old_sr);
 	LOAD_REG(old_fpscr);
+
+	if (settings.dynarec.Enable)
+	{
+		asm volatile(
+			"lis 3,sh4r@h				\n"
+			"lwz " xstr(RPC) ",0(3)     \n"
+			"lwz " xstr(RPR) ",65*4(3)  \n"
+		:::"3");
+	}
 }
 
 INLINE void ChangeGPR()

@@ -6,6 +6,7 @@
 #define FRZERO 14
 #define FRONE 15
 #define RCYCLES 13
+#define RPR 14
 #define RPC 15
 #define CPU_TIMESLICE	(BLOCKLIST_MAX_CYCLES)
 

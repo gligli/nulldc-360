@@ -103,6 +103,8 @@ class SimpleGPRAlloc : public IntegerRegAllocator
 				r_alloced[i].ppcreg=reg_to_alloc[i];
 			else if (i==reg_pc)
 				r_alloced[i].ppcreg=(ppc_reg)RPC;
+			else if (i==reg_pr)
+				r_alloced[i].ppcreg=(ppc_reg)RPR;
 				
 			r_alloced[i].InReg=true;
 			r_alloced[i].Dirty=true;

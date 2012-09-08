@@ -39,7 +39,6 @@ extern int ppc_condition_flags[][3];
 
 #define RTMP 10
 #define RSH4R 2
-#define RLIS 14
 
 // altivec XF handling
 
@@ -130,8 +129,6 @@ private:
 	dyna_finalizeFP* allocfin;
 	u32 bc_tab[0x4000];
 	u32 bc_tab_next_idx;
-	bool last_lis_valid;
-	u16 last_lis;
 public:
 
 	u8* ppc_buff;
@@ -140,7 +137,6 @@ public:
 	bool do_realloc;
 	bool do_disasm;
 	bool do_disasm_imm;
-    bool deactivate_rlis;
 	
 	ppc_block();
 	~ppc_block();

@@ -1409,10 +1409,6 @@ extern "C"{
 
 PowerPC_instr * __attribute__((aligned(65536))) roml_nop_offset=0;
 
-void roml_get_lr_nop()
-{
-}
-
 void * roml_patch_for_reg_access(u32 addr, bool jump_only)
 {
     u32 noppos=addr-4;
@@ -1456,9 +1452,6 @@ void * roml_patch_for_reg_access(u32 addr, bool jump_only)
 
 void roml_patch_for_sq_access(u32 addr)
 {
-/*    if ((addr&0x03ffffff)>=0x800000)
-        return;*/
-    
     verify(roml_nop_offset);
     
     PowerPC_instr * pre=roml_nop_offset-1;
@@ -1491,8 +1484,10 @@ void apply_roml_patches()
         
         if(roml_patch_list[i].type==1 && roml_patch_list[i].asz>=FLAG_32)
         {
-            ppce->emitBranch((void*)roml_get_lr_nop,1);
+            // retrieve current code pointer
+            EMIT_B(ppce,1,0,1);
             EMIT_MFLR(ppce,R8);
+            
             EMIT_ADDI(ppce,R8,R8,-ppce->ppc_indx+roml_patch_list[i].p4_access->target_opcode+4);
             EMIT_LIS(ppce,R9,((u32)&roml_nop_offset)>>16);
             EMIT_STW(ppce,R8,0,R9);

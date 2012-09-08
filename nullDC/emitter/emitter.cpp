@@ -84,7 +84,6 @@ void ppc_block::Init(dyna_reallocFP* ral,dyna_finalizeFP* alf)
 	ppc_size=0;
 	do_realloc=true;
 	bc_tab_next_idx=0;
-	last_lis_valid=false;
 }
 //Generates code.if user_data is non zero , user_data_size bytes are allocated after the executable code
 //and user_data is set to the first byte of em.Allways 16 byte alligned
@@ -337,7 +336,6 @@ ppc_block::ppc_block()
 	labels.reserve(64);
 	do_disasm=false;
 	do_disasm_imm=false;
-    deactivate_rlis=false;
 }
 ppc_block::~ppc_block()
 {
@@ -425,13 +423,8 @@ ppc_gpr_reg ppc_block::getHighReg(u16 value)
 		return (ppc_reg)RSH4R;
 	}
 	
-	if (deactivate_rlis || !last_lis_valid || last_lis!=value)
-	{
-		last_lis_valid=!deactivate_rlis;
-		last_lis=value;
-		EMIT_LIS(this,RLIS,value);
-	}
-	return (ppc_reg)RLIS;
+    EMIT_LIS(this,RTMP,value);
+	return (ppc_reg)RTMP;
 }
 
 void ppc_block::emitBranch(void * addr, int lk)
