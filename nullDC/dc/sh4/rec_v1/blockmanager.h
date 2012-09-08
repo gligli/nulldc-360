@@ -34,7 +34,7 @@ void RegisterBlock(CompiledBlockInfo* block);
 void UnRegisterBlock(CompiledBlockInfo* block);
 CompiledBlockInfo* bm_ReverseLookup(void* code_ptr);
 
-void FreeSuspendedBlocks();
+int FreeSuspendedBlocks();
 
 CompiledBlockInfo* FindOrRecompileBlock(u32 pc);
 void __fastcall SuspendBlock(CompiledBlockInfo* block);

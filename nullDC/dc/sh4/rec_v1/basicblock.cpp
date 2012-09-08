@@ -524,7 +524,7 @@ bool BasicBlock::Compile()
 			cBB->Rewrite.Offset=ppce->ppc_indx;
 			//link to next block :
 			ppce->emitLoadImmediate32(R3,(u32)cBB);
-			ppce->emitBranch((u32*)&(cBB->pTF_next_addr),0);
+			ppce->emitBranch(cBB->pTF_next_addr,0);
 		}
 		break;
 	case BLOCK_EXITTYPE_FIXED_CSC:		//forced lookup , possible state chainge

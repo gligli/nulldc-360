@@ -214,6 +214,9 @@ void DynaLookupUnmap(u32 start_pc, u32 end_pc)
 
 void DynaLookupReset()
 {
+    if(!sh4_pc_to_ppc)
+        sh4_pc_to_ppc=(u32*)memalign(VM_USER_PAGE_SIZE,DYNA_LOOKUP_BYTE_SIZE);
+    
     int i;
     for(i=0;i<DYNA_LOOKUP_SIZE;i+=4)
     {
@@ -226,11 +229,6 @@ void DynaLookupReset()
 
 void DynaLookupInit()
 {
-    if(!sh4_pc_to_ppc)
-        sh4_pc_to_ppc=(u32*)memalign(VM_USER_PAGE_SIZE,DYNA_LOOKUP_BYTE_SIZE);
-    
-    printf("sh4_pc_to_ppc %p %p\n",sh4_pc_to_ppc,&sh4_pc_to_ppc);
-    
     DynaLookupReset();
     
     u32 i;

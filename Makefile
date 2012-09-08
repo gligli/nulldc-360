@@ -33,7 +33,7 @@ INCLUDES	:=	files nullDC . nullDC/dc/sh4
 # options for code generation
 #---------------------------------------------------------------------------------
 
-MCHK = -Wl,-wrap,malloc -Wl,-wrap,realloc -Wl,-wrap,calloc -Wl,-wrap,free -DMCHK
+MCHK = -Wl,-wrap,malloc  -Wl,-wrap,memalign -Wl,-wrap,realloc -Wl,-wrap,calloc -Wl,-wrap,free -DMCHK
 
 OPTIFLAGS = -fvisibility=default -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 #-flto -fuse-linker-plugin 
 
@@ -43,7 +43,7 @@ CXXFLAGS	=	$(CFLAGS)
 
 MACHDEP_LD =  -DXENON -m32 -maltivec -fno-pic -mhard-float -L$(DEVKITXENON)/xenon/lib/32 -u read -u _start -u exc_base
 
-LDFLAGS	= -g $(OPTIFLAGS) $(MACHDEP_LD)
+LDFLAGS	= -g $(OPTIFLAGS) $(MACHDEP_LD) -Wl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project

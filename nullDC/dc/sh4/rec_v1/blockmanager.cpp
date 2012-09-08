@@ -260,16 +260,21 @@ void reset_memalloc();
 //this should not be called from a running block , or it could crash
 //Free a list of blocks
 //will also clear the list
-void FreeBlocks(BlockList* blocks)
+int FreeBlocks(BlockList* blocks)
 {
-	for (u32 i=0;i<blocks->ItemCount;i++)
+	int rv=0;
+    
+    for (u32 i=0;i<blocks->ItemCount;i++)
 	{
 		if ((*blocks)[i]!=BLOCK_NONE)
 		{
-			FreeBlock((*blocks)[i]);
+			rv=-1;
+            FreeBlock((*blocks)[i]);
 		}
 	}
 	blocks->clear();
+    
+    return rv;
 }
 //-1 -> a<b , 0 -> a==b, 1 -> a>b
 int BlockRelocateSort(const void* p1,const void* p2)
@@ -405,9 +410,11 @@ bool reset_cache=false;
 void __fastcall _SuspendAllBlocks();
 //this should not be called from a running block , or it cloud crash
 //free's suspended blocks
-void FreeSuspendedBlocks()
+int FreeSuspendedBlocks()
 {
-	static int BBBB=0;
+	int rv=0;
+    
+    static int BBBB=0;
 	BBBB++;
 	if (BBBB>996666)
 	{
@@ -415,8 +422,15 @@ void FreeSuspendedBlocks()
 //gli crashes		RelocateBlocks();
 	}
 	if (reset_cache)
-		_SuspendAllBlocks();
-	FreeBlocks(&SuspendedBlocks);
+    {
+		rv=-1;
+        _SuspendAllBlocks();
+    }
+    
+	if(FreeBlocks(&SuspendedBlocks))
+        rv=-1;
+    
+    return rv;
 }
 
 //block lookup code

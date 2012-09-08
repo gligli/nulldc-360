@@ -1,6 +1,8 @@
 
 #include "types.h"
 
+#include "rec_v1/blockmanager.h"
+
 #include "sh4_interpreter.h"
 #include "sh4_opcode_list.h"
 #include "sh4_registers.h"
@@ -394,9 +396,6 @@ u32 aica_sample_cycles=0;
 
 #include "ccn.h"
 
-void FreeSuspendedBlocks();
-void DynaPrintCycles();
-
 //General update
 s32 rtc_cycles = 0;
 u32 update_cnt = 0;
@@ -406,10 +405,8 @@ u32 update_cnt = 0;
 //medium update is 448*8=3584 cycles
 //slow update is 448*16=7168  cycles
 
-extern bool reset_cache;
-
 //14336 Cycles
-void __fastcall VerySlowUpdate()
+int __fastcall VerySlowUpdate()
 {
 	rtc_cycles-=14336;
 	if (rtc_cycles<=0)
@@ -422,13 +419,14 @@ void __fastcall VerySlowUpdate()
 	*(u16*)&mem_b.data[(0xC0196EC)& 0xFFFFFF] =9;
 	*(u16*)&mem_b.data[(0xD0196D8+2)& 0xFFFFFF]=9;
 	*/
-	FreeSuspendedBlocks();
+	return FreeSuspendedBlocks();
 }
 //7168 Cycles
-void __fastcall SlowUpdate()
+int __fastcall SlowUpdate()
 {
     if (!(update_cnt&0x1f))
-		VerySlowUpdate();
+		return VerySlowUpdate();
+    return 0;
 }
 
 void ThreadedUpdate()
@@ -698,7 +696,7 @@ bool ExecuteDelayslot_RTE()
 	return rv;
 }
 
-void __fastcall MediumUpdate()
+int __fastcall MediumUpdate()
 {
     if(threaded_subsystems)
     {
@@ -715,7 +713,9 @@ void __fastcall MediumUpdate()
    	maple_periodical(3584);
 
 	if (!(update_cnt&0xf))
-        SlowUpdate();
+        return SlowUpdate();
+    
+    return 0;
 }
 
 u64 time_update_system=0;
@@ -731,17 +731,20 @@ int __attribute__((externally_visible)) __fastcall UpdateSystem()
 #ifdef PROF_UPDATESYSTEM	
 	u64 ust=mftb();
 #endif
-    int rv=reset_cache;
     
     UpdateTMU(448);
     spgUpdatePvr(448);
     
+    int rv=0;
+    
 	if (!(update_cnt&0x7))
-		MediumUpdate();
+		if(MediumUpdate())
+            rv=-1;
 
 	update_cnt++;
 
-	rv=rv||UpdateINTC();
+	if(UpdateINTC())
+        rv=-1;
 	
 #ifdef PROF_UPDATESYSTEM	
 	ust=mftb()-ust;

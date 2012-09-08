@@ -410,7 +410,8 @@ T __fastcall ReadMem_sq(u32 addr)
 template <u32 sz,class T>
 void __fastcall WriteMem_sq(u32 addr,T data)
 {
-    roml_patch_for_sq_access(addr);
+    if(settings.dynarec.Enable)
+        roml_patch_for_sq_access(addr);
     
 	if (sz!=4)
 		log("Store Queue Error , olny 4 byte writes are possible[x%X=0x%X]\n",addr,data);
