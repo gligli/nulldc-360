@@ -13,7 +13,7 @@
 #include "dc/sh4/intc.h"
 #include "dc/sh4/sh4_registers.h"
 #include "dc/asic/asic.h"
-
+#include <byteswap.h>
 
 enum gd_states
 {
@@ -48,38 +48,30 @@ struct packet_cmd_t
 		u16 data_16[6];
 		u8 data_8[12];
 		//Spi command structs
-		union 
-		{
-			struct 
-			{
-				u8 cc;
+        struct 
+        {
+            u8 cc;
 
 #ifdef XENON
-				u8 head		: 1 ; //4 bytes, main cdrom header
-				u8 subh		: 1 ; //8 bytes, mode2 subheader
-				u8 data		: 1 ; //user data. 2048 for mode1, 2048 for m2f1, 2324 for m2f2
-				u8 other	: 1 ; //"other" data. I guess that means SYNC/ECC/EDC ?
-				//	u8 datasel	: 4 ;
-				u8 expdtype	: 3 ;
-				u8 prmtype	: 1 ;	
+            u8 head		: 1 ; //4 bytes, main cdrom header
+            u8 subh		: 1 ; //8 bytes, mode2 subheader
+            u8 data		: 1 ; //user data. 2048 for mode1, 2048 for m2f1, 2324 for m2f2
+            u8 other	: 1 ; //"other" data. I guess that means SYNC/ECC/EDC ?
+            //	u8 datasel	: 4 ;
+            u8 expdtype	: 3 ;
+            u8 prmtype	: 1 ;	
 #else
-				u8 prmtype	: 1 ;	
-				u8 expdtype	: 3 ;
-				//	u8 datasel	: 4 ;
-				u8 other	: 1 ; //"other" data. I guess that means SYNC/ECC/EDC ?
-				u8 data		: 1 ; //user data. 2048 for mode1, 2048 for m2f1, 2324 for m2f2
-				u8 subh		: 1 ; //8 bytes, mode2 subheader
-				u8 head		: 1 ; //4 bytes, main cdrom header
+            u8 prmtype	: 1 ;	
+            u8 expdtype	: 3 ;
+            //	u8 datasel	: 4 ;
+            u8 other	: 1 ; //"other" data. I guess that means SYNC/ECC/EDC ?
+            u8 data		: 1 ; //user data. 2048 for mode1, 2048 for m2f1, 2324 for m2f2
+            u8 subh		: 1 ; //8 bytes, mode2 subheader
+            u8 head		: 1 ; //4 bytes, main cdrom header
 #endif
-				
-				u8 block[10];
-			};
 
-			struct 
-			{
-				u8 b[12];
-			};
-		}GDReadBlock;
+            u8 block[10];
+        }GDReadBlock;
 	};
 };
 
@@ -610,17 +602,13 @@ void gd_process_spi_cmd()
 		// *FIXME* CHECK FOR DMA, Diff Settings !?!@$#!@%
 	case SPI_CD_READ:
 		{
-			#define readcmd packet_cmd.GDReadBlock
-
-			read_params.start_sector = GetFAD(&readcmd.b[2],readcmd.prmtype);
-			read_params.remaining_sectors = (u32)(readcmd.b[8]<<16) | (readcmd.b[9]<<8) | (readcmd.b[10]);
+			read_params.start_sector = GetFAD(&packet_cmd.data_8[2],packet_cmd.GDReadBlock.prmtype);
+			read_params.remaining_sectors = (u32)(packet_cmd.data_8[8]<<16) | (packet_cmd.data_8[9]<<8) | (packet_cmd.data_8[10]);
 			read_params.sector_type = gdrom_get_sector_type(packet_cmd);
 
 			printf_spicmd("SPI_CD_READ sec=%d sz=%d/%d dma=%d\n",read_params.start_sector,read_params.remaining_sectors,read_params.sector_type,Features.CDRead.DMA);
 
 			gd_set_state( (Features.CDRead.DMA==1) ? gds_readsector_dma : gds_readsector_pio);
-
-			#undef readcmd
 		}
 		break;
 

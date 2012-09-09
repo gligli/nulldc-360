@@ -8,6 +8,7 @@
 #include <memory>
 
 #include <time/time.h>
+#include <byteswap.h>
 
 u32 NullDriveDiscType;
 Disc* disc;
@@ -221,21 +222,21 @@ void TermDrive()
 
 u32 CreateTrackInfo(u32 ctrl,u32 addr,u32 fad)
 {
-	u8 p[4];
-	p[3]=(ctrl<<4)|(addr<<0);
-	p[2]=fad>>16;
-	p[1]=fad>>8;
-	p[0]=fad>>0;
+    u8 p[4];
+	p[1]=(ctrl<<4)|(addr<<0);
+	p[0]=fad>>16;
+	p[3]=fad>>8;
+	p[2]=fad>>0;
 
 	return *(u32*)p;
 }
 u32 CreateTrackInfo_se(u32 ctrl,u32 addr,u32 tracknum)
 {
 	u8 p[4];
-	p[3]=(ctrl<<4)|(addr<<0);
-	p[2]=tracknum;
-	p[1]=0;
-	p[0]=0;
+	p[1]=(ctrl<<4)|(addr<<0);
+	p[0]=tracknum;
+	p[3]=0;
+	p[2]=0;
 	return *(u32*)p;
 }
 

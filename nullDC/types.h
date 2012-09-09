@@ -191,18 +191,3 @@ void LoadSettings();
 void SaveSettings();
 u32 GetRTC_now();
 extern u32 patchRB;
-
-
-#include <byteswap.h>
-
-#define bswap_n(data,size)
-/*
-#define bswap_n(data,size){				\
-	if (size==8)						\
-		data=bswap_64(data);			\
-	else if (size==4)					\
-		data=bswap_32(data);			\
-	else if (size==2)					\
-		data=bswap_16(data);			\
-}
-*/
