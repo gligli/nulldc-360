@@ -184,9 +184,9 @@ GuiImageData::GuiImageData(const u8 * i, int maxw, int maxh) {
 	if (i) {
 		//data = DecodePNG(i, &width, &height, maxw, maxh);
 		data = loadPNGFromMemory((unsigned char*) i);
-		data->use_filtering = 0; // obligatoire sinon ca "bave"
-		data->u_addressing = XE_TEXADDR_BORDER;
-		data->v_addressing = XE_TEXADDR_BORDER;
+		data->use_filtering = 1;
+		data->u_addressing = XE_TEXADDR_BORDER_HALF;
+		data->v_addressing = XE_TEXADDR_BORDER_HALF;
 		width = data->width;
 		height = data->height;
 	}

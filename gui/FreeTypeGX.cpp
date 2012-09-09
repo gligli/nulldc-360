@@ -345,9 +345,9 @@ void FreeTypeGX::loadGlyphData(FT_Bitmap *bmp, ftgxCharData *charData) {
         }
 
         charData->glyphDataTexture = Xe_CreateTexture(g_pVideoDevice, (w + 31) &~31, (h + 31) &~31, 0, XE_FMT_8, 0);
-        charData->glyphDataTexture->use_filtering = 0;
-        charData->glyphDataTexture->u_addressing = XE_TEXADDR_CLAMP;
-        charData->glyphDataTexture->v_addressing = XE_TEXADDR_CLAMP;
+        charData->glyphDataTexture->use_filtering = 1;
+        charData->glyphDataTexture->u_addressing = XE_TEXADDR_BORDER_HALF;
+        charData->glyphDataTexture->v_addressing = XE_TEXADDR_BORDER_HALF;
 
         memset(glyphData, 0x00, length);
 
@@ -404,9 +404,6 @@ void FreeTypeGX::loadGlyphData(FT_Bitmap *bmp, ftgxCharData *charData) {
                 }
         }
 
-        // remove filtering
-        charData->glyphDataTexture->use_filtering = 0;
-        
         Xe_Surface_Unlock(g_pVideoDevice, charData->glyphDataTexture);
 }
 
