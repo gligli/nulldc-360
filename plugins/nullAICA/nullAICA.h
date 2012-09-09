@@ -40,8 +40,6 @@ static inline bool QueryPerformanceFrequency(u64 * v){
 #define max(a,b) (((a)>(b))?(a):(b))
 #define min(a,b) (((a)<(b))?(a):(b))
 
-int msgboxf(wchar* text,unsigned int type,...);
-
 #define DCclock (200*1000*1000)
 
 //called when plugin is used by emu (you should do first time init here)

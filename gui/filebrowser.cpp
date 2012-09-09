@@ -34,8 +34,8 @@
 BROWSERINFO browser;
 BROWSERENTRY * browserList = NULL; // list of files/folders in browser
 
-static char szpath[MAXPATHLEN];
-static bool inSz = false;
+//static char szpath[MAXPATHLEN];
+//static bool inSz = false;
 
 unsigned long SNESROMSize = 0;
 bool loadingFile = false;
@@ -326,7 +326,7 @@ int FileSortCallback(const void *f1, const void *f2)
  * If the file is a zip, we will check the file extension / file size of the
  * first file inside
  ***************************************************************************/
-static bool IsValidROM()
+bool IsValidROM()
 {
 	// gdi or mds are small
 	if(browserList[browser.selIndex].length > 1024)
@@ -342,7 +342,7 @@ static bool IsValidROM()
 
 		if (p != NULL)
 		{
-			char * zippedFilename = NULL;	
+			//char * zippedFilename = NULL;	
 			if(p != NULL)
 			{
 				if (stricmp(p, ".gdi") == 0 ||
@@ -397,7 +397,6 @@ int BrowserLoadFile()
 	snprintf(path, MAXPATHLEN, "%s%s", browser.dir, browserList[browser.selIndex].filename);
 	EmuPrepareLaunch(path);	
 	loaded = 1;
-done:
 	CancelAction();
 	return loaded;
 }

@@ -41,8 +41,8 @@ enum nullDCSettings
 struct PluginInfoList
 {
 	PluginInfoList* next;
-	wchar Name[128];
-	wchar dll[512];
+	char Name[128];
+	char dll[512];
 	u32 Flags;
 };
 struct nullDCPerfomanceInfo
@@ -107,7 +107,7 @@ typedef s32 EXPORT_CALL dbgWriteMemFP(u32 addr,u32 sz,void* dst);
 
 typedef s32 EXPORT_CALL dbgReadMemFP(u32 addr,u32 sz,void* dst);
 typedef s32 EXPORT_CALL dbgWriteMemFP(u32 addr,u32 sz,void* dst);
-typedef int EXPORT_CALL guiMsgBoxFP(wchar* text,int type);
+typedef int EXPORT_CALL guiMsgBoxFP(char* text,int type);
 
 typedef bool EXPORT_CALL EmuStartedFP();	//returns if emulation is started.
 
@@ -125,19 +125,19 @@ typedef void EXPORT_CALL EmuSetPatchFP(u32 Value,u32 Mask);	//Enable/Disable a p
 
 
 typedef bool EXPORT_CALL EmuBootHLEFP();	//Copies the bin file from the disc , descrambles it if needed and sets up needed regs for boot.False if it failed.
-typedef bool EXPORT_CALL EmuLoadBinaryFP(wchar* file,u32 address);	//Loads a binary on the address.If the file is elf the address is ingored and the elf's
+typedef bool EXPORT_CALL EmuLoadBinaryFP(char* file,u32 address);	//Loads a binary on the address.If the file is elf the address is ingored and the elf's
 														//offsets are used
 typedef bool EXPORT_CALL EmuSelectPluginsFP();	//Request the emu to show the select plugins interface
 typedef void EXPORT_CALL EmuStartProfilerFP();	//Start the TBP
 typedef void EXPORT_CALL EmuStopProfilerFP();	//Stop the TBP
 
-typedef void EXPORT_CALL DissasembleOpcodeFP(u16 opcode,u32 pc,wchar* Dissasm);
+typedef void EXPORT_CALL DissasembleOpcodeFP(u16 opcode,u32 pc,char* Dissasm);
 typedef u32 EXPORT_CALL Sh4GetRegisterFP(u32 reg);
 typedef void EXPORT_CALL Sh4SetRegisterFP(u32 reg,u32 value);
-typedef int EXPORT_CALL GetSymbNameFP(u32 address,wchar *szDesc,bool bUseUnkAddress);
+typedef int EXPORT_CALL GetSymbNameFP(u32 address,char *szDesc,bool bUseUnkAddress);
 typedef bool EXPORT_CALL SelectPluginsGuiFP();
 typedef s32 EXPORT_CALL EditEmuSettingFP(u32 sid,void* value);
-typedef wchar* EXPORT_CALL GetAboutTextFP();
+typedef char* EXPORT_CALL GetAboutTextFP();
 typedef void EXPORT_CALL GetEmuPerformanceInfoFP(nullDCPerfomanceInfo* dst);
 
 struct gui_emu_info
@@ -213,7 +213,7 @@ typedef void EXPORT_CALL DeleteAllMenuItemChildsFP(u32 id);
 struct gui_plugin_info
 {
 	u32 InterfaceVersion;
-	wchar Name[128];
+	char Name[128];
 
 	GuiLoadFP* Load;
 	GuiUnloadFP* Unload;

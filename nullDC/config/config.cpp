@@ -8,10 +8,10 @@
 #include "config.h"
 
 
-wchar appPath[512];
-wchar pluginPath[512];
-wchar dataPath[512];
-wchar cfgPath[512];
+char appPath[512];
+char pluginPath[512];
+char dataPath[512];
+char cfgPath[512];
 
 //A config remains virtual only as long as a write at it
 //doesnt override the virtual value.While a config is virtual, a copy of its 'real' value is held and preserved
@@ -237,7 +237,7 @@ void savecfgf()
 		fclose(cfgfile);
 	}
 }
-void EXPORT_CALL cfgSaveStr(const wchar * Section, const wchar * Key, const wchar * String)
+void EXPORT_CALL cfgSaveStr(const char * Section, const char * Key, const char * String)
 {
 	cfgdb.GetEntry(Section)->SetEntry(Key,String,CEM_SAVE);
 	savecfgf();
@@ -290,10 +290,10 @@ struct vitem
 	vitem(string a,string b,string c){s=a;n=b;v=c;}
 };
 vector<vitem> vlist;
-wchar* trim_ws(wchar* str);
+char* trim_ws(char* str);
 bool cfgOpen()
 {
-	wchar * tmpPath = GetEmuPath("");
+	char * tmpPath = GetEmuPath("");
 	strcpy(appPath, tmpPath);
 	free(tmpPath);
 
@@ -328,8 +328,8 @@ bool cfgOpen()
 		}
 	}
 
-	wchar line[512];
-	wchar cur_sect[512]={0};
+	char line[512];
+	char cur_sect[512]={0};
 	int cline=0;
 	while(cfgfile && !feof(cfgfile))
 	{
@@ -340,7 +340,7 @@ bool cfgOpen()
 		if (line[strlen(line)-1]=='\r' || line[strlen(line)-1]=='\n')
 			line[strlen(line)-1]=0;
 
-		wchar* tl=trim_ws(line);
+		char* tl=trim_ws(line);
 		if (tl[0]=='[' && tl[strlen(tl)-1]==']')
 		{
 			tl[strlen(tl)-1]=0;
@@ -351,7 +351,7 @@ bool cfgOpen()
 		{
 			if (cur_sect[0]==0)
 				continue;//no open section
-			wchar* str1=strstr(tl,"=");
+			char* str1=strstr(tl,"=");
 			if (!str1)
 			{
 				printf("Malformed entry on cfg,  ignoring @ %d(%s)\n",cline,tl);
@@ -359,8 +359,8 @@ bool cfgOpen()
 			}
 			*str1=0;
 			str1++;
-			wchar* v=trim_ws(str1);
-			wchar* k=trim_ws(tl);
+			char* v=trim_ws(str1);
+			char* k=trim_ws(tl);
 			if (v && k)
 			{
 				ConfigSection*cs=cfgdb.GetEntry(cur_sect);
@@ -393,7 +393,7 @@ bool cfgOpen()
 //0 : not found
 //1 : found section , key was 0
 //2 : found section & key
-s32 EXPORT_CALL cfgExists(const wchar * Section, const wchar * Key)
+s32 EXPORT_CALL cfgExists(const char * Section, const char * Key)
 {
 	if (Section==0)
 		return -1;
@@ -411,7 +411,7 @@ s32 EXPORT_CALL cfgExists(const wchar * Section, const wchar * Key)
 	else
 		return 0;
 }
-void EXPORT_CALL cfgLoadStr(const wchar * Section, const wchar * Key, wchar * Return,const wchar* Default)
+void EXPORT_CALL cfgLoadStr(const char * Section, const char * Key, char * Return,const char* Default)
 {
 	verify(Section!=0 && strlen(Section)!=0);
 	verify(Key!=0 && strlen(Key)!=0);
@@ -432,22 +432,22 @@ void EXPORT_CALL cfgLoadStr(const wchar * Section, const wchar * Key, wchar * Re
 }
 
 //These are helpers , mainly :)
-s32 EXPORT_CALL cfgLoadInt(const wchar * Section, const wchar * Key,s32 Default)
+s32 EXPORT_CALL cfgLoadInt(const char * Section, const char * Key,s32 Default)
 {
-	wchar temp_d[30];
-	wchar temp_o[30];
+	char temp_d[30];
+	char temp_o[30];
 	sprintf(temp_d,"%d",Default);
 	cfgLoadStr(Section,Key,temp_o,temp_d);
 	return atoi(temp_o);
 }
 
-void EXPORT_CALL cfgSaveInt(const wchar * Section, const wchar * Key, s32 Int)
+void EXPORT_CALL cfgSaveInt(const char * Section, const char * Key, s32 Int)
 {
-	wchar tmp[32];
+	char tmp[32];
 	sprintf(tmp,"%d", Int);
 	cfgSaveStr(Section,Key,tmp);
 }
-void cfgSetVitual(const wchar * Section, const wchar * Key, const wchar * String)
+void cfgSetVitual(const char * Section, const char * Key, const char * String)
 {
 	vlist.push_back(vitem(Section,Key,String));
 	//cfgdb.GetEntry(Section,CEM_VIRTUAL)->SetEntry(Key,String,CEM_VIRTUAL);

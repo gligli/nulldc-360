@@ -11,7 +11,7 @@
 
 u32 NullDriveDiscType;
 Disc* disc;
-Disc*(*drivers[])(wchar* path)=
+Disc*(*drivers[])(char* path)=
 {
 	gdi_parse,
 	cdi_parse,
@@ -23,11 +23,11 @@ Disc*(*drivers[])(wchar* path)=
 DriveNotifyEventFP* DriveNotifyEvent;
 u8 q_subchannel[96];
 
-/*int msgboxf(wchar* text,unsigned int type,...)
+/*int msgboxf(char* text,unsigned int type,...)
 {
 	va_list args;
 
-	wchar temp[2048];
+	char temp[2048];
 	va_start(args, type);
 	vswprintf(temp,sizeof(temp), text, args);
 	va_end(args);
@@ -145,7 +145,7 @@ bool ConvertSector(u8* in_buff , u8* out_buff , int from , int to,int sector)
 	return true;
 }
 
-bool InitDrive_(wchar* fn)
+bool InitDrive_(char* fn)
 {
 	TermDrive();
 
@@ -180,7 +180,7 @@ bool InitDrive(u32 fileflags)
 			return true;
 	}
 
-	wchar fn[512];
+	char fn[512];
 	strcpy(fn,irsettings.LastImage);
 #ifdef BUILD_DREAMCAST
 	int gfrv=GetFile(fn,0,fileflags);

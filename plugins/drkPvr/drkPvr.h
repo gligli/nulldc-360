@@ -26,7 +26,7 @@ static inline u32 timeGetTime(){
 	return mftb()/(PPC_TIMEBASE_FREQ/1000);
 }
 
-int msgboxf(wchar* text,unsigned int type,...);
+int msgboxf(char* text,unsigned int type,...);
 
 #define BUILD 0
 #define MINOR 1
@@ -49,7 +49,7 @@ extern u32 render_end_pending_cycles;
 
 extern pvr_init_params params;
 extern emu_info emu;
-extern wchar emu_name[512];
+extern char emu_name[512];
 
 void LoadSettingsPvr();
 void SaveSettingsPvr();

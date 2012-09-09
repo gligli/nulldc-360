@@ -341,7 +341,7 @@ void StopGX() {
 void Menu_Render(bool vblank) {
 
 	// disable scissor
-	// Xe_SetScissor(g_pVideoDevice,0,0,0,0,0);
+	Xe_SetScissor(g_pVideoDevice,0,0,0,0,0);
 	
     FrameTimer++;
 

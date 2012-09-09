@@ -238,9 +238,9 @@ static chd_error hunk_read_into_memory(chd_file *chd, UINT32 hunknum, UINT8 *des
 static chd_error map_read(chd_file *chd);
 
 /* internal CRC map access */
-static void crcmap_init(chd_file *chd, int prepopulate);
-static void crcmap_add_entry(chd_file *chd, UINT32 hunknum);
-static UINT32 crcmap_find_hunk(chd_file *chd, UINT32 hunknum, UINT32 crc, const UINT8 *rawdata);
+void crcmap_init(chd_file *chd, int prepopulate);
+void crcmap_add_entry(chd_file *chd, UINT32 hunknum);
+UINT32 crcmap_find_hunk(chd_file *chd, UINT32 hunknum, UINT32 crc, const UINT8 *rawdata);
 
 /* metadata management */
 static chd_error metadata_find_entry(chd_file *chd, UINT32 metatag, UINT32 metaindex, metadata_entry *metaentry);
@@ -467,7 +467,7 @@ chd_error chd_open_file(core_file *file, int mode, chd_file *parent, chd_file **
 {
 	chd_file *newchd = NULL;
 	chd_error err;
-	int intfnum;
+	u32 intfnum;
 
 	/* verify parameters */
 	if (file == NULL)
@@ -573,11 +573,11 @@ cleanup:
     filename
 -------------------------------------------------*/
 
-chd_error chd_open(const wchar *filename, int mode, chd_file *parent, chd_file **chd)
+chd_error chd_open(const char *filename, int mode, chd_file *parent, chd_file **chd)
 {
 	chd_error err;
 	core_file *file = NULL;
-	UINT32 openflags;
+//	UINT32 openflags;
 
 	/* choose the proper mode */
 	switch(mode)
@@ -964,7 +964,7 @@ const char *chd_get_codec_name(UINT32 codec)
 
 static chd_error header_validate(const chd_header *header)
 {
-	int intfnum;
+	u32 intfnum;
 
 	/* require a valid version */
 	if (header->version == 0 || header->version > CHD_HEADER_VERSION)
@@ -1231,7 +1231,7 @@ static chd_error map_read(chd_file *chd)
 	UINT8 cookie[MAP_ENTRY_SIZE];
 	UINT32 count;
 	chd_error err;
-	int i;
+	u32 i;
 
 	/* first allocate memory */
 	chd->map = (map_entry *)malloc(sizeof(chd->map[0]) * chd->header.totalhunks);
@@ -1310,9 +1310,9 @@ cleanup:
     crcmap_init - initialize the CRC map
 -------------------------------------------------*/
 
-static void crcmap_init(chd_file *chd, int prepopulate)
+void crcmap_init(chd_file *chd, int prepopulate)
 {
-	int i;
+	u32 i;
 
 	/* if we already have one, bail */
 	if (chd->crcmap != NULL)
@@ -1358,7 +1358,7 @@ static void crcmap_init(chd_file *chd, int prepopulate)
     crcmap_add_entry - log a CRC entry
 -------------------------------------------------*/
 
-static void crcmap_add_entry(chd_file *chd, UINT32 hunknum)
+void crcmap_add_entry(chd_file *chd, UINT32 hunknum)
 {
 	UINT32 hash = chd->map[hunknum].crc % CRCMAP_HASH_SIZE;
 	crcmap_entry *crcmap;
@@ -1399,10 +1399,10 @@ static int crcmap_verify_hunk_match(chd_file *chd, UINT32 hunknum, const UINT8 *
     CRC in the map
 -------------------------------------------------*/
 
-static UINT32 crcmap_find_hunk(chd_file *chd, UINT32 hunknum, UINT32 crc, const UINT8 *rawdata)
+UINT32 crcmap_find_hunk(chd_file *chd, UINT32 hunknum, UINT32 crc, const UINT8 *rawdata)
 {
 	UINT32 lasthunk = (hunknum < chd->header.totalhunks) ? hunknum : chd->header.totalhunks;
-	int curhunk;
+	u32 curhunk;
 
 	/* if we have a CRC map, use that */
 	if (chd->crctable)
@@ -1429,8 +1429,6 @@ static UINT32 crcmap_find_hunk(chd_file *chd, UINT32 hunknum, UINT32 crc, const 
 
 	return NO_MATCH;
 }
-
-
 
 /***************************************************************************
     INTERNAL METADATA ACCESS

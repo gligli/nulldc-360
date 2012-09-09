@@ -12,7 +12,7 @@ void InfoPrompt(const char *msg);
 
 #include <cstring>
 
-wchar emu_name[128];
+char emu_name[128];
 gui_emu_info gui_emu;
 
 #define FAKE_MENU_ID 0
@@ -48,12 +48,12 @@ void EXPORT_CALL Mainloop()
 	TR
 }
 
-int EXPORT_CALL guiMsgBox(wchar* text,int type)
+int EXPORT_CALL guiMsgBox(char* text,int type)
 {
 	return 0;
 }
 
-u32 EXPORT_CALL AddMenuItem(u32 parent,s32 pos,const wchar* text,MenuItemSelectedFP* handler ,u32 checked)
+u32 EXPORT_CALL AddMenuItem(u32 parent,s32 pos,const char* text,MenuItemSelectedFP* handler ,u32 checked)
 {
 	return 1;
 }

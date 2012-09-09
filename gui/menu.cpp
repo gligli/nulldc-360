@@ -70,7 +70,6 @@ static char progressMsg[201];
 static int progressDone = 0;
 static int progressTotal = 0;
 
-static unsigned char xenon_thread_stack[6 * 0x10000];
 static unsigned int __attribute__((aligned(128))) _gui_lock = 0;
 static unsigned int __attribute__((aligned(128))) _progress_lock = 0;
 
@@ -1316,7 +1315,7 @@ static int MenuGame() {
 #endif
 			
 				EmuRunning = 0;
-				menu = MENU_GAMESELECTION;
+				menu = MENU_EXIT;
 			}
 		} else if (closeBtn.GetState() == STATE_CLICKED) {
 			menu = MENU_EXIT;

@@ -104,7 +104,7 @@ u32 vramlock_ConvOffset32toOffset64(u32 offset32);
 	u32 frameRate = 0;
 	u32 timer, timeStart = timeGetTime();
 
-	wchar fps_text[512];
+	char fps_text[512];
 	float res_scale[4]={0,0,320,-240};
 	float fb_scale[2]={1,1};
 
@@ -2639,15 +2639,15 @@ nl:
 		lock_list.clear();
     }
 
-    void HandleCache()
+    void HandleCache(bool kill_all)
     {
         TexCacheList<TextureCacheData>::TexCacheEntry* ptext= TexCache.plast;
-		while(ptext && ((FrameNumber-ptext->data.LastUsed)>60))
+		while(ptext && (kill_all || ((FrameNumber-ptext->data.LastUsed)>60)))
 		{
 			TexCacheList<TextureCacheData>::TexCacheEntry* pprev;
 			pprev=ptext->prev;
 
-			if (drkpvr_settings.Emulation.TexCacheMode==0 || ptext->data.dirty==true)
+			if (kill_all || drkpvr_settings.Emulation.TexCacheMode==0 || ptext->data.dirty==true)
 			{
 				ptext->data.Destroy();
 				Xe_DestroyTexture(xe,ptext->data.Texture);
@@ -2666,7 +2666,7 @@ nl:
         params.RaiseInterrupt(holly_RENDER_DONE_isp);
         params.RaiseInterrupt(holly_RENDER_DONE_vd);
 
-		HandleCache();
+		HandleCache(false);
         
         if (!RenderWasStarted)
 		{
@@ -3540,6 +3540,7 @@ nl:
 	//--------------------------------------------------------------------------------------
 	void InitDevice()
 	{
+        static bool first_init=true;
 #ifndef USE_GUI
 		xe = &_xe;
 			/* initialize the GPU */
@@ -3552,17 +3553,22 @@ nl:
 		Xe_SetRenderTarget(xe, fb);
 		Xe_SetClearColor(xe,0);
 
-		sh_ps = Xe_LoadShaderFromMemory(xe, inc_ps);
-		Xe_InstantiateShader(xe, sh_ps, 0);
+        if(first_init)
+        {
+            sh_ps = Xe_LoadShaderFromMemory(xe, inc_ps);
+            Xe_InstantiateShader(xe, sh_ps, 0);
 
-		sh_vs = Xe_LoadShaderFromMemory(xe, inc_vs);
-		Xe_InstantiateShader(xe, sh_vs, 0);
-		Xe_ShaderApplyVFetchPatches(xe, sh_vs, 0, &VertexBufferFormat);
+            sh_vs = Xe_LoadShaderFromMemory(xe, inc_vs);
+            Xe_InstantiateShader(xe, sh_vs, 0);
+            Xe_ShaderApplyVFetchPatches(xe, sh_vs, 0, &VertexBufferFormat);
 
-		vb = Xe_CreateVertexBuffer(xe,MAX_VERTEX_COUNT*sizeof(Vertex));
+            // we could recerate those each time, but that would only fragment mem more
+            vb = Xe_CreateVertexBuffer(xe,MAX_VERTEX_COUNT*sizeof(Vertex));
+            fog_texture=Xe_CreateTexture(xe,128,1,0,XE_FMT_8888|XE_FMT_ARGB,0);
+            pal_texture=Xe_CreateTexture(xe,16,64,0,XE_FMT_8888|XE_FMT_ARGB,0);
 
-		fog_texture=Xe_CreateTexture(xe,128,1,0,XE_FMT_8888|XE_FMT_ARGB,0);
-		pal_texture=Xe_CreateTexture(xe,16,64,0,XE_FMT_8888|XE_FMT_ARGB,0);
+            first_init=false;
+        }
 		
 #ifndef USE_GUI
 		edram_init(xe);
@@ -3581,7 +3587,7 @@ nl:
 	//--------------------------------------------------------------------------------------
 	void CleanupDevice()
 	{
-	}
+    }
 	
 	bool InitRenderer()
 	{
@@ -3614,7 +3620,9 @@ nl:
 		CleanupDevice();
 
 		TileAccel.Term();
-		//free all textures
+		
+        //free all textures
+        HandleCache(true);
 		verify(TexCache.pfirst==0);
 	}
 

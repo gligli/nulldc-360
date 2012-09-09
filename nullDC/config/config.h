@@ -9,12 +9,12 @@
 **	} ** Strings passed to LoadStr should be MAX_PATH in size ! **
 */
 
-extern wchar cfgPath[512];
+extern char cfgPath[512];
 bool cfgOpen();
-s32  EXPORT_CALL cfgLoadInt(const wchar * lpSection, const wchar * lpKey,s32 Default);
-void EXPORT_CALL cfgSaveInt(const wchar * lpSection, const wchar * lpKey, s32 Int);
-void EXPORT_CALL cfgLoadStr(const wchar * lpSection, const wchar * lpKey, wchar * lpReturn,const wchar* lpDefault);
-void EXPORT_CALL cfgSaveStr(const wchar * lpSection, const wchar * lpKey, const wchar * lpString);
-s32 EXPORT_CALL cfgExists(const wchar * Section, const wchar * Key);
-void cfgSetVitual(const wchar * lpSection, const wchar * lpKey, const wchar * lpString);
+s32  EXPORT_CALL cfgLoadInt(const char * lpSection, const char * lpKey,s32 Default);
+void EXPORT_CALL cfgSaveInt(const char * lpSection, const char * lpKey, s32 Int);
+void EXPORT_CALL cfgLoadStr(const char * lpSection, const char * lpKey, char * lpReturn,const char* lpDefault);
+void EXPORT_CALL cfgSaveStr(const char * lpSection, const char * lpKey, const char * lpString);
+s32 EXPORT_CALL cfgExists(const char * Section, const char * Key);
+void cfgSetVitual(const char * lpSection, const char * lpKey, const char * lpString);
 

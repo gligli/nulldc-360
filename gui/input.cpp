@@ -30,7 +30,7 @@ extern "C" void enableCapture();
 
 int rumbleRequest[4] = {0, 0, 0, 0};
 GuiTrigger userInput[4];
-static int rumbleCount[4] = {0, 0, 0, 0};
+//static int rumbleCount[4] = {0, 0, 0, 0};
 
 
 static WPADData wpad_xenon[MAX_INPUTS];
@@ -618,7 +618,7 @@ bool MenuRequested()
  ***************************************************************************/
 void ReportButtons()
 {
-	int i, j;
+//	int i, j;
 
 	UpdatePads();
 

@@ -431,7 +431,7 @@ void modem_reset(u32 v)
 
 void ModemNormalWrite(u32 reg,u32 data)
 {
-	u32 old=modem_regs.ptr[reg];
+//	u32 old=modem_regs.ptr[reg];
 	modem_regs.ptr[reg]=data;
 	switch(reg)
 	{

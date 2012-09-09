@@ -42,5 +42,5 @@ typedef struct _session
 extern session sessions[256];
 extern int nsessions;
 
-bool parse_mds(wchar *mds_filename,bool verbose);
-bool parse_nrg(wchar *nrg_filename,bool verbose);
+bool parse_mds(char *mds_filename,bool verbose);
+bool parse_nrg(char *nrg_filename,bool verbose);

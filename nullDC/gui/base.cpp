@@ -88,7 +88,7 @@ bool EXPORT_CALL b_EmuBootHLE()	//Copies the bin file from the disc , descramble
 {
 	return false;
 }
-bool EXPORT_CALL b_EmuLoadBinary(wchar* file,u32 address)	//Loads a binary on the address.If the file is elf the address is ingored and the elf's
+bool EXPORT_CALL b_EmuLoadBinary(char* file,u32 address)	//Loads a binary on the address.If the file is elf the address is ingored and the elf's
 {
 	return LoadBinfileToSh4Mem(address,file)!=0;
 }													//offsets are used
@@ -105,7 +105,7 @@ void EXPORT_CALL b_EmuStopProfiler()	//Stop the TBP
 //gli	stop_Profiler();
 }
 
-void EXPORT_CALL b_DissasembleOpcode(u16 opcode,u32 pc,wchar* Dissasm)
+void EXPORT_CALL b_DissasembleOpcode(u16 opcode,u32 pc,char* Dissasm)
 {
 	char temp[2048];
 	DissasembleOpcode(opcode,pc,temp);
@@ -119,7 +119,7 @@ void EXPORT_CALL b_Sh4SetRegister(u32 reg,u32 value)
 {
 	sh4_cpu->SetRegister((Sh4RegType)reg,value);
 }
-int EXPORT_CALL b_GetSymbName(u32 address,wchar *szDesc,bool bUseUnkAddress)
+int EXPORT_CALL b_GetSymbName(u32 address,char *szDesc,bool bUseUnkAddress)
 {
 	char temp[2048];
 	int rv=GetSymbName(address,temp,bUseUnkAddress);
@@ -130,13 +130,13 @@ int EXPORT_CALL b_GetSymbName(u32 address,wchar *szDesc,bool bUseUnkAddress)
 #define maple_sett(x,y) "Current_maple" #x "_" #y
 #define maple_group(x) maple_sett(x,0), maple_sett(x,1), maple_sett(x,2), maple_sett(x,3), maple_sett(x,4), maple_sett(x,5)
 
-wchar* ndc_snames[]=
+char* ndc_snames[]=
 {
-	_T("Current_PVR"),
-	_T("Current_GDR"),
-	_T("Current_AICA"),
-	_T("Current_ARM"),
-	_T("Current_ExtDevice"),
+	("Current_PVR"),
+	("Current_GDR"),
+	("Current_AICA"),
+	("Current_ARM"),
+	("Current_ExtDevice"),
 
 	maple_group(0),
 	maple_group(1),
@@ -184,11 +184,11 @@ void SwitchCpu()
 	if (bStart)
 		Start_DC();
 }
-extern const wchar* pluginDefaults[];
+extern const char* pluginDefaults[];
 
 s32 EXPORT_CALL GetEmuSetting(u32 sid,void* value)
 {
-	wchar* sptr=(wchar*)value;
+	char* sptr=(char*)value;
 	u32* tptr=(u32*)value;
 	switch(sid)
 	{
@@ -209,7 +209,7 @@ s32 EXPORT_CALL GetEmuSetting(u32 sid,void* value)
 	default:
 		if (sid<NDCS_COUNT)
 		{
-			cfgLoadStr(_T("nullDC_plugins"),ndc_snames[sid-NDCS_PLUGIN_PVR],sptr,pluginDefaults[sid-NDCS_PLUGIN_PVR]);
+			cfgLoadStr(("nullDC_plugins"),ndc_snames[sid-NDCS_PLUGIN_PVR],sptr,pluginDefaults[sid-NDCS_PLUGIN_PVR]);
 			return rv_ok;
 		}
 		else
@@ -223,7 +223,7 @@ s32 EXPORT_CALL GetEmuSetting(u32 sid,void* value)
 #define _esai_(n,v,ma) 		case NDCS_##n:settings.v=min(*tptr,ma);SaveSettings();
 s32 EXPORT_CALL SetEmuSetting(u32 sid,void* value)
 {
-	wchar* sptr=(wchar*)value;
+	char* sptr=(char*)value;
 	u32* tptr=(u32*)value;
 	
 	switch(sid)
@@ -265,7 +265,7 @@ s32 EXPORT_CALL SetEmuSetting(u32 sid,void* value)
 	default:
 		if (sid<NDCS_COUNT)
 		{
-			cfgSaveStr(_T("nullDC_plugins"),ndc_snames[sid-NDCS_PLUGIN_PVR],sptr);
+			cfgSaveStr(("nullDC_plugins"),ndc_snames[sid-NDCS_PLUGIN_PVR],sptr);
 			return rv_ok;
 		}
 		else
@@ -275,7 +275,7 @@ s32 EXPORT_CALL SetEmuSetting(u32 sid,void* value)
 	return rv_ok;
 }
 #define nlw "\r\n"
-wchar about_text[] =
+char about_text[] =
 				"Credits :" nlw
 				" drk||Raziel \t: Main coder" nlw
 				" ZeZu \t\t: Main coder" nlw
@@ -297,7 +297,7 @@ wchar about_text[] =
 				" dont worry, you'l never get as good as they are." nlw
 				nlw
 				;
-wchar* EXPORT_CALL GetAboutText()
+char* EXPORT_CALL GetAboutText()
 {
 	return about_text;
 }
@@ -429,11 +429,11 @@ void EXPORT_CALL b_GetPerformanceInfo(nullDCPerfomanceInfo* dst)
 }
 
 int nCmdShow;
-bool OpenAndLoadGUI(wchar* file)
+bool OpenAndLoadGUI(char* file)
 {
 	if (!gui.Load(file))
 	{
-		msgboxf(_T("Unable to open gui dll (%s)"),MBX_ICONERROR,file);
+		msgboxf(("Unable to open gui dll (%s)"),MBX_ICONERROR,file);
 		return false;
 	}
 
@@ -441,7 +441,7 @@ bool OpenAndLoadGUI(wchar* file)
 
 	if (!gi)
 	{
-		msgboxf(_T("Unable to resolve %s:ndcGetInterface"),MBX_ICONERROR,file);
+		msgboxf(("Unable to resolve %s:ndcGetInterface"),MBX_ICONERROR,file);
 		return false;
 	}
 	gi(&libgui);
@@ -494,7 +494,7 @@ bool OpenAndLoadGUI(wchar* file)
 	gpi.GetPerformanceInfo=b_GetPerformanceInfo;
 
 	gpi.BroardcastEvent=BroadcastEvent;
-	gpi.EmuThread=hEmuThread;
+	gpi.EmuThread=NULL;
 	gpi.nCmdShow = nCmdShow;
 
 	if (rv_ok != libgui.Load(&gpi))
@@ -506,13 +506,13 @@ bool OpenAndLoadGUI(wchar* file)
 }
 bool CreateGUI()
 {
-	wchar gui[128];
-	cfgLoadStr(_T("nullDC_plugins"),_T("GUI"),gui,_T("nullDC_GUI_Win32.dll"));
+	char gui[128];
+	cfgLoadStr(("nullDC_plugins"),("GUI"),gui,("nullDC_GUI_Win32.dll"));
 	if (!OpenAndLoadGUI(gui))
 	{
-		if (msgboxf(_T("Do you want to load default gui ?"),MBX_YESNO) == MBX_RV_YES)
+		if (msgboxf(("Do you want to load default gui ?"),MBX_YESNO) == MBX_RV_YES)
 		{
-			if (!OpenAndLoadGUI(_T("nullDC_GUI_Win32.dll")))
+			if (!OpenAndLoadGUI(("nullDC_GUI_Win32.dll")))
 				return false;
 			else
 				return true;

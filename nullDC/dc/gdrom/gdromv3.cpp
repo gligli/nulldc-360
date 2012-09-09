@@ -1167,7 +1167,7 @@ void UpdateGDRom()
 		}
 	}
 	else
-		msgboxf(_T"GDROM: SB_GDDIR %X (TO AICA WAVE MEM?)",MBX_ICONERROR, SB_GDDIR);
+		msgboxf("GDROM: SB_GDDIR %X (TO AICA WAVE MEM?)",MBX_ICONERROR, SB_GDDIR);
 
 	//SB_GDLEN = 0x00000000; //13/5/2k7 -> acording to docs these regs are not updated by hardware
 	//SB_GDSTAR = (src + len_backup);

@@ -1,4 +1,4 @@
 #pragma once
 #include "common.h"
 
-Disc* gdi_parse(wchar* file);
+Disc* gdi_parse(char* file);

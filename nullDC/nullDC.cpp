@@ -24,58 +24,26 @@
 #include "plugins/plugin_manager.h"
 #include "serial_ipc/serial_ipc_client.h"
 #include "cl/cl.h"
-//#include "emitter/emitter.h"
+#include "../plugins/ImgReader/ImgReader.h"
+
 
 #define max(a,b) (((a)>(b))?(a):(b))
 #define min(a,b) (((a)<(b))?(a):(b))
 
 __settings settings;
 
-/*BOOL CtrlHandler( DWORD fdwCtrlType ) 
-{ 
-  switch( fdwCtrlType ) 
-  { 
-	  case CTRL_SHUTDOWN_EVENT: 
-	  case CTRL_LOGOFF_EVENT: 
-	  // Pass other signals to the next handler. 
-    case CTRL_BREAK_EVENT: 
-	  // CTRL-CLOSE: confirm that the user wants to exit. 
-    case CTRL_CLOSE_EVENT: 
-    // Handle the CTRL-C signal. 
-    case CTRL_C_EVENT: 
-		SendMessageA((HWND)GetRenderTargetHandle(),WM_CLOSE,0,0); //FIXME
-      return( TRUE );
-    default: 
-      return FALSE; 
-  } 
-} */
-
-//Simple command line bootstrap
-int RunDC(int argc, wchar* argv[])
+int nulldc_run(char * filename)
 {
+	if(filename)
+    {
+        strcpy(irsettings.DefaultImage, filename);
+        printf("Filename : %s\n", filename);
+    }
+	
+    Start_DC();
 
-	if(settings.dynarec.Enable)
-	{
-		sh4_cpu=Get_Sh4Recompiler();
-		log("Using Recompiler\n");
-	}
-	else
-	{
-		sh4_cpu=Get_Sh4Interpreter();
-		log("Using Interpreter\n");
-	}
-#ifndef USE_GUI	// force start in gui mode
-	if (settings.emulator.AutoStart)
-#endif
-		Start_DC();
-
-	GuiLoop();
-
-	Term_DC();
-	Release_Sh4If(sh4_cpu);
 	return 0;
 }
-
 
 void EnumPlugins()
 {
@@ -131,6 +99,70 @@ void EnumPlugins()
 	delete extdev;
 }
 
+#ifdef USE_GUI
+
+int nulldc_init()
+{
+	static int already_inited = 0;
+	int argc = 1;
+	int rv = 0;
+	char* argv[] = {"uda:/xenon.elf"};
+
+	if (already_inited == 0) {
+		
+		_vmem_reserve();
+		
+		if (ParseCommandLine(argc, argv)) {
+			log("\n\n(Exiting due to command line, without starting nullDC)\n");
+			return -1;
+		}
+
+		if (!cfgOpen()) {
+			msgboxf(("Unable to open config file"), MBX_ICONERROR);
+			return -4;
+		}
+		LoadSettings();
+
+        if (!CreateGUI())
+        {
+            msgboxf(("Creating GUI failed\n"),MBX_ICONERROR);
+            return -1;
+        }
+		
+        char* temp_path = GetEmuPath(("data/"));
+
+		bool lrf = LoadRomFiles(temp_path);
+
+		free(temp_path);
+
+		if (!lrf) {
+			rv = -3;
+			TR
+			DestroyGUI();
+			SaveSettings();	
+		}
+
+		EnumPlugins();
+
+		while (!plugins_Load()) {
+			if (!plugins_Select()) {
+				TR
+				msgboxf("Unable to load plugins -- exiting\n", MBX_ICONERROR);
+				rv = -2;
+				DestroyGUI();
+				SaveSettings();	
+			}
+		}
+
+	}
+	already_inited = 1;
+	
+	return rv;
+}
+
+#else
+
+
 int main___(int argc,char* argv[])
 {
 	if(ParseCommandLine(argc,argv))
@@ -153,7 +185,7 @@ int main___(int argc,char* argv[])
 	}
 	int rv= 0;
 
-	wchar* temp_path=GetEmuPath(_T("data/"));
+	char* temp_path=GetEmuPath(_T("data/"));
 
 	bool lrf=LoadRomFiles(temp_path);
 
@@ -171,7 +203,7 @@ int main___(int argc,char* argv[])
 	{
 		if (!plugins_Select())
 		{
-			msgboxf(_T"Unable to load plugins -- exiting\n",MBX_ICONERROR);
+			msgboxf("Unable to load plugins -- exiting\n",MBX_ICONERROR);
 			rv = -2;
 			goto cleanup;
 		}
@@ -179,7 +211,7 @@ int main___(int argc,char* argv[])
 	
 	console_close();
 	
-	rv = RunDC(argc,argv);
+	rv = nulldc_run(NULL);
 	
 cleanup:
 	DestroyGUI();
@@ -188,78 +220,6 @@ cleanup:
 	return rv;
 }
 
-#ifdef USE_GUI
-#include "../plugins/ImgReader/ImgReader.h"
-
-int nulldc_init()
-{
-	static int already_initilised = 0;
-	int argc = 1;
-	int rv = 0;
-	char* argv[] = {"uda:/xenon.elf"};
-
-	if (already_initilised == 0) {
-		
-		_vmem_reserve();
-		
-		if (ParseCommandLine(argc, argv)) {
-			log("\n\n(Exiting due to command line, without starting nullDC)\n");
-			return -1;
-		}
-
-		if (!cfgOpen()) {
-			msgboxf(_T("Unable to open config file"), MBX_ICONERROR);
-			return -4;
-		}
-		LoadSettings();
-
-		if (!CreateGUI()) {
-			msgboxf(_T("Creating GUI failed\n"), MBX_ICONERROR);
-			return -1;
-		}		
-
-		wchar* temp_path = GetEmuPath(_T("data/"));
-
-		bool lrf = LoadRomFiles(temp_path);
-
-		free(temp_path);
-
-		if (!lrf) {
-			rv = -3;
-			TR
-			DestroyGUI();
-			SaveSettings();	
-		}
-
-		EnumPlugins();
-
-		while (!plugins_Load()) {
-			if (!plugins_Select()) {
-				TR
-				msgboxf(_T"Unable to load plugins -- exiting\n", MBX_ICONERROR);
-				rv = -2;
-				DestroyGUI();
-				SaveSettings();	
-			}
-		}
-
-	}
-	already_initilised = 1;
-	
-	return rv;
-}
-
-int nulldc_main(char * filename)
-{
-	int argc = 1;
-	char* argv[] = {"uda:/xenon.elf"};	
-	
-	strcpy(irsettings.DefaultImage, filename);
-	printf("Filename : %s\n", filename);
-	
-	return RunDC(argc,argv);
-}
-#else
 int main()
 {
 	int argc=1;
@@ -318,19 +278,19 @@ int __wrap_main(){
 
 void LoadSettings()
 {
-	settings.dynarec.Enable=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.Enabled",1)!=0;
+	settings.dynarec.Enable=0; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.Enabled",1)!=0;
 	settings.dynarec.CPpass=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.DoConstantPropagation",1)!=0;
 	settings.dynarec.Safe=0; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.SafeMode",1)!=0;
 	settings.dynarec.UnderclockFpu=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.UnderclockFpu",0)!=0;
 	
 	settings.dreamcast.cable=0; //gli cfgLoadInt(_T"nullDC",_T"Dreamcast.Cable",3);
-	settings.dreamcast.RTC=cfgLoadInt(_T"nullDC",_T"Dreamcast.RTC",GetRTC_now());
+	settings.dreamcast.RTC=cfgLoadInt("nullDC","Dreamcast.RTC",GetRTC_now());
 
 	settings.dreamcast.region=1; //gli USA cfgLoadInt(_T"nullDC",_T"Dreamcast.Region",3);
 	settings.dreamcast.broadcast=4; //gli cfgLoadInt(_T"nullDC",_T"Dreamcast.Broadcast",4);
 
 	settings.emulator.AutoStart=0; //gli cfgLoadInt(_T"nullDC",_T"Emulator.AutoStart",0)!=0;
-	settings.emulator.NoConsole=cfgLoadInt(_T"nullDC",_T"Emulator.NoConsole",0)!=0;
+	settings.emulator.NoConsole=cfgLoadInt("nullDC","Emulator.NoConsole",0)!=0;
 
 	//make sure values are valid
 	settings.dreamcast.cable=min(max(settings.dreamcast.cable,0),3);
@@ -339,16 +299,16 @@ void LoadSettings()
 }
 void SaveSettings()
 {
-	cfgSaveInt(_T"nullDC",_T"Dynarec.Enabled",settings.dynarec.Enable);
-	cfgSaveInt(_T"nullDC",_T"Dynarec.DoConstantPropagation",settings.dynarec.CPpass);
-	cfgSaveInt(_T"nullDC",_T"Dynarec.SafeMode",settings.dynarec.Safe);
-	cfgSaveInt(_T"nullDC",_T"Dynarec.UnderclockFpu",settings.dynarec.UnderclockFpu);
-	cfgSaveInt(_T"nullDC",_T"Dreamcast.Cable",settings.dreamcast.cable);
-	cfgSaveInt(_T"nullDC",_T"Dreamcast.RTC",settings.dreamcast.RTC);
-	cfgSaveInt(_T"nullDC",_T"Dreamcast.Region",settings.dreamcast.region);
-	cfgSaveInt(_T"nullDC",_T"Dreamcast.Broadcast",settings.dreamcast.broadcast);
-	cfgSaveInt(_T"nullDC",_T"Emulator.AutoStart",settings.emulator.AutoStart);
-	cfgSaveInt(_T"nullDC",_T"Emulator.NoConsole",settings.emulator.NoConsole);
+	cfgSaveInt("nullDC","Dynarec.Enabled",settings.dynarec.Enable);
+	cfgSaveInt("nullDC","Dynarec.DoConstantPropagation",settings.dynarec.CPpass);
+	cfgSaveInt("nullDC","Dynarec.SafeMode",settings.dynarec.Safe);
+	cfgSaveInt("nullDC","Dynarec.UnderclockFpu",settings.dynarec.UnderclockFpu);
+	cfgSaveInt("nullDC","Dreamcast.Cable",settings.dreamcast.cable);
+	cfgSaveInt("nullDC","Dreamcast.RTC",settings.dreamcast.RTC);
+	cfgSaveInt("nullDC","Dreamcast.Region",settings.dreamcast.region);
+	cfgSaveInt("nullDC","Dreamcast.Broadcast",settings.dreamcast.broadcast);
+	cfgSaveInt("nullDC","Emulator.AutoStart",settings.emulator.AutoStart);
+	cfgSaveInt("nullDC","Emulator.NoConsole",settings.emulator.NoConsole);
 }
 
 bool PendingSerialData()

@@ -6,12 +6,13 @@
 #include <debug.h>
 #include <ppc/atomic.h>
 
-#define PRE_GUARD 128
-#define POST_GUARD 128
+#define PRE_GUARD 512
+#define POST_GUARD 512
 
 #define MAGIC 0xdeadbeef
 
-#define FILL 0xcc
+#define FILL 0xaa
+#define FILL_FREE 0xcc
 
 static unsigned int lck=0;
 
@@ -90,8 +91,10 @@ void __wrap_free(void * p)
 
     if(magic!=MAGIC)
     {
-        printf("[mchk] bad magic !!!!\n");
-        asm volatile("sc");
+        printf("[mchk free] bad magic !!!!\n");
+        buffer_dump(&pp[-PRE_GUARD],PRE_GUARD);
+        unlock(&lck);
+        return;
     }
     
     size_t pg=*(size_t*)&pp[-8];
@@ -117,7 +120,7 @@ void __wrap_free(void * p)
             asm volatile("sc");
         }
 
-    memset(sp,FILL,size);
+    memset(sp,FILL_FREE,size);
     
     __real_free(sp);
 
@@ -132,9 +135,18 @@ void * __wrap_realloc(void * p,size_t size)
     if(p)
     {
         u8 * pp=(u8*)p;
-        u8 * sp=&pp[-PRE_GUARD];
 
-        size_t osize=*(size_t*)&sp[0];
+        u32 magic=*(u32*)&pp[-4];
+
+        if(magic!=MAGIC)
+        {
+            printf("[mchk realloc] bad magic !!!!\n");
+            buffer_dump(&pp[-PRE_GUARD],PRE_GUARD);
+            unlock(&lck);
+            return NULL;
+        }
+
+        size_t osize=*(size_t*)&pp[-12];
 
         memcpy(np,pp,(osize>size)?size:osize);
 

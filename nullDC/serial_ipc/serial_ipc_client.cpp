@@ -22,7 +22,7 @@ u32 last_serial_Tx_tick=0;
 
 void StartGDBSession();
 
-int serial_cmdl(wchar** arg,int cl)
+int serial_cmdl(char** arg,int cl)
 {
 	if (cl<1)
 		printf("-serial : too few params.-serial <FILE> must be used\n");
@@ -67,7 +67,7 @@ int serial_cmdl(wchar** arg,int cl)
 	
 	return 1;
 }
-int slave_cmdl(wchar** arg,int cl)
+int slave_cmdl(char** arg,int cl)
 {
 	if (cl<2)
 		printf("-slave : too few params.-slave <piperead> <pipewrite> must be used\n");
@@ -89,7 +89,7 @@ int slave_cmdl(wchar** arg,int cl)
 
 	return 2;
 }
-void PrintSerialIPUsage(int argc, wchar *argv[])
+void PrintSerialIPUsage(int argc, char *argv[])
 {
 	/*
 	if (argc==1)

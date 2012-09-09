@@ -5,19 +5,6 @@
 //Basic types & stuff
 #include "plugins/plugin_header.h"
 
-//SHUT UP M$ COMPILER !@#!@$#
-#ifdef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
-#undef _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES
-#endif
-
-#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-
-#ifdef _CRT_SECURE_NO_DEPRECATE
-#undef _CRT_SECURE_NO_DEPRECATE
-#endif
-
-#define _CRT_SECURE_NO_DEPRECATE 
-
 //Basic types :)
 //#include "basic_types.h"
 #include <vector>
@@ -27,22 +14,9 @@ using namespace std;
 #define No_gdb_stub
 //#define DEBUG_DLL
 
-//Do not complain when i use enum::member
-//#pragma warning( disable : 4482)
-
-#ifndef XENON
-//unnamed struncts/unions
-#pragma warning( disable : 4201)
-
-//unused parameters
-#pragma warning( disable : 4100)
-#endif
-
 //basic includes from runtime lib
 #include <stdlib.h>
 #include <stdio.h>
-#include <wchar.h>
-//#include <tchar.h>
 
 //used for asm-olny functions
 #ifdef X86
@@ -68,23 +42,6 @@ using namespace std;
 	#define MEM_ERROR_BREAK
 #endif
 
-#ifdef MEM_ALLOC_CHECK
-
-	extern  void * debug_malloc(size_t size);
-	extern  void * debug_realloc(void* ptr,size_t size);
-	extern  void debug_free(void* ptr);
-
-	#define malloc debug_malloc
-	#define realloc debug_realloc
-	#define free debug_free
-
-	//enable bound checks if on MEM_ALLOC_CHECK mode
-	#ifndef MEM_BOUNDCHECK
-	#define MEM_BOUNDCHECK
-	#endif
-
-#endif
-
 #ifdef XENON
 //force
 #define INLINE
@@ -106,30 +63,6 @@ using namespace std;
 #endif
 //no inline :)
 #define NOINLINE __declspec(noinline)
-#endif
-	
-#ifdef MEM_ERROR_BREAK
-	#ifdef X86
-		#define MEM_DO_BREAK {__debugbreak(); }
-	#else
-		#define MEM_DO_BREAK {log("**Mem Error Break**\n");getc(stdin);}
-	#endif
-#else
-	#define MEM_DO_BREAK
-#endif
-
-#ifdef TRACE
-	#ifdef DEBUG
-		#ifdef X86
-			#define TRACE_DO_BREAK {dbgbreak;}
-		#else
-			#define TRACE_DO_BREAK {log("**Trace Break**\n");getc(stdin);}
-		#endif
-	#else
-		#define TRACE_DO_BREAK
-	#endif
-#else
-	#define TRACE_DO_BREAK
 #endif
 
 //basic includes
@@ -184,12 +117,12 @@ using namespace std;
 #define dbgbreak asm volatile ("sc");
 
 #ifndef NO_VERIFY
-#define verify(x) if((x)==false){ msgboxf("Verify Failed  : " #x "\n in %s -> %s : %d \n",MBX_ICONERROR,_T(__FUNCTION__),_T(__FILE__),__LINE__); dbgbreak;}
+#define verify(x) if((x)==false){ msgboxf("Verify Failed  : " #x "\n in %s -> %s : %d \n",MBX_ICONERROR,(__FUNCTION__),(__FILE__),__LINE__); dbgbreak;}
 #else
 #define verify(__x__) /* __x__ */ ; 
 #endif
 
-#define die(reason) { msgboxf(_T("Fatal error : %s\n in %s -> %s : %d \n"),MBX_ICONERROR,_T(reason),_T(__FUNCTION__),_T(__FILE__),__LINE__); dbgbreak;}
+#define die(reason) { msgboxf(("Fatal error : %s\n in %s -> %s : %d \n"),MBX_ICONERROR,(reason),(__FUNCTION__),(__FILE__),__LINE__); dbgbreak;}
 #define fverify verify
 
 //will be removed sometime soon

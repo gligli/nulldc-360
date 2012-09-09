@@ -31,8 +31,7 @@ extern "C"
 #include <malloc.h>
 
 //uh uh 
-volatile bool  rec_sh4_int_bCpuRun=false;
-cThread* rec_sh4_int_thr_handle=0;
+volatile bool rec_sh4_int_bCpuRun=false;
 
 u32 rec_exec_cycles=0;
 time_t rec_odtime=0;
@@ -133,7 +132,12 @@ void rec_sh4_ResetCache()
 BasicBlockEP* __fastcall FindCode_full(u32 address,CompiledBlockInfo* fastblock);
 
 extern u32 fast_lookups;
-u32 __attribute__((externally_visible)) old_esp;
+u32 __attribute__((externally_visible)) old_esp,old_lr;
+
+#define DR_STACK_SIZE 0x100000
+
+u8 __attribute__((externally_visible,aligned(65536))) dr_stack[DR_STACK_SIZE];
+
 u32 __attribute__((externally_visible)) Dynarec_Mainloop_no_update_fast;
 
 #define xstr(s) str(s)
@@ -256,14 +260,23 @@ void DynaLookupInit()
     verify(virt==0x40000000);
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 
-void naked DynaMainLoop()
+void __attribute__((naked)) DynaMainLoop()
 {
 	asm volatile (
+        "mflr 4                                 \n"
+        "lis 3,old_lr@ha						\n"
+		"stw 4,old_lr@l(3)						\n"
 		"lis 3,old_esp@ha						\n"
 		"stw 1,old_esp@l(3)						\n"
-
+        
+        // own stack for dr
+        "lis 1,dr_stack@ha                      \n"
+        "addis 1,1," xstr(DR_STACK_SIZE>>16) "  \n"
+        "subi 1,1,0x1000                        \n"
+    
 		// constant regs
 		"lis 3,float_zero@ha					\n"
 		"lfs " xstr(FRZERO) ",float_zero@l(3)	\n"
@@ -288,7 +301,6 @@ void naked DynaMainLoop()
 		"lis 3,Dynarec_Mainloop_end@ha			\n"
 		"stw 4,Dynarec_Mainloop_end@l(3)		\n"
 
-		//
 //		"lis " xstr(RSH4R) ",sh4r@ha			\n"
         "lis " xstr(RSH4R) ",0x7406             \n"
         
@@ -307,7 +319,8 @@ void naked DynaMainLoop()
 
 		".align 4								\n"
 "no_update:										\n"
-		"rlwinm 6," xstr(RPC) ",1,0x0ffffffc    \n"
+
+        "rlwinm 6," xstr(RPC) ",1,0x0ffffffc    \n"
         "oris 6,6,0x3000                        \n"
         "lwz 4,0(6)                             \n"
         "mtctr 4                                \n"
@@ -315,7 +328,8 @@ void naked DynaMainLoop()
 
 		".align 4								\n"
 "do_update:										\n"
-		"mflr " xstr(RPC) "                     \n" // RPC is only used as a temp here
+
+        "mflr " xstr(RPC) "                     \n" // RPC is only used as a temp here
         "bl UpdateSystem						\n"
 		"mtlr " xstr(RPC) "                     \n"
 		"cmplwi 3,0                             \n"
@@ -329,15 +343,19 @@ void naked DynaMainLoop()
 		"cmpwi 6,0								\n"
 		"bne no_update							\n"
 
-		//exit from function
+"end_of_mainloop:								\n"
+
+        "lis 6,rec_cycles@ha					\n" 
+		"stw " xstr(RCYCLES) ",rec_cycles@l(6)	\n"
+
+        //exit from function
 		"lis 6,old_esp@ha						\n"
 		"lwz 1,old_esp@l(6)						\n"
-"end_of_mainloop:								\n"
-		"lis 6,rec_cycles@ha					\n" 
-		"stw " xstr(RCYCLES) ",rec_cycles@l(6)	\n"
-		"blr									\n"
-	::: "15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"
-		,"%fr16","%fr17","%fr18","%fr19","%fr20","%fr21","%fr22","%fr23","%fr24","%fr25","%fr26","%fr27","%fr28","%fr29","%fr30","%fr31");
+		"lis 6,old_lr@ha						\n"
+		"lwz 3,old_lr@l(6)						\n"
+        "mtlr 3                                 \n"
+        "blr                                    \n"
+	);
 }
 
 u64 time_dr_start=0;

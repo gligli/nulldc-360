@@ -127,7 +127,7 @@ struct MemChip
 		return 0;
 	}
 
-	bool Load(wchar* file)
+	bool Load(char* file)
 	{
 		FILE* f=fopen(file,"rb");
 		if (f)
@@ -135,7 +135,7 @@ struct MemChip
 			bool rv=fread(data,1,size,f)==size;
 			fclose(f);
 			
-			int i;
+			u32 i;
 			u32 * d=(u32 *)data;
 			for(i=0;i<size/4;++i) d[i]=__builtin_bswap32(d[i]);
 			
@@ -144,12 +144,12 @@ struct MemChip
 		return false;
 	}
 
-	void Save(wchar* file)
+	void Save(char* file)
 	{
 		FILE* f=fopen(file,"wb");
 		if (f)
 		{
-			int i;
+			u32 i;
 			u32 * d=(u32 *)data;
 
 			for(i=0;i<size/4;++i) d[i]=__builtin_bswap32(d[i]);
@@ -162,16 +162,16 @@ struct MemChip
 		}
 	}
 
-	bool Load(wchar* root,wchar* prefix,const wchar* names_ro,const wchar* title)
+	bool Load(char* root,char* prefix,const char* names_ro,const char* title)
 	{
-		wchar base[512];
-		wchar temp[512];
-		wchar names[512];
+		char base[512];
+		char temp[512];
+		char names[512];
 		strcpy(names,names_ro);
 		snprintf(base,512,"%s",root);
 
-		wchar* curr=names;
-		wchar* next;
+		char* curr=names;
+		char* next;
 		do
 		{
 			next=strstr(curr,";");
@@ -197,9 +197,9 @@ struct MemChip
 
 		return false;
 	}
-	void Save(wchar* root,wchar* prefix,const wchar* name_ro,const wchar* title)
+	void Save(char* root,char* prefix,const char* name_ro,const char* title)
 	{
-		wchar path[512];
+		char path[512];
 
 		snprintf(path,512,"%s%s%s",root,prefix,name_ro);
 		Save(path);
@@ -351,13 +351,13 @@ DCFlashChip sys_nvmem(FLASH_SIZE);
 SRamChip sys_nvmem(BBSRAM_SIZE);
 #endif
 
-bool LoadRomFiles(wchar* root)
+bool LoadRomFiles(char* root)
 {
 	//char* bios_path[512];
 	
 	if (!sys_rom.Load(root,ROM_PREFIX,"%boot.bin;%boot.bin.bin;%bios.bin;%bios.bin.bin" ROM_NAMES,"bootrom"))
 	{
-		msgboxf(_T("Unable to find bios in \n%s\nExiting .."),MBX_ICONERROR,root);
+		msgboxf(("Unable to find bios in \n%s\nExiting .."),MBX_ICONERROR,root);
 		return false;
 	}
 	if (!sys_nvmem.Load(root,ROM_PREFIX,"%nvmem.bin;%flash_wb.bin;%flash.bin;%flash.bin.bin","nvram"))
@@ -368,7 +368,7 @@ bool LoadRomFiles(wchar* root)
 		}
 		else
 		{
-			msgboxf(_T("Unable to find flash/nvmem in \n%s\nExiting .."),MBX_ICONERROR,root);
+			msgboxf(("Unable to find flash/nvmem in \n%s\nExiting .."),MBX_ICONERROR,root);
 			return false;
 		}
 	}
@@ -376,7 +376,7 @@ bool LoadRomFiles(wchar* root)
 	return true;
 }
 
-void SaveRomFiles(wchar* root)
+void SaveRomFiles(char* root)
 {
 	sys_nvmem.Save(root,ROM_PREFIX,"nvmem.bin","nvmem");
 }
@@ -420,7 +420,6 @@ void WriteFlash(u32 addr,u32 data,u32 sz) { sys_nvmem.Write(addr,data,sz); }
 #error unknown flash
 #endif
 
-#pragma warning( disable : 4127 /*4244*/)
 //Area 0 mem map
 //0x00000000- 0x001FFFFF	:MPX	System/Boot ROM
 //0x00200000- 0x0021FFFF	:Flash Memory

@@ -1,5 +1,3 @@
-# ! PLEASE REMOVE IT
-DEVKITXENON=/usr/local/xenon
 #---------------------------------------------------------------------------------
 # Clear the implicit built in rules
 #---------------------------------------------------------------------------------
@@ -174,5 +172,5 @@ endif
 
 # ced config
 run: $(BUILD) $(OUTPUT).elf32
-	cp $(OUTPUT).elf32 /srv/tftp/tftpboot/xenon
-	$(PREFIX)strip /srv/tftp/tftpboot/xenon
+	cp $(OUTPUT).elf32 /tftpboot/xenon
+	$(PREFIX)strip /tftpboot/xenon

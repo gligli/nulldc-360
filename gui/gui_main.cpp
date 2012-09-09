@@ -26,6 +26,7 @@
 #include <xenon_sound/sound.h>
 #include <xenon_smc/xenon_smc.h>
 #include <debug.h>
+#include <console/console.h>
 
 #include "video.h"
 #include "audio.h"
@@ -46,7 +47,7 @@ int ScreenshotRequested = 0;
 int ShutdownRequested = 0;
 int ExitRequested = 0;
 char loadedFile[1024] = {0};
-static int currentMode;
+//static int currentMode;
 int exitThreads = 0;
 
 /****************************************************************************
@@ -66,9 +67,11 @@ void ExitApp()
 
 int main(int argc, char *argv[])
 {
-	xenon_make_it_faster(XENON_SPEED_FULL);
 	InitVideo();
+    console_set_colors(0x1E1E1EFF,0xB37E43FF); // light blue on dark gray
+    console_init();
 	
+	xenon_make_it_faster(XENON_SPEED_FULL);
 	usb_init();
 	usb_do_poll();
 	xenon_ata_init();
@@ -84,35 +87,33 @@ int main(int argc, char *argv[])
 	
 	browserList = (BROWSERENTRY *)malloc(sizeof(BROWSERENTRY)*MAX_BROWSER_SIZE);
 		
+    console_close();
+    
 	while (1) // main loop
 	{
 		MainMenu(MENU_GAMESELECTION);
 		EmuLaunch();
 		
-		if(EmuRunning)
-			MainMenu(MENU_GAME);
-		else
-			MainMenu(MENU_GAMESELECTION);		
-
-		if(EmuRunning)
-			EmuResume();
-		else
-			EmuLaunch();
-		
-		if(EmuConfigRequested) {				
+		if(EmuConfigRequested)
+        {				
 			EmuConfigRequested = 0;
-			break;
+            MainMenu(MENU_GAME);
 		}
-		if(EmuResetRequested) {
-			EmuResetRequested = 0;
-			EmuReset();
-		}
+        
+        if(EmuRunning)
+        {
+            EmuResume();
+        }
+        {
+            EmuTerm();
+        }
 	}
 	
 	return 0;
 }
 
-void InGameMenu(){
-	MainMenu(MENU_GAME);
-	EmuResume();
+void InGameMenu()
+{
+    EmuConfigRequested = 1;
+    EmuStop();
 }

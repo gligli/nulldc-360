@@ -205,12 +205,12 @@ enum ndc_events
 //These are provided by the emu
 
 //Config
-typedef void EXPORT_CALL ConfigLoadStrFP(const wchar * Section, const wchar * Key, wchar * Return,const wchar* Default);
-typedef void EXPORT_CALL ConfigSaveStrFP(const wchar * Section, const wchar * Key, const wchar * Value);
+typedef void EXPORT_CALL ConfigLoadStrFP(const char * Section, const char * Key, char * Return,const char* Default);
+typedef void EXPORT_CALL ConfigSaveStrFP(const char * Section, const char * Key, const char * Value);
 
-typedef s32 EXPORT_CALL ConfigLoadIntFP(const wchar * Section, const wchar * Key,const s32 Default);
-typedef void EXPORT_CALL ConfigSaveIntFP(const wchar * Section, const wchar * Key, const s32 Value);
-typedef s32 EXPORT_CALL ConfigExistsFP(const wchar * Section, const wchar * Key);
+typedef s32 EXPORT_CALL ConfigLoadIntFP(const char * Section, const char * Key,const s32 Default);
+typedef void EXPORT_CALL ConfigSaveIntFP(const char * Section, const char * Key, const s32 Value);
+typedef s32 EXPORT_CALL ConfigExistsFP(const char * Section, const char * Key);
 
 //Menus
 enum MenuItemStyles
@@ -236,7 +236,7 @@ enum MenuItemMask
 };
 struct MenuItem
 {
-	wchar* Text;			//Text of the menu item
+	char* Text;			//Text of the menu item
 	MenuItemSelectedFP* Handler;	//called when the menu is clicked
 	void* Bitmap;		//bitmap handle
 	u32 Style;			//MIS_* combination
@@ -258,14 +258,14 @@ enum SyncSourceFlags
 	SSF_NeedsSync=1,	//The provider needs perfect sync, like audio stream out or vsync'd video
 };
 
-typedef u32 EXPORT_CALL AddMenuItemFP(u32 parent,s32 pos,const wchar* text,MenuItemSelectedFP* handler , u32 checked);
+typedef u32 EXPORT_CALL AddMenuItemFP(u32 parent,s32 pos,const char* text,MenuItemSelectedFP* handler , u32 checked);
 typedef void EXPORT_CALL SetMenuItemStyleFP(u32 id,u32 style,u32 mask);
 typedef void EXPORT_CALL GetMenuItemFP(u32 id,MenuItem* info,u32 mask);
 typedef void EXPORT_CALL SetMenuItemFP(u32 id,MenuItem* info,u32 mask);
 typedef void EXPORT_CALL DeleteMenuItemFP(u32 id);
 typedef void* EXPORT_CALL GetRenderTargetFP();
 typedef void EXPORT_CALL SendMsgFP(u32 target,u32 eid,void* pdata,u32 ldata);
-typedef void EXPORT_CALL RegisterSyncSourceFP(wchar* name,u32 id,u32 freq,u32 flags);
+typedef void EXPORT_CALL RegisterSyncSourceFP(char* name,u32 id,u32 freq,u32 flags);
 
 struct emu_info
 {
@@ -311,7 +311,7 @@ typedef void EXPORT_CALL EventHandlerFP(u32 nid,void* p);
 struct common_info
 {
 	u32				InterfaceVersion;	//Note : this version is of the interface for this type of plugin :)
-	wchar			Name[128];			//plugin name
+	char			Name[128];			//plugin name
 	u32				Type;				//plugin type
 
 	//Functions that are used for all plugins , these are SET by the plugin
@@ -446,7 +446,7 @@ typedef void FASTCALL DriveReadSubChannelFP(u8 * buff, u32 format, u32 len);
 //passed on GDRom init call
 struct gdr_init_params
 {
-	wchar* source;
+	char* source;
 	DriveNotifyEventFP* DriveNotifyEvent;
 };
 
@@ -607,7 +607,7 @@ enum MapleDeviceTypeFlags
 };
 struct maple_device_definition
 {
-	wchar Name[128];
+	char Name[128];
 	u32 Type;
 	u32 Flags;
 };

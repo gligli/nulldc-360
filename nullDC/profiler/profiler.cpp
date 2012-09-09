@@ -28,8 +28,8 @@ struct Module
 	bool Inside(u32 val) { return val>=base && val<=end; }
 	void FromAddress(void* ptr)
 	{
-		wchar filename[512];
-		wchar filename2[512];
+		char filename[512];
+		char filename2[512];
 		static void* ptr_old=0;
 		if (ptr_old==ptr)
 			return;
@@ -198,7 +198,7 @@ extern u32 no_interrupts,yes_interrupts;
 		 //Update Stats if needed
 		 if (info.total_tc>MAX_TICK_COUNT)
 		 {			 			 
-			 wchar temp[1024];			 
+			 char temp[1024];			 
 
 			 memcpy(&profile_info,&info,sizeof(prof_info));			 			 	 
 			 memset(&info,0,sizeof(prof_info));			 			 

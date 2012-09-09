@@ -104,5 +104,5 @@ u32 __fastcall GetRamPageFromAddress(u32 RamAddress);
 			{*(u32*)&arr[addr]=data;return;}}	
 
 
-bool LoadRomFiles(wchar* root);
-void SaveRomFiles(wchar* root);
+bool LoadRomFiles(char* root);
+void SaveRomFiles(char* root);

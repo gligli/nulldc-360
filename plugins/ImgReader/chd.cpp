@@ -10,7 +10,7 @@ struct CHDDisc : Disc
 	u32 hunkbytes;
 	u32 sph;
 
-	bool TryOpen(wchar* file);
+	bool TryOpen(char* file);
 };
 
 struct CHDTrack:TrackFile
@@ -46,7 +46,7 @@ struct CHDTrack:TrackFile
 	}
 };
 
-bool CHDDisc::TryOpen(wchar* file)
+bool CHDDisc::TryOpen(char* file)
 {
 	chd_error err=chd_open(file,CHD_OPEN_READ,0,&chd);
 
@@ -109,7 +109,7 @@ bool CHDDisc::TryOpen(wchar* file)
 }
 
 
-Disc* chd_parse(wchar* file)
+Disc* chd_parse(char* file)
 {
 	CHDDisc* rv = new CHDDisc();
 	

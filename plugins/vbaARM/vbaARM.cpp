@@ -106,13 +106,13 @@ EXPORT void EXPORT_CALL armGetInterface(plugin_interface* info)
 
 int armcfgGetInt(char* key,int def)
 {
-	wchar t[512];
+	char t[512];
 	strncpy(t,key,512);
 	return arm_eminf.ConfigLoadInt("nullAica",t,def);
 }
 void armcfgSetInt(char* key,int def)
 {
-	wchar t[512];
+	char t[512];
 	strncpy(t,key,512);
 	arm_eminf.ConfigSaveInt("nullAica",t,def);
 }

@@ -52,7 +52,7 @@ int nrg_mode(int mode)
 
 #define read_binary(type,source,offset) (*(type*)((source)+(offset)))
 
-bool parse_mds(wchar *mds_filename,bool verbose)
+bool parse_mds(char *mds_filename,bool verbose)
 {
     /*"returns the supposable bin_filename and raw entries, if something went \
     wrong it throws an exception"*/
@@ -212,7 +212,7 @@ bool parse_mds(wchar *mds_filename,bool verbose)
     return true;
 }
 
-bool parse_nrg(wchar*nrg_filename,bool verbose)
+bool parse_nrg(char*nrg_filename,bool verbose)
 {
     /*"returns the supposable bin_filename and raw entries, if something went \
     wrong it throws an exception"*/

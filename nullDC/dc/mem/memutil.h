@@ -13,8 +13,8 @@
 
 void SetPatches(u32 Value,u32 Mask);
 
-u32 LoadFileToSh4Mem(u32 offset,wchar*file);
-u32 LoadBinfileToSh4Mem(u32 offset,wchar*file);
+u32 LoadFileToSh4Mem(u32 offset,char*file);
+u32 LoadBinfileToSh4Mem(u32 offset,char*file);
 
 
 void LoadSyscallHooks();

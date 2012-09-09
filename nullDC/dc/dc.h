@@ -16,5 +16,3 @@ void Start_DC();
 void Stop_DC();
 bool IsDCInited();
 void SwitchCPU_DC();
-
-extern void* hEmuThread;

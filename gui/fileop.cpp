@@ -61,7 +61,6 @@ int selectLoadedFile = 0;
 //static lwp_t devicethread = LWP_THREAD_NULL;
 static bool deviceHalt = true;
 
-static unsigned char xenon_thread_stack[6 * 0x10000];
 static unsigned int __attribute__((aligned(128))) _file_lock = 0;
 static int _parse_thread_suspended = 0;
 
@@ -102,10 +101,10 @@ HaltParseThread()
 	unlock(&_file_lock);
 }
 
-static void *
+void *
 parsecallback(void *arg)
 {
-	int parse = 0;
+//	int parse = 0;
 	while (exitThreads == 0) {
 
 		lock(&_file_lock);

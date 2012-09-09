@@ -288,7 +288,7 @@ chd_error chd_create(const char *filename, UINT64 logicalbytes, UINT32 hunkbytes
 chd_error chd_create_file(core_file *file, UINT64 logicalbytes, UINT32 hunkbytes, UINT32 compression, chd_file *parent);
 
 /* open an existing CHD file */
-chd_error chd_open(const wchar *filename, int mode, chd_file *parent, chd_file **chd);
+chd_error chd_open(const char *filename, int mode, chd_file *parent, chd_file **chd);
 
 
 /* close a CHD file */

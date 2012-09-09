@@ -29,10 +29,10 @@ typedef struct
 	Elf32_Half e_machine ;		// Machine/Architecture
 	Elf32_Word e_version ;		// File version
 	Elf32_Addr e_entry ;		// Virtual Address to Entry Point
-	Elf32_Off e_phoff ;			// Program header table’s file offset in bytes.
-	Elf32_Off e_shoff ;			// Section header table’s file offset in bytes.
+	Elf32_Off e_phoff ;			// Program header tableï¿½s file offset in bytes.
+	Elf32_Off e_shoff ;			// Section header tableï¿½s file offset in bytes.
 	Elf32_Word e_flags ;		// Processor-specific flags associated with the file.
-	Elf32_Half e_ehsize ;		// ELF header’s size in bytes.
+	Elf32_Half e_ehsize ;		// ELF headerï¿½s size in bytes.
 	Elf32_Half e_phentsize ;	// Size of entry in program header table; ( bytes )
 	Elf32_Half e_phnum ;		// Number of entries in the program header table.
 	Elf32_Half e_shentsize ;	// Size of entry in section header table ( bytes )
@@ -185,9 +185,9 @@ struct Elf32_Shdr {
     Elf32_Word sh_name;			// Section Name ( index to section header string table )
     Elf32_Word sh_type;			// Section Type
     Elf32_Word sh_flags;		// Section Flags ( each 1 bit )
-    Elf32_Addr sh_addr;			// If in memory image, this member gives addr of section’s first byte.
+    Elf32_Addr sh_addr;			// If in memory image, this member gives addr of sectionï¿½s first byte.
     Elf32_Off  sh_offset;		// byte offset from the beginning of the file to the first byte in the section.
-    Elf32_Word sh_size;			// section’s size in bytes.
+    Elf32_Word sh_size;			// sectionï¿½s size in bytes.
     Elf32_Word sh_link;			// section header table index link.
     Elf32_Word sh_info;			// extra information,
     Elf32_Word sh_addralign;	// 
@@ -420,5 +420,5 @@ struct Elf32_Dyn {
 
 /////////////////////////////////////////////////////////////////////
 
-bool LoadELF( wchar* szFileName );
+bool LoadELF( char* szFileName );
 int GetSymbName(u32 address,char *szDesc,bool bUseUnkAddress);

@@ -17,6 +17,17 @@ u32 devicemenuItem[4];
 
 xmaple_settings maplesettings;
 
+
+const char* deviceNames[] =
+{
+	"Controller",
+	"Twinstick",
+	"Arcade Stick",
+	"Puru-Puru Pak",
+	"Mic",
+	"Dreameye Mic",
+};
+
 void mapleUpdateMenu(u32 parentmenu, maple_device_instance* inst, bool override);
 
 /*
@@ -136,7 +147,7 @@ void mapleUpdateMenu(u32 parentmenu, maple_device_instance* inst, bool override)
 	{
 		if (XInput::IsConnected(i))
 		{
-			wchar temp[512];
+			char temp[512];
 			sprintf(temp, "x360pad %i", i);
 			devicemenuItem[i] = host.AddMenuItem(deviceMenu, -1, temp, mapleConfigMainCallback, 0);
 			//Set the user defined pointer for the menu to the device instance,
@@ -150,7 +161,7 @@ void mapleUpdateMenu(u32 parentmenu, maple_device_instance* inst, bool override)
 				mi.Style |= MIS_Checked;
 				((EmulatedDevices::MapleInterface*)inst->data)->SetXPad(i);
 				//update parent menu text
-				wchar menu[512];
+				char menu[512];
 				sprintf(menu, "Device: x360pad %i", i);
 				MenuItem parent;
 				parent.Text = menu;
@@ -162,7 +173,7 @@ void mapleUpdateMenu(u32 parentmenu, maple_device_instance* inst, bool override)
 			{
 				mi.Style |= MIS_Checked;
 				//update parent menu text
-				wchar menu[512];
+				char menu[512];
 				sprintf(menu, "Device: x360pad %i", i);
 				MenuItem parent;
 				parent.Text = menu;
@@ -197,7 +208,7 @@ s32 FASTCALL mapleCreateMain(maple_device_instance* inst, u32 id, u32 flags, u32
 	inst->dma = EmulatedDevices::MapleInterface::ClassDMA;
 
 	// Add type name
-	wchar name[512];
+	char name[512];
 	sprintf(name, deviceNames[((EmulatedDevices::MapleInterface*)inst->data)->GetID()]);
 	host.AddMenuItem(rootmenu, -1, name, 0, 0);
 
@@ -242,7 +253,7 @@ s32 FASTCALL mapleCreateSub(maple_subdevice_instance* inst, u32 id, u32 flags, u
 	inst->dma = EmulatedDevices::MapleInterface::ClassDMA;
 
 	// Add type name
-	wchar name[512];
+	char name[512];
 	sprintf(name, deviceNames[((EmulatedDevices::MapleInterface*)inst->data)->GetID()]);
 	host.AddMenuItem(rootmenu, -1, name, 0, 0);
 

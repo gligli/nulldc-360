@@ -25,7 +25,9 @@ void EmuLaunch();
 void EmuInit();
 int EmuSaveState(char * filename);
 int EmuLoadState(char * filename);
+void EmuStop();
 void EmuResume();
+void EmuTerm();
 
 #endif	/* EMU_H */
 

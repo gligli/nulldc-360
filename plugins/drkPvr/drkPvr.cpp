@@ -24,7 +24,7 @@
 
 //void* Hwnd;
 
-wchar emu_name_pvr[512];
+char emu_name_pvr[512];
 
 pvr_init_params params;
 _drkpvr_settings_type drkpvr_settings;
@@ -56,13 +56,13 @@ public:
 		format=0;
 	}
 	u32 root_menu;
-	wchar* format;
-	struct itempair { u32 id;int value;wchar* ex_name;};
+	char* format;
+	struct itempair { u32 id;int value;char* ex_name;};
 	vector<itempair> items;
 
 	void (*callback) (int val) ;
-	void Add(u32 id,int val,wchar* ex_name) { itempair t={id,val,ex_name}; items.push_back(t); }
-	void Add(u32 root,wchar* name,int val,wchar* ex_name=0,int style=0) 
+	void Add(u32 id,int val,char* ex_name) { itempair t={id,val,ex_name}; items.push_back(t); }
+	void Add(u32 root,char* name,int val,char* ex_name=0,int style=0) 
 	{ 
 		if (root_menu==0)
 			root_menu=root;
@@ -92,7 +92,7 @@ public:
 				{
 					MenuItem t;
 					emu.GetMenuItem(items[i].id,&t,MIM_Text);
-					wchar temp[512];
+					char temp[512];
 					snprintf(temp,512,format,items[i].ex_name==0?t.Text:items[i].ex_name);
 					t.Text=temp;
 					emu.SetMenuItem(root_menu,&t,MIM_Text);
@@ -323,7 +323,7 @@ void CreateSortMenu()
 //called when plugin is used by emu (you should do first time init here)
 s32 FASTCALL LoadPvr(emu_info* emu_inf)
 {
-	// wchar temp[512]; // Unreferenced
+	// char temp[512]; // Unreferenced
 	memcpy(&emu,emu_inf,sizeof(emu));
 	emu.ConfigLoadStr("emu","shortname",emu_name_pvr,0);
 	
@@ -460,11 +460,12 @@ s32 FASTCALL InitPvr(pvr_init_params* param)
 //called when exiting from sh4 thread , from the new thread context (for any thread speciacific de init) :P
 void FASTCALL TermPvr()
 {
+	threaded_wait(true);
+    threaded_term();
+
 	TermRenderer();
 	spg_Term();
 	Regs_Term();
-	
-	threaded_term();
 }
 
 //Helper functions
@@ -515,11 +516,11 @@ void EXPORT_CALL drkPvrGetInterface(plugin_interface* info)
 
 //End AutoResetEvent
 
-int cfgGetIntPvr(wchar* key,int def)
+int cfgGetIntPvr(char* key,int def)
 {
 	return emu.ConfigLoadInt("drkpvr",key,def);
 }
-void cfgSetIntPvr(wchar* key,int val)
+void cfgSetIntPvr(char* key,int val)
 {
 	emu.ConfigSaveInt("drkpvr",key,val);
 }

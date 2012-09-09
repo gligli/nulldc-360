@@ -153,7 +153,7 @@ void EXPORT_CALL exthandle_about(u32 id,void* window,void* p)
 u32 mids[4];
 void nide_set_selected()
 {
-	for (int i=0;i<4;i++)
+	for (u32 i=0;i<4;i++)
 	{
 		if (i==extsettings.mode)
 			extemu.SetMenuItemStyle(mids[i],MIS_Checked,MIS_Checked);

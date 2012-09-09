@@ -890,8 +890,6 @@ u8 __attribute__ ((aligned(65536))) dyna_mem_pool[DYNA_MEM_POOL_SIZE];
 
 void init_memalloc(u32 size)
 {
-	log("Dynarec cache : size is %.2fMB\n",size/1024.f/1024.f);
-
 	DynarecCacheSize=size;
 	DynarecCacheUsed=0;
 
@@ -899,6 +897,9 @@ void init_memalloc(u32 size)
 	
 	DynarecCache = dyna_mem_pool;
 	verify(DynarecCache!=0);
+
+	log("Dynarec cache : size is %.2fMB @ %p\n",size/1024.f/1024.f,DynarecCache);
+
 }
 void reset_memalloc()
 {

@@ -541,7 +541,7 @@ uint16_t FreeTypeGX::drawText(int16_t x, int16_t y, wchar_t const *text, GXColor
 }
 
 void FreeTypeGX::drawTextFeature(int16_t x, int16_t y, uint16_t width, ftgxDataOffset *offsetData, uint16_t format, GXColor color) {
-        uint16_t featureHeight = this->ftPointSize >> 4 > 0 ? this->ftPointSize >> 4 : 1;
+        // uint16_t featureHeight = this->ftPointSize >> 4 > 0 ? this->ftPointSize >> 4 : 1;
 
         //	if (format & FTGX_STYLE_UNDERLINE)
         //		this->copyFeatureToFramebuffer(width, featureHeight, x, y + 1, color);

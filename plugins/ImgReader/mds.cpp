@@ -167,9 +167,9 @@ void mds_CreateToc()
 	mds_TrackCount=track;
 	printf("--GD toc info end--\n\n");
 }
-bool mds_init(wchar* file)
+bool mds_init(char* file)
 {
-	wchar fn[512]="";
+	char fn[512]="";
 	
 	bool rv=false;
 	if (rv==false && parse_mds(file,false))

@@ -14,13 +14,13 @@ typedef long long __int64;
 #define MINOR 0
 #define MAJOR 1
 extern emu_info emu;
-extern wchar emu_name[512];
+extern char emu_name[512];
 struct _setts
 {
 	bool PatchRegion;
 	bool LoadDefaultImage;
-	wchar DefaultImage[512];
-	wchar LastImage[512];
+	char DefaultImage[512];
+	char LastImage[512];
 };
 
 extern _setts irsettings;

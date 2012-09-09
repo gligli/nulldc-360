@@ -93,7 +93,7 @@ void GetDriveSector(u8 * buff,u32 StartSector,u32 SectorCount,u32 secsz);
 
 void GetDriveSessionInfo(u8* to,u8 session);
 int GetFile(TCHAR *szFileName, TCHAR *szParse=0,u32 flags=0);
-int msgboxf(wchar* text,unsigned int type,...);
+int msgboxf(char* text,unsigned int type,...);
 void printtoc(TocInfo* toc,SessionInfo* ses);
 extern u8 q_subchannel[96];
 

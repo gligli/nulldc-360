@@ -24,7 +24,7 @@
 #define EXCEPTION_CONTINUE_SEARCH       0
 #define EXCEPTION_CONTINUE_EXECUTION    -1
 
-wchar* lcp_name;
+char* lcp_name;
 s32 lcp_error=0;
 
 //Currently Loaded plugins
@@ -41,7 +41,7 @@ emu_info					eminf;
 //more to come
 
 bool plugins_inited=false;
-wchar plugins_path[1000]=_T("");
+char plugins_path[1000]=("");
 bool plugins_enumerated=false;
 bool plugins_first_load=false;
 
@@ -49,7 +49,7 @@ vector<PluginLoadInfo>			PluginList_cached;
 vector<MapleDeviceDefinition>		MapleDeviceList_cached;
 vector<cDllHandler*>				LoadedTempDlls;
 
-const wchar* pluginDefaults[]=
+const char* pluginDefaults[]=
 {
 	"drkPvr_Win32.dll",
 	"ImgReader_Win32.dll",
@@ -184,7 +184,7 @@ s32 ValidatePlugin(plugin_interface* plugin)
 
 	return rv_ok;
 }
-bool AddToPluginList(wchar* dll)
+bool AddToPluginList(char* dll)
 {
 	cDllHandler* lib=new cDllHandler();
 	LoadedTempDlls.push_back(lib);
@@ -207,7 +207,7 @@ bool AddToPluginList(wchar* dll)
 	dcGetInterface(&info);
 
 	//Make sure the plugin is valid :)
-	if (s32 rv = ValidatePlugin(&info))
+	if (ValidatePlugin(&info))
 	{
 		return false;
 	}
@@ -232,7 +232,7 @@ bool AddToPluginList(wchar* dll)
 			if (info.maple.devices[i].Type==MDT_EndOfList)
 				break;
 			t.id=i;
-			sprintf(t.dll,_T("%s:%d"),load_info.dll,i);
+			sprintf(t.dll,("%s:%d"),load_info.dll,i);
 			maple_device_definition* mdd=&t;
 			memcpy(mdd,&info.maple.devices[i],sizeof(maple_device_definition));
 
@@ -244,9 +244,9 @@ bool AddToPluginList(wchar* dll)
 	return true;
 }
 
-void plugin_FileIsFound(wchar* file,void* param)
+void plugin_FileIsFound(char* file,void* param)
 {
-	wchar dllfile[1024]=_T("");
+	char dllfile[1024]=("");
 	strcat(dllfile,plugins_path);
 	strcat(dllfile,file);
 	AddToPluginList(dllfile);
@@ -283,15 +283,15 @@ void EnumeratePlugins()
 		return;
 	plugins_enumerated=true;
 
-	cfgLoadStr(_T("emu"),_T("PluginPath"),plugins_path,0);
+	cfgLoadStr(("emu"),("PluginPath"),plugins_path,0);
 
 	PluginList_cached.clear();
 	MapleDeviceList_cached.clear();
 
 	
-	wchar dllfile[1024]=_T("");
+	char dllfile[1024]=("");
 	strcat(dllfile,plugins_path);
-	strcat(dllfile,_T("*.dll"));
+	strcat(dllfile,("*.dll"));
 	//Look & load all dll's :)
 	FindAllFiles(plugin_FileIsFound,dllfile,0);
 	
@@ -322,23 +322,23 @@ void EnumeratePlugins()
 //-107 LoadI (plugin specialised interface) failed
 //-108 Invalid id (id >= count)
 //0 (rv_ok) -> ok :)
-s32 nullDC_plugin::Open(wchar* plugin)
+s32 nullDC_plugin::Open(char* plugin)
 {
 	Inited=false;
 	Loaded=false;
 
-	if (!strcmp(plugin,_T("NUL")))
+	if (!strcmp(plugin,("NUL")))
 	{
 		return -101;
 	}
 
 	if (strlen(plugin)>480)
 	{
-		msgboxf(_T("Plugin dll path is way too long"),MBX_ICONERROR | MBX_OK);
+		msgboxf(("Plugin dll path is way too long"),MBX_ICONERROR | MBX_OK);
 		return -102;
 	}
 	
-	wchar ttt[512];
+	char ttt[512];
 	strcpy(dll_file,plugin);
 	size_t dllfl=strlen(dll_file);
 	size_t pathl=strlen(plugins_path);
@@ -458,15 +458,15 @@ void nullDC_ExtDevice_plugin::LoadI(plugin_interface* t)
 	b:
 	Unload
 */
-void maple_cfg_name(int i,int j,wchar * out)
+void maple_cfg_name(int i,int j,char * out)
 {
-	sprintf(out,_T("Current_maple%d_%d"),i,j);
+	sprintf(out,("Current_maple%d_%d"),i,j);
 }
-void maple_cfg_plug(int i,int j,wchar * out)
+void maple_cfg_plug(int i,int j,char * out)
 {
-	wchar temp[512];
+	char temp[512];
 	maple_cfg_name(i,j,temp);
-	cfgLoadStr(_T("nullDC_plugins"),temp,out,pluginDefaults[NDCS_PLUGIN_MAPLE_0_0-NDCS_PLUGIN_PVR + i*6+j]);
+	cfgLoadStr(("nullDC_plugins"),temp,out,pluginDefaults[NDCS_PLUGIN_MAPLE_0_0-NDCS_PLUGIN_PVR + i*6+j]);
 }
 u8 GetMaplePort(u32 port,u32 device)
 {
@@ -483,22 +483,22 @@ nullDC_Maple_plugin* FindMaplePlugin(MapleDeviceDefinition* mdd)
 		if (strcmp(libMaple[i]->dll_file,mdd->dll_file)==0)
 			return libMaple[i];
 	}
-	msgboxf(_T("Fatal error :nullDC_Maple_plugin* FindMaplePlugin(MapleDeviceDefinition* mdd) failed"),MBX_ICONERROR);
+	msgboxf(("Fatal error :nullDC_Maple_plugin* FindMaplePlugin(MapleDeviceDefinition* mdd) failed"),MBX_ICONERROR);
 	return 0;
 }
-MapleDeviceDefinition* FindMapleDevice(wchar* mfdn)
+MapleDeviceDefinition* FindMapleDevice(char* mfdn)
 {
 	for (u32 i=0;i<MapleDeviceList_cached.size();i++)
 	{
 		if (strcmp(MapleDeviceList_cached[i].dll,mfdn)==0)
 			return &MapleDeviceList_cached[i];
 	}
-	msgboxf(_T("Fatal error :MapleDeviceDefinition* FindMapleDevice(char* mfdn=%s) failed"),MBX_ICONERROR,mfdn);
+	msgboxf(("Fatal error :MapleDeviceDefinition* FindMapleDevice(char* mfdn=%s) failed"),MBX_ICONERROR,mfdn);
 	return 0;
 }
 
-s32 CreateMapleDevice(u32 pos,wchar* device,bool hotplug);
-s32 CreateMapleSubDevice(u32 pos,u32 subport,wchar* device,bool hotplug);
+s32 CreateMapleDevice(u32 pos,char* device,bool hotplug);
+s32 CreateMapleSubDevice(u32 pos,u32 subport,char* device,bool hotplug);
 s32 DestroyMapleDevice(u32 pos);
 s32 DestroyMapleSubDevice(u32 pos,u32 subport);
 u32 GetMaplePort(u32 addr);
@@ -564,8 +564,8 @@ void cm_MampleSubEmpty(u32 root,u32 port,u32 subport)
 			continue;
 		if (MapleDeviceList_cached[i].Type!=MDT_Sub)
 			continue;
-		wchar text[512];
-		sprintf(text,_T("Attach %s"),MapleDeviceList_cached[i].Name);
+		char text[512];
+		sprintf(text,("Attach %s"),MapleDeviceList_cached[i].Name);
 		//Attach NAME
 		u32 menu=libgui.AddMenuItem(root,-1,text,menu_handle_attach_sub,0);
 		MenuItem mi;
@@ -580,7 +580,7 @@ void cm_MampleSubUsed(u32 root,u32 port,u32 subport)
 {
 	libgui.DeleteAllMenuItemChilds(root);
 	//l8r
-	u32 menu=libgui.AddMenuItem(root,-1,_T("Unplug"),menu_handle_detach_sub,0);
+	u32 menu=libgui.AddMenuItem(root,-1,("Unplug"),menu_handle_detach_sub,0);
 	MenuItem mi;
 	u8* t=0;
 	t+=(port<<24);
@@ -647,8 +647,8 @@ void cm_MampleMainEmpty(u32 root,u32 port)
 			continue;
 		if (MapleDeviceList_cached[i].Type!=MDT_Main)
 			continue;
-		wchar text[512];
-		sprintf(text,_T("Attach %s"),MapleDeviceList_cached[i].Name);
+		char text[512];
+		sprintf(text,("Attach %s"),MapleDeviceList_cached[i].Name);
 		//Attach NAME
 		u32 menu=libgui.AddMenuItem(root,-1,text,menu_handle_attach_main,0);
 		MenuItem mi;
@@ -671,8 +671,8 @@ void cm_MampleMainUsed(u32 root,u32 port,u32 flags)
 		{
 			if (flags & (1<<i))
 			{
-				wchar temp[512];
-				sprintf(temp,_T("Subdevice %d"),i+1);
+				char temp[512];
+				sprintf(temp,("Subdevice %d"),i+1);
 				u32 sdr=libgui.AddMenuItem(root,-1,temp,0,0);
 				MenuIDs.Maple_port[port][i]=sdr;
 				cm_MampleSubEmpty(sdr,port,i);
@@ -688,7 +688,7 @@ void cm_MampleMainUsed(u32 root,u32 port,u32 flags)
 		libgui.AddMenuItem(root,-1,0,0,0);
 	}
 	//Unplug
-	u32 menu=libgui.AddMenuItem(root,-1,_T("Unplug"),menu_handle_detach_main,0);
+	u32 menu=libgui.AddMenuItem(root,-1,("Unplug"),menu_handle_detach_main,0);
 	MenuItem mi;
 	u8* t=0;
 	t+=(port<<24);
@@ -706,7 +706,7 @@ enum pmd_errors
 	pmde_failed_find_maple_plugin_s=-255,//failed to find maple plugin
 
 };
-s32 CreateMapleDevice(u32 pos,wchar* device,bool hotplug)
+s32 CreateMapleDevice(u32 pos,char* device,bool hotplug)
 {
 	if (pos>3)
 		return pmde_invalid_pos;
@@ -761,7 +761,7 @@ s32 DestroyMapleDevice(u32 pos)
 
 	return rv_ok;
 }
-s32 CreateMapleSubDevice(u32 pos,u32 subport,wchar* device,bool hotplug)
+s32 CreateMapleSubDevice(u32 pos,u32 subport,char* device,bool hotplug)
 {
 	if (pos>3)
 		return pmde_invalid_pos;
@@ -825,7 +825,7 @@ s32 DestroyMapleSubDevice(u32 pos,u32 subport)
 /*********Plugin Load/Unload*********/
 /************************************/
 template<typename T>
-s32 load_plugin(wchar* dll,T* plug,u32 rootmenu)
+s32 load_plugin(char* dll,T* plug,u32 rootmenu)
 {
 	lcp_error=-100;
 	lcp_name=dll;
@@ -867,9 +867,9 @@ void unload_plugin(T* plug,u32 rootmenu)
 
 #define load_plugin_(cfg_name,to,menu,def) \
 { \
-	wchar dllf[512]; \
+	char dllf[512]; \
 	dllf[0]=0; \
-	cfgLoadStr(_T("nullDC_plugins"),cfg_name,dllf,def); \
+	cfgLoadStr(("nullDC_plugins"),cfg_name,dllf,def); \
 	if (s32 rv=load_plugin(dllf,to,menu)) \
 		return rv; \
 }
@@ -900,11 +900,11 @@ s32 plugins_Load_()
 	eminf.DebugMenu=MenuIDs.Debug;
 	eminf.BroardcastEvent=BroadcastEvent;
 
-	load_plugin_(_T("Current_PVR"),&libPvr,MenuIDs.PowerVR,pluginDefaults[NDCS_PLUGIN_PVR-NDCS_PLUGIN_PVR]);
-	load_plugin_(_T("Current_GDR"),&libGDR,MenuIDs.GDRom,pluginDefaults[NDCS_PLUGIN_GDR-NDCS_PLUGIN_PVR]);
-	load_plugin_(_T("Current_AICA"),&libAICA,MenuIDs.Aica,pluginDefaults[NDCS_PLUGIN_AICA-NDCS_PLUGIN_PVR]);
-	load_plugin_(_T("Current_ARM"),&libARM,MenuIDs.Arm,pluginDefaults[NDCS_PLUGIN_ARM-NDCS_PLUGIN_PVR]);
- 	load_plugin_(_T("Current_ExtDevice"),&libExtDevice,MenuIDs.ExtDev,pluginDefaults[NDCS_PLUGIN_EXTDEV-NDCS_PLUGIN_PVR]);
+	load_plugin_(("Current_PVR"),&libPvr,MenuIDs.PowerVR,pluginDefaults[NDCS_PLUGIN_PVR-NDCS_PLUGIN_PVR]);
+	load_plugin_(("Current_GDR"),&libGDR,MenuIDs.GDRom,pluginDefaults[NDCS_PLUGIN_GDR-NDCS_PLUGIN_PVR]);
+	load_plugin_(("Current_AICA"),&libAICA,MenuIDs.Aica,pluginDefaults[NDCS_PLUGIN_AICA-NDCS_PLUGIN_PVR]);
+	load_plugin_(("Current_ARM"),&libARM,MenuIDs.Arm,pluginDefaults[NDCS_PLUGIN_ARM-NDCS_PLUGIN_PVR]);
+ 	load_plugin_(("Current_ExtDevice"),&libExtDevice,MenuIDs.ExtDev,pluginDefaults[NDCS_PLUGIN_EXTDEV-NDCS_PLUGIN_PVR]);
 
 	vector<PluginLoadInfo>* mpl= GetPluginList(Plugin_Maple);
 
@@ -912,7 +912,7 @@ s32 plugins_Load_()
 	{
 		for (size_t i=0;i<mpl->size();i++)
 		{
-			wchar fname[512];
+			char fname[512];
 			nullDC_Maple_plugin* cmp= new nullDC_Maple_plugin();
 
 			GetFileNameFromPath((*mpl)[i].dll,fname);
@@ -938,7 +938,7 @@ s32 plugins_Load_()
 		}
 	}
 
-	wchar plug_name[512];
+	char plug_name[512];
 	for (int port=0;port<4;port++)
 	{
 		maple_cfg_plug(port,5,plug_name);
@@ -1000,7 +1000,7 @@ bool plugins_Load()
 		{
 			if (rv==rv_error)
 			{
-				msgboxf(_T("Unable to load %s plugin , errorlevel=%d"),MBX_ICONERROR,lcp_name,lcp_error);
+				msgboxf(("Unable to load %s plugin , errorlevel=%d"),MBX_ICONERROR,lcp_name,lcp_error);
 			}
 
 			plugins_Unload();
@@ -1011,7 +1011,7 @@ bool plugins_Load()
 	}
 	/*__except(EXCEPTION_EXECUTE_HANDLER)
 	{
-		msgboxf(_T("Unhandled exeption while loading %s plugin"),MBX_ICONERROR,lcp_name);
+		msgboxf(("Unhandled exeption while loading %s plugin"),MBX_ICONERROR,lcp_name);
 		plugins_Unload();
 		return false;
 	}*/
@@ -1073,18 +1073,18 @@ void plugins_Unload()
 	//gli__except(EXCEPTION_EXECUTE_HANDLER)
 	catch(...)
 	{
-		msgboxf(_T("Unhandled exeption while unloading %s\n"),MBX_ICONERROR,lcp_name);
+		msgboxf(("Unhandled exeption while unloading %s\n"),MBX_ICONERROR,lcp_name);
 	}
 }
 /************************************/
 /******Plugin selection-switch*******/
 /************************************/
 template<typename T>
-void CheckPlugin(wchar*cfg_name, T* plug,u32 rootmenu)
+void CheckPlugin(char*cfg_name, T* plug,u32 rootmenu)
 {
-	wchar dllf[512];
+	char dllf[512];
 	dllf[0]=0;
-	cfgLoadStr(_T("nullDC_plugins"),cfg_name,dllf,_T("NUL"));
+	cfgLoadStr(("nullDC_plugins"),cfg_name,dllf,("NUL"));
 	if (strcmp(plug->dll_file,dllf)!=0)
 	{
 		unload_plugin(plug,rootmenu);
@@ -1098,7 +1098,7 @@ bool plugins_Select()
 {
 	if (plugins_inited)
 	{
-		if (msgboxf(_T("Emulation is started , plugins can't be changed now ..\r\nWant to Continue anyway ? (Changes will will take effect after retart)"),MBX_YESNO | MBX_ICONEXCLAMATION | MBX_TASKMODAL)==MBX_RV_NO)
+		if (msgboxf(("Emulation is started , plugins can't be changed now ..\r\nWant to Continue anyway ? (Changes will will take effect after retart)"),MBX_YESNO | MBX_ICONEXCLAMATION | MBX_TASKMODAL)==MBX_RV_NO)
 			return false;
 	}
 
@@ -1106,16 +1106,16 @@ bool plugins_Select()
 
 	if (rv && plugins_inited==false)
 	{
-		CheckPlugin(_T("Current_PVR"),&libPvr,MenuIDs.PowerVR);
-		CheckPlugin(_T("Current_GDR"),&libGDR,MenuIDs.GDRom);
-		CheckPlugin(_T("Current_AICA"),&libAICA,MenuIDs.Aica);
-		CheckPlugin(_T("Current_ARM"),&libARM,MenuIDs.Arm);
- 		CheckPlugin(_T("Current_ExtDevice"),&libExtDevice,MenuIDs.ExtDev);
+		CheckPlugin(("Current_PVR"),&libPvr,MenuIDs.PowerVR);
+		CheckPlugin(("Current_GDR"),&libGDR,MenuIDs.GDRom);
+		CheckPlugin(("Current_AICA"),&libAICA,MenuIDs.Aica);
+		CheckPlugin(("Current_ARM"),&libARM,MenuIDs.Arm);
+ 		CheckPlugin(("Current_ExtDevice"),&libExtDevice,MenuIDs.ExtDev);
 
 		//Maple plugins
 		for (int port =0;port<4;port++)
 		{
-			wchar dllf[512];
+			char dllf[512];
 			maple_cfg_plug(port,5,dllf);
 			if (MapleDevices_dd[port][5].Created)
 			{
@@ -1215,7 +1215,7 @@ s32 plugins_Init_()
 	{
 		if (MapleDevices_dd[i][5].Created)
 		{
-			lcp_name=_T("Made Device");
+			lcp_name=("Made Device");
 			verify(MapleDevices_dd[i][5].mdd!=0);
 			//Init
 			nullDC_Maple_plugin *nmp=FindMaplePlugin(MapleDevices_dd[i][5].mdd);
@@ -1229,7 +1229,7 @@ s32 plugins_Init_()
 			{
 				if (MapleDevices_dd[i][j].Created)
 				{
-					lcp_name=_T("Made SubDevice");
+					lcp_name=("Made SubDevice");
 					verify(MapleDevices_dd[i][j].mdd!=0);
 					//Init
 					nullDC_Maple_plugin *nmp=FindMaplePlugin(MapleDevices_dd[i][j].mdd);
@@ -1269,7 +1269,7 @@ bool plugins_Init()
 		{
 			if (rv==rv_error)
 			{
-				msgboxf(_T("Failed to init %s"),MBX_ICONERROR,lcp_name);				
+				msgboxf(("Failed to init %s"),MBX_ICONERROR,lcp_name);				
 			}
 			plugins_Term();
 			return false;
@@ -1279,7 +1279,7 @@ bool plugins_Init()
 	//gli __except(EXCEPTION_EXECUTE_HANDLER)
 	catch(...)
 	{
-		msgboxf(_T("Unhandled exeption while Initing %s plugin"),MBX_ICONERROR,lcp_name);
+		msgboxf(("Unhandled exeption while Initing %s plugin"),MBX_ICONERROR,lcp_name);
 		plugins_Term();
 		return false;
 	}

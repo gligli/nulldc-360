@@ -33,15 +33,7 @@ enum
 	ID_DREAMEYEMIC,
 };
 
-static const wchar* deviceNames[] =
-{
-	"Controller",
-	"Twinstick",
-	"Arcade Stick",
-	"Puru-Puru Pak",
-	"Mic",
-	"Dreameye Mic",
-};
+extern const char* deviceNames[];
 
 struct xmaple_settings
 {

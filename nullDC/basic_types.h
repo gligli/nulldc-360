@@ -21,5 +21,3 @@ typedef u32 unat;
 #ifdef X64
 typedef u64 unat;
 #endif
-
-typedef wchar_t wchar;

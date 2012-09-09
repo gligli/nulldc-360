@@ -236,7 +236,7 @@ void UpdateFPSCR()
 
 void GenerateSinCos()
 {
-	wchar* path=GetEmuPath("data/fsca-table.bin");
+	char* path=GetEmuPath("data/fsca-table.bin");
 	FILE* tbl=fopen(path,"rb");
 	free(path);
 	if (!tbl)

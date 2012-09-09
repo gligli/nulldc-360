@@ -9,9 +9,9 @@
 #define PAGE_MASK (PAGE_SIZE-1)
 
 extern u32 Array_T_id_count;
-wchar* GetNullDCSoruceFileName(wchar* full);
-void GetPathFromFileName(wchar* full);
-void GetFileNameFromPath(wchar* path,wchar* outp);
+char* GetNullDCSoruceFileName(char* full);
+void GetPathFromFileName(char* full);
+void GetFileNameFromPath(char* path,char* outp);
 u32 fastrand();
 //comonly used classes across the project
 //Simple Array class for helping me out ;P
@@ -219,7 +219,7 @@ private :
 public:
 	cDllHandler();
 	~cDllHandler();
-	bool Load(wchar* dll);
+	bool Load(char* dll);
 	bool IsLoaded();
 	void Unload();
 	void* GetProcAddress(char* name);
@@ -227,10 +227,10 @@ public:
 
 //L00k f0r f1l3s
 //bah
-typedef void FileFoundCB(wchar* file,void* param);
-void FindAllFiles(FileFoundCB* callback,wchar* dir,void* param);
-void GetApplicationPath(wchar* path,u32 size);
-wchar* GetEmuPath(const wchar* subpath);
+typedef void FileFoundCB(char* file,void* param);
+void FindAllFiles(FileFoundCB* callback,char* dir,void* param);
+void GetApplicationPath(char* path,u32 size);
+char* GetEmuPath(const char* subpath);
 
 
 
@@ -265,7 +265,7 @@ public:
 };
 
 void * ExeptionHandler(int pir,void * srr0,void * dar,int write);
-int msgboxf(wchar* text,unsigned int type,...);
+int msgboxf(char* text,unsigned int type,...);
 
 void bswap_block(void * addr,int size);
 

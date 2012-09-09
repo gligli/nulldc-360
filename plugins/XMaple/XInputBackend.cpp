@@ -15,9 +15,7 @@
 extern xmaple_settings maplesettings;
 
 #ifdef USE_GUI
-extern void Stop_DC();
-extern int EmuConfigRequested;
-extern void InGameMenu();
+void InGameMenu();
 #endif
 
 namespace XInput
@@ -76,7 +74,7 @@ bool Read(int XPadPlayer, u32 deviceType, EmulatedDevices::FT0::SStatus* status)
 	if (c->left)	{status->buttons ^= CONT_DPAD_LEFT;}
 	if (c->right)	{status->buttons ^= CONT_DPAD_RIGHT;}
 #ifdef USE_GUI
-	if (c->logo)	{EmuConfigRequested = 1;Stop_DC(); InGameMenu(); TR}
+	if (c->logo)    InGameMenu();
 #endif
 	if (c->back && c->logo) exit(0);
 	

@@ -6,14 +6,14 @@
             <name>nulldc-360_netbeans</name>
             <c-extensions>c</c-extensions>
             <cpp-extensions>cpp</cpp-extensions>
-            <header-extensions>H,h,hpp</header-extensions>
+            <header-extensions>h,hpp</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>/home/ced/xenon/nulldc/nulldc-360/files</sourceRootElem>
-                <sourceRootElem>/home/ced/xenon/nulldc/nulldc-360/nullDC</sourceRootElem>
-                <sourceRootElem>/home/ced/xenon/nulldc/nulldc-360/plugins</sourceRootElem>
-                <sourceRootElem>/home/ced/xenon/nulldc/nulldc-360/gui</sourceRootElem>
+                <sourceRootElem>../../files</sourceRootElem>
+                <sourceRootElem>../../nullDC</sourceRootElem>
+                <sourceRootElem>../../plugins</sourceRootElem>
+                <sourceRootElem>../../gui</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

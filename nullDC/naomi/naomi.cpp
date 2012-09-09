@@ -629,13 +629,13 @@ u32 NAOMI_BOARDID_READ;
 u32 NAOMI_COMM_OFFSET;
 u32 NAOMI_COMM_DATA;
 
-wchar SelectedFile[512];
+char SelectedFile[512];
 
 OPENFILENAME ofn;
 
 
 
-bool naomi_LoadRom(wchar* file)
+bool naomi_LoadRom(char* file)
 {
 	
 	log("\nnullDC-Naomi rom loader v1.2\n");
@@ -646,20 +646,20 @@ bool naomi_LoadRom(wchar* file)
 
 	folder_pos++;
 
-	wchar t[512];
+	char t[512];
 	wcscpy(t,file);
 	FILE* fl=_tfopen(t,L"r");
 	if (!fl)
 		return false;
 
-	wchar* line=fgetws(t,512,fl);
+	char* line=fgetws(t,512,fl);
 	if (!line)	
 	{
 		fclose(fl);
 		return false;
 	}
 
-	wchar* eon=wcswcs(line,L"\n");
+	char* eon=wcswcs(line,L"\n");
 	if (!eon)
 		wprintf(L"+Loading naomi rom that has no name\n",line);
 	else
@@ -683,7 +683,7 @@ bool naomi_LoadRom(wchar* file)
 
 	while(line)
 	{
-		wchar filename[512];
+		char filename[512];
 		u32 addr,sz;
 		swscanf(line,L"\"%[^\"]\",%x,%x",filename,&addr,&sz);
 		files.push_back(filename);

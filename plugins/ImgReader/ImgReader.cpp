@@ -26,19 +26,19 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 }*/
 
 _setts irsettings;
-int cfgGetInt(wchar* key,int def)
+int cfgGetInt(char* key,int def)
 {
 	return emu.ConfigLoadInt("ImageReader",key,def);
 }
-void cfgSetInt(wchar* key,int v)
+void cfgSetInt(char* key,int v)
 {
 	emu.ConfigSaveInt("ImageReader",key,v);
 }
-void cfgGetStr(wchar* key,wchar* v,const wchar*def)
+void cfgGetStr(char* key,char* v,const char*def)
 {
 	emu.ConfigLoadStr("ImageReader",key,v,def);
 }
-void cfgSetStr(wchar* key,const wchar* v)
+void cfgSetStr(char* key,const char* v)
 {
 	emu.ConfigSaveStr("ImageReader",key,v);
 }
@@ -72,10 +72,12 @@ void irLoadSettings()
 }
 void irSaveSettings()
 {
+#ifndef USE_GUI
 	cfgSetInt("PatchRegion",irsettings.PatchRegion);
 	cfgSetInt("LoadDefaultImage",irsettings.LoadDefaultImage);
 	cfgSetStr("DefaultImage",irsettings.DefaultImage);
 	cfgSetStr("LastImage",irsettings.LastImage);
+#endif
 }
 #define PLUGIN_NAME "Image Reader plugin by drk||Raziel & GiGaHeRz [" __DATE__ "]"
 #define PLUGIN_NAMEW "Image Reader plugin by drk||Raziel & GiGaHeRz [" __DATE__ "]"
@@ -132,7 +134,7 @@ void FASTCALL GetSessionInfo(u8* out,u8 ses)
 	GetDriveSessionInfo(out,ses);
 }
 emu_info emu;
-wchar iremu_name[512];
+char iremu_name[512];
 void EXPORT_CALL handle_PatchRegion(u32 id,void* w,void* p)
 {
 	if (irsettings.PatchRegion)

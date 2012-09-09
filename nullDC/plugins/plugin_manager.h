@@ -13,8 +13,8 @@ struct nullDC_plugin
 	}
 	cDllHandler dll;
 	int id;
-	wchar dll_file[512];
-	s32 Open(wchar* plugin);
+	char dll_file[512];
+	s32 Open(char* plugin);
 	virtual void LoadI(plugin_interface* plugin)=0;
 	bool IsOpened();
 	void Close();
@@ -53,14 +53,14 @@ struct nullDC_ExtDevice_plugin:common_info,ext_device_plugin_if,nullDC_plugin
 //Struct to hold plugin info
 struct PluginLoadInfo
 {
-	wchar			Name[128];			//plugin name
+	char			Name[128];			//plugin name
 	PluginType		Type;				//plugin type
-	wchar			dll[512];
+	char			dll[512];
 };
 struct MapleDeviceDefinition:maple_device_definition
 {
-	wchar dll[512];		//xxxx.dll:id
-	wchar dll_file[512];	//xxxx.dll
+	char dll[512];		//xxxx.dll:id
+	char dll_file[512];	//xxxx.dll
 	u32 id;
 };
 

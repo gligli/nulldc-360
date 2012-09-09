@@ -11,7 +11,7 @@
 #include <sys/iosupport.h>
 #include <diskio/disc_io.h>
 
-extern int nulldc_main(char * filename);
+extern int nulldc_run(char * filename);
 extern int nulldc_init();
 
 char ROMFilename[2048] = {0};
@@ -20,12 +20,11 @@ char SaveFolder[2048] = {0};
 char EmuFilename[2048] = {0};
 
 int EmuConfigRequested = 0;
-int EmuResetRequested = 0;
 int EmuRunning = 0;
 
 void EmuReset()
 {
-	Reset_DC(true);
+	Reset_DC(false);
 }
 
 void InitEmuVideo()
@@ -35,18 +34,22 @@ void InitEmuVideo()
 
 void EmuInit()
 {
-	
+	nulldc_init();
 }
 
 void EmuStop()
 {
-	Term_DC();
-	EmuRunning = 0;
+	Stop_DC();
 }
 
 void EmuResume()
 {
-	
+    Start_DC();
+}
+
+void EmuTerm()
+{
+ 	Term_DC();
 }
 
 int EmuSaveState(char * filename)
@@ -66,17 +69,13 @@ void EmuPrepareLaunch(char * filename)
 	
 	// copy filename
 	strcpy(EmuFilename, filename);
-	
-	// ???
-	EmuLaunch();
 }
 
 void EmuLaunch()
 {	
-	if(nulldc_init() == 0) {
-		EmuRunning = 1;
-		EmuResetRequested = 0;
-		EmuConfigRequested = 0;
-		nulldc_main(EmuFilename);
-	}
+    EmuRunning = 1;
+    EmuConfigRequested = 0;
+
+    EmuInit();
+    nulldc_run(EmuFilename);
 }

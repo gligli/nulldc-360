@@ -211,7 +211,7 @@ void mem_Reset(bool Manual)
 		//fill mem w/ 0's
 		mem_b.Zero();
 
-		wchar* temp_path=GetEmuPath("data/");
+		char* temp_path=GetEmuPath("data/");
 		u32 pl=(u32)strlen(temp_path);
 
 		#ifdef BUILD_DREAMCAST
@@ -242,7 +242,7 @@ void mem_Term()
 	sh4_area0_Term();
 
 	//write back flash/sram
-	wchar* temp_path=GetEmuPath("data/");
+	char* temp_path=GetEmuPath("data/");
 	SaveRomFiles(temp_path);
 	free(temp_path);
 	

@@ -26,15 +26,15 @@ u32 fastrand()
 }
 
 //Misc function to get relative source directory for log's
-wchar temp[1000];
-wchar* GetNullDCSoruceFileName(wchar* full)
+char temp[1000];
+char* GetNullDCSoruceFileName(char* full)
 {
 	size_t len = strlen(full);
 	while(len>18)
 	{
 		if (full[len]=='/')
 		{
-			memcpy(&temp[0],&full[len-14],15*sizeof(wchar));
+			memcpy(&temp[0],&full[len-14],15*sizeof(char));
 			temp[15]=0;
 			if (strcmp(&temp[0],"/nulldc/nulldc/")==0)
 			{
@@ -48,14 +48,14 @@ wchar* GetNullDCSoruceFileName(wchar* full)
 	return &temp[0];
 }
 
-wchar* GetPathFromFileNameTemp(wchar* full)
+char* GetPathFromFileNameTemp(char* full)
 {
 	size_t len = strlen(full);
 	while(len>2)
 	{
 		if (full[len]=='/')
 		{
-			memcpy(&temp[0],&full[0],(len+1)*sizeof(wchar));
+			memcpy(&temp[0],&full[0],(len+1)*sizeof(char));
 			temp[len+1]=0;
 			return temp;	
 		}
@@ -65,12 +65,12 @@ wchar* GetPathFromFileNameTemp(wchar* full)
 	return &temp[0];
 }
 
-void GetPathFromFileName(wchar* path)
+void GetPathFromFileName(char* path)
 {
 	strcpy(path,GetPathFromFileNameTemp(path));
 }
 
-void GetFileNameFromPath(wchar* path,wchar* outp)
+void GetFileNameFromPath(char* path,char* outp)
 {
 	
 	size_t i=strlen(path);
@@ -89,22 +89,22 @@ void GetFileNameFromPath(wchar* path,wchar* outp)
 }
 
 #ifndef USE_GUI
-wchar AppPath[1024] = "uda:/nulldc-360/";
-void GetApplicationPath(wchar* path,u32 size)
+char AppPath[1024] = "uda:/nulldc-360/";
+void GetApplicationPath(char* path,u32 size)
 {
 	strcpy(path,AppPath);
 }
 #else
-wchar AppPath[1024] = "nulldc-360/";
-void GetApplicationPath(wchar* path,u32 size)
+char AppPath[1024] = "nulldc-360/";
+void GetApplicationPath(char* path,u32 size)
 {
 	strcpy(path,AppPath);
 }
 #endif
 
-wchar* GetEmuPath(const wchar* subpath)
+char* GetEmuPath(const char* subpath)
 {
-	wchar* temp=(wchar*)malloc(1024);
+	char* temp=(char*)malloc(1024);
 	GetApplicationPath(temp,1024);
 	strcat(temp,subpath);
 	return temp;
@@ -198,7 +198,7 @@ cDllHandler::~cDllHandler()
 	}
 }
 
-bool cDllHandler::Load(wchar* dll)
+bool cDllHandler::Load(char* dll)
 {
 	lib=LoadLibrary(dll);
 	if (lib==0)
@@ -256,11 +256,11 @@ void* cDllHandler::GetProcAddress(char* name)
 }
 
 //File Enumeration
-void FindAllFiles(FileFoundCB* callback,wchar* dir,void* param)
+void FindAllFiles(FileFoundCB* callback,char* dir,void* param)
 {
 /*gli	WIN32_FIND_DATA FindFileData;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
-	wchar DirSpec[MAX_PATH + 1];  // directory specification
+	char DirSpec[MAX_PATH + 1];  // directory specification
 	DWORD dwError;
 
 	wcsncpy (DirSpec, dir, wcslen(dir)+1);
@@ -396,26 +396,9 @@ int msgboxf(char* text,unsigned int type,...)
 	va_start(args, type);
 	vsprintf(temp, text, args);
 	va_end(args);
-#ifndef USE_GUI
+
 	printf("[msgboxf] %s\n",temp);
-	
-	if (libgui.MsgBox!=0)
-	{
-		return libgui.MsgBox(temp,type);
-	}
-/*gli	else
-		return MessageBox(NULL,temp,VER_SHORTNAME,type | MB_TASKMODAL);*/
-#else
-	switch(type)
-	{
-		case MBX_ICONERROR:
-			ErrorPrompt(temp);
-			break;
-		default:
-			InfoPrompt(temp);
-			break;
-	}
-#endif
+
 	return 0;
 }
 

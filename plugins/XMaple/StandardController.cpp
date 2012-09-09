@@ -23,7 +23,7 @@ u32 StdController::DMA(u32 Command,
 					   u32* buffer_in, u32 buffer_in_len,
 					   u32* buffer_out, u32& buffer_out_len)
 {
-	u8* buffer_out_b = (u8*)buffer_out;
+//	u8* buffer_out_b = (u8*)buffer_out;
 
 	u32 ret;
 	if ((ret = FT0::DMA(Command, buffer_in, buffer_in_len, buffer_out, buffer_out_len)) == 0)

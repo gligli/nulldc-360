@@ -6,7 +6,6 @@
 #include <debug.h>
 
 typedef u32 unat;
-typedef char wchar;
 typedef u64 LARGE_INTEGER;
 
 #define EXPORT
@@ -14,8 +13,6 @@ typedef u64 LARGE_INTEGER;
 #define EXPORT_CALL
 #define FASTCALL
 #define CDECL
-
-#define _T
 
 #else
 //SHUT UP M$ COMPILER !@#!@$#
@@ -65,8 +62,6 @@ typedef u32 unat;
 #ifdef X64
 typedef u64 unat;
 #endif
-
-typedef wchar_t wchar;
 
 #define EXPORT extern "C" __declspec(dllexport)
 

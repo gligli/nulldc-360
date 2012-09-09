@@ -1,6 +1,6 @@
 #include "gdi.h"
 
-Disc* load_gdi(wchar* file_)
+Disc* load_gdi(char* file_)
 {
 	char file[512];
 	u32 iso_tc;
@@ -76,7 +76,7 @@ Disc* load_gdi(wchar* file_)
 }
 
 
-Disc* gdi_parse(wchar* file)
+Disc* gdi_parse(char* file)
 {
 	size_t len=strlen(file);
 	if (len>4)

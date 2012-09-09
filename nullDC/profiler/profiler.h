@@ -15,15 +15,15 @@ int effsceas(int tick, int cycleDif);
 
 enum
 {		
-	GFX_TC = 0,
-	AICA_TC,
-	ARM_TC,
-	GDROM_TC,
-	MAPLE_TC,
-	DYNA_TC,
-	DYNA_LOOP_TC,
-	MAIN_TC,
-	REST_TC
+	GFXC = 0,
+	AICAC,
+	ARMC,
+	GDROMC,
+	MAPLEC,
+	DYNAC,
+	DYNA_LOOPC,
+	MAINC,
+	RESTC
 };
 
 enum
@@ -59,7 +59,7 @@ struct prof_info
 
 	u64 cd;
 
-	void ToText(wchar* dest, prof_stats* stats)
+	void ToText(char* dest, prof_stats* stats)
 	{
 		cd = CycleDiff();
 
@@ -79,38 +79,38 @@ struct prof_info
 			stats->avg_count[i][EFFSCEAS] += (effsceas(stats->avg_count[i][TICKS],cd) - stats->avg_count[i][EFFSCEAS]) / stats->avg_counter;
 		}
 	
-		dest+=sprintf(dest,_T("\nGFX  cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
-			effsceas(current_count[GFX_TC],cd)/1000.0f, percent(current_count[GFX_TC],total_tc)/100.0f,		
-			stats->avg_count[GFX_TC][EFFSCEAS]/1000.0f, stats->avg_count[GFX_TC][PERCENT]/100.0f,		
-			stats->max_count[GFX_TC][EFFSCEAS]/1000.0f, stats->max_count[GFX_TC][PERCENT]/100.0f);
-		dest+=sprintf(dest,_T("AICA cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
-			effsceas(current_count[AICA_TC],cd)/1000.0f, percent(current_count[AICA_TC],total_tc)/100.0f,		
-			stats->avg_count[AICA_TC][EFFSCEAS]/1000.0f, stats->avg_count[AICA_TC][PERCENT]/100.0f,		
-			stats->max_count[AICA_TC][EFFSCEAS]/1000.0f, stats->max_count[AICA_TC][PERCENT]/100.0f);
-		dest+=sprintf(dest,_T("ARM  cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
-			effsceas(current_count[ARM_TC],cd)/1000.0f, percent(current_count[ARM_TC],total_tc)/100.0f,		
-			stats->avg_count[ARM_TC][EFFSCEAS]/1000.0f, stats->avg_count[ARM_TC][PERCENT]/100.0f,		
-			stats->max_count[ARM_TC][EFFSCEAS]/1000.0f, stats->max_count[ARM_TC][PERCENT]/100.0f);
-		dest+=sprintf(dest,_T("GDR  cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
-			effsceas(current_count[GDROM_TC],cd)/1000.0f, percent(current_count[GDROM_TC],total_tc)/100.0f,		
-			stats->avg_count[GDROM_TC][EFFSCEAS]/1000.0f, stats->avg_count[GDROM_TC][PERCENT]/100.0f,		
-			stats->max_count[GDROM_TC][EFFSCEAS]/1000.0f, stats->max_count[GDROM_TC][PERCENT]/100.0f);		
-		dest+=sprintf(dest,_T("MAIN cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
-			effsceas(current_count[MAIN_TC],cd)/1000.0f, percent(current_count[MAIN_TC],total_tc)/100.0f,		
-			stats->avg_count[MAIN_TC][EFFSCEAS]/1000.0f, stats->avg_count[MAIN_TC][PERCENT]/100.0f,		
-			stats->max_count[MAIN_TC][EFFSCEAS]/1000.0f, stats->max_count[MAIN_TC][PERCENT]/100.0f);
-		dest+=sprintf(dest,_T("LOOP cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
-			effsceas(current_count[DYNA_LOOP_TC],cd)/1000.0f, percent(current_count[DYNA_LOOP_TC],total_tc)/100.0f,		
-			stats->avg_count[DYNA_LOOP_TC][EFFSCEAS]/1000.0f, stats->avg_count[DYNA_LOOP_TC][PERCENT]/100.0f,		
-			stats->max_count[DYNA_LOOP_TC][EFFSCEAS]/1000.0f, stats->max_count[DYNA_LOOP_TC][PERCENT]/100.0f);
-		dest+=sprintf(dest,_T("DYNA cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
-			effsceas(current_count[DYNA_TC],cd)/1000.0f, percent(current_count[DYNA_TC],total_tc)/100.0f,		
-			stats->avg_count[DYNA_TC][EFFSCEAS]/1000.0f, stats->avg_count[DYNA_TC][PERCENT]/100.0f,		
-			stats->max_count[DYNA_TC][EFFSCEAS]/1000.0f, stats->max_count[DYNA_TC][PERCENT]/100.0f);
-		dest+=sprintf(dest,_T("REST cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%"),
-			effsceas(current_count[REST_TC],cd)/1000.0f, percent(current_count[REST_TC],total_tc)/100.0f,		
-			stats->avg_count[REST_TC][EFFSCEAS]/1000.0f, stats->avg_count[REST_TC][PERCENT]/100.0f,		
-			stats->max_count[REST_TC][EFFSCEAS]/1000.0f, stats->max_count[REST_TC][PERCENT]/100.0f);
+		dest+=sprintf(dest,("\nGFX  cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
+			effsceas(current_count[GFXC],cd)/1000.0f, percent(current_count[GFXC],total_tc)/100.0f,		
+			stats->avg_count[GFXC][EFFSCEAS]/1000.0f, stats->avg_count[GFXC][PERCENT]/100.0f,		
+			stats->max_count[GFXC][EFFSCEAS]/1000.0f, stats->max_count[GFXC][PERCENT]/100.0f);
+		dest+=sprintf(dest,("AICA cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
+			effsceas(current_count[AICAC],cd)/1000.0f, percent(current_count[AICAC],total_tc)/100.0f,		
+			stats->avg_count[AICAC][EFFSCEAS]/1000.0f, stats->avg_count[AICAC][PERCENT]/100.0f,		
+			stats->max_count[AICAC][EFFSCEAS]/1000.0f, stats->max_count[AICAC][PERCENT]/100.0f);
+		dest+=sprintf(dest,("ARM  cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
+			effsceas(current_count[ARMC],cd)/1000.0f, percent(current_count[ARMC],total_tc)/100.0f,		
+			stats->avg_count[ARMC][EFFSCEAS]/1000.0f, stats->avg_count[ARMC][PERCENT]/100.0f,		
+			stats->max_count[ARMC][EFFSCEAS]/1000.0f, stats->max_count[ARMC][PERCENT]/100.0f);
+		dest+=sprintf(dest,("GDR  cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
+			effsceas(current_count[GDROMC],cd)/1000.0f, percent(current_count[GDROMC],total_tc)/100.0f,		
+			stats->avg_count[GDROMC][EFFSCEAS]/1000.0f, stats->avg_count[GDROMC][PERCENT]/100.0f,		
+			stats->max_count[GDROMC][EFFSCEAS]/1000.0f, stats->max_count[GDROMC][PERCENT]/100.0f);		
+		dest+=sprintf(dest,("MAIN cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
+			effsceas(current_count[MAINC],cd)/1000.0f, percent(current_count[MAINC],total_tc)/100.0f,		
+			stats->avg_count[MAINC][EFFSCEAS]/1000.0f, stats->avg_count[MAINC][PERCENT]/100.0f,		
+			stats->max_count[MAINC][EFFSCEAS]/1000.0f, stats->max_count[MAINC][PERCENT]/100.0f);
+		dest+=sprintf(dest,("LOOP cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
+			effsceas(current_count[DYNA_LOOPC],cd)/1000.0f, percent(current_count[DYNA_LOOPC],total_tc)/100.0f,		
+			stats->avg_count[DYNA_LOOPC][EFFSCEAS]/1000.0f, stats->avg_count[DYNA_LOOPC][PERCENT]/100.0f,		
+			stats->max_count[DYNA_LOOPC][EFFSCEAS]/1000.0f, stats->max_count[DYNA_LOOPC][PERCENT]/100.0f);
+		dest+=sprintf(dest,("DYNA cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%\n"),
+			effsceas(current_count[DYNAC],cd)/1000.0f, percent(current_count[DYNAC],total_tc)/100.0f,		
+			stats->avg_count[DYNAC][EFFSCEAS]/1000.0f, stats->avg_count[DYNAC][PERCENT]/100.0f,		
+			stats->max_count[DYNAC][EFFSCEAS]/1000.0f, stats->max_count[DYNAC][PERCENT]/100.0f);
+		dest+=sprintf(dest,("REST cur %.3f, %5.1f%% | avg %.3f, %5.1f%% | max %.3f, %5.1f%%"),
+			effsceas(current_count[RESTC],cd)/1000.0f, percent(current_count[RESTC],total_tc)/100.0f,		
+			stats->avg_count[RESTC][EFFSCEAS]/1000.0f, stats->avg_count[RESTC][PERCENT]/100.0f,		
+			stats->max_count[RESTC][EFFSCEAS]/1000.0f, stats->max_count[RESTC][PERCENT]/100.0f);
 		
 	}
 

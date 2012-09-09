@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <df name="files" root="/home/ced/xenon/nulldc/nulldc-360/files">
-      <in>compile.bat</in>
-      <in>ps.bin</in>
-      <in>ps.hlsl</in>
-      <in>rshadercompiler.exe</in>
-      <in>vs.bin</in>
-      <in>vs.hlsl</in>
+    <df name="files" root="../../files">
     </df>
-    <df name="gui" root="/home/ced/xenon/nulldc/nulldc-360/gui">
+    <df name="gui" root="../../gui">
       <df name="fonts">
-        <in>font.ttf</in>
       </df>
       <df name="gui">
         <in>gui.h</in>
@@ -30,319 +23,64 @@
       </df>
       <df name="images">
         <df name="svg">
-          <in>drawing-1.svg</in>
-          <in>drawing-2.svg</in>
-          <in>drawing-3.svg</in>
-          <in>drawing-4.svg</in>
-          <in>drawing-5.svg</in>
         </df>
-        <in>battery.png</in>
-        <in>battery_bar.png</in>
-        <in>battery_red.png</in>
-        <in>bg_bottom.png</in>
-        <in>bg_game_selection.png</in>
-        <in>bg_game_selection_entry.png</in>
-        <in>bg_options.png</in>
-        <in>bg_options_entry.png</in>
-        <in>bg_top.png</in>
-        <in>button.png</in>
-        <in>button_arrow_down.png</in>
-        <in>button_arrow_down_over.png</in>
-        <in>button_arrow_left.png</in>
-        <in>button_arrow_left_over.png</in>
-        <in>button_arrow_right.png</in>
-        <in>button_arrow_right_over.png</in>
-        <in>button_arrow_up.png</in>
-        <in>button_arrow_up_over.png</in>
-        <in>button_gamesave.png</in>
-        <in>button_gamesave_blank.png</in>
-        <in>button_gamesave_over.png</in>
-        <in>button_large.png</in>
-        <in>button_large_over.png</in>
-        <in>button_long.png</in>
-        <in>button_long_over.png</in>
-        <in>button_over.png</in>
-        <in>button_prompt.png</in>
-        <in>button_prompt_over.png</in>
-        <in>button_short.png</in>
-        <in>button_short_over.png</in>
-        <in>button_small.png</in>
-        <in>button_small_over.png</in>
-        <in>credits_box.png</in>
-        <in>dialogue_box.png</in>
-        <in>icon_dvd.png</in>
-        <in>icon_folder.png</in>
-        <in>icon_game_cheats.png</in>
-        <in>icon_game_controllers.png</in>
-        <in>icon_game_load.png</in>
-        <in>icon_game_reset.png</in>
-        <in>icon_game_save.png</in>
-        <in>icon_game_settings.png</in>
-        <in>icon_home.png</in>
-        <in>icon_sd.png</in>
-        <in>icon_settings.png</in>
-        <in>icon_settings_classic.png</in>
-        <in>icon_settings_file.png</in>
-        <in>icon_settings_gamecube.png</in>
-        <in>icon_settings_justifier.png</in>
-        <in>icon_settings_mappings.png</in>
-        <in>icon_settings_menu.png</in>
-        <in>icon_settings_mouse.png</in>
-        <in>icon_settings_network.png</in>
-        <in>icon_settings_nunchuk.png</in>
-        <in>icon_settings_snescontroller.png</in>
-        <in>icon_settings_superscope.png</in>
-        <in>icon_settings_video.png</in>
-        <in>icon_settings_wiimote.png</in>
-        <in>icon_settings_xbox_pad.png</in>
-        <in>icon_smb.png</in>
-        <in>icon_usb.png</in>
-        <in>keyboard_key.png</in>
-        <in>keyboard_key_over.png</in>
-        <in>keyboard_largekey.png</in>
-        <in>keyboard_largekey_over.png</in>
-        <in>keyboard_mediumkey.png</in>
-        <in>keyboard_mediumkey_over.png</in>
-        <in>keyboard_textbox.png</in>
-        <in>logo_over.png</in>
-        <in>player1_grab.png</in>
-        <in>player1_point.png</in>
-        <in>player2_grab.png</in>
-        <in>player2_point.png</in>
-        <in>player3_grab.png</in>
-        <in>player3_point.png</in>
-        <in>player4_grab.png</in>
-        <in>player4_point.png</in>
-        <in>progressbar.png</in>
-        <in>progressbar_empty.png</in>
-        <in>progressbar_outline.png</in>
-        <in>screen_position.png</in>
-        <in>scrollbar.png</in>
-        <in>scrollbar_arrowdown.png</in>
-        <in>scrollbar_arrowdown_over.png</in>
-        <in>scrollbar_arrowup.png</in>
-        <in>scrollbar_arrowup_over.png</in>
-        <in>scrollbar_box.png</in>
-        <in>scrollbar_box_over.png</in>
-        <in>throbber.png</in>
       </df>
       <df name="lang">
-        <in>ca.lang</in>
-        <in>de.lang</in>
-        <in>en.lang</in>
-        <in>es.lang</in>
-        <in>fr.lang</in>
-        <in>it.lang</in>
-        <in>jp.lang</in>
-        <in>ko.lang</in>
-        <in>nl.lang</in>
-        <in>pt.lang</in>
-        <in>pt_br.lang</in>
-        <in>tr.lang</in>
-        <in>zh.lang</in>
       </df>
       <df name="shaders">
         <df name="filters">
-          <in>2xBR-v3.5a.cg</in>
-          <in>5xBR-v3.7a.cg</in>
-          <in>5xBR-v3.7b.cg</in>
-          <in>5xBR-v3.7c.cg</in>
-          <in>crt.cg</in>
-          <in>hq4x.cg</in>
-          <in>normal.cg</in>
-          <in>scanline.cg</in>
-          <in>super2xSal.cg</in>
         </df>
         <df name="twinaphex-common-shaders">
           <df name="auto-box">
-            <in>box-max.cg</in>
-            <in>sharpen-lighter-box.cg</in>
           </df>
           <df name="Bicubic">
-            <in>Bicubic-normal.cg</in>
-            <in>Bicubic-sharp.cg</in>
-            <in>Bicubic-sharper.cg</in>
-            <in>bicubic-fast.cg</in>
           </df>
           <df name="Borders">
             <df name="Border-Aspect">
-              <in>border-aspect.cg</in>
             </df>
             <df name="Border-Centered">
-              <in>border-centered-fbo-scale-1x.cg</in>
-              <in>border-centered-fbo-scale-2x.cg</in>
-              <in>border-centered-fbo-scale-4x.cg</in>
-              <in>border-centered-non-fbo.cg</in>
-              <in>border-centered-water-fbo-scale-1x.cg</in>
-              <in>border-centered-water-fbo-scale-2x.cg</in>
-              <in>border-centered-water-fbo-scale-4x.cg</in>
-              <in>border-centered-water-non-fbo.cg</in>
             </df>
             <df name="Border-Left-Portrait">
-              <in>border-left-portrait-fbo-scale-1x.cg</in>
-              <in>border-left-portrait-fbo-scale-2x.cg</in>
-              <in>border-left-portrait-fbo-scale-4x.cg</in>
-              <in>border-left-portrait-non-fbo.cg</in>
             </df>
             <df name="Menu">
-              <in>border-only-rarch.cg</in>
-              <in>border-only.cg</in>
             </df>
           </df>
           <df name="CRT">
-            <in>CRT-caligari.cg</in>
-            <in>CRT-cgwg-variation.cg</in>
-            <in>CRT-cgwg.cg</in>
-            <in>CRT-cgwg.cg.orig</in>
-            <in>crt-highgamma.cg</in>
-            <in>crt-normalgamma.cg</in>
-            <in>crt.cg</in>
-            <in>phosphor-normalgamma.cg</in>
-            <in>phosphor.cg</in>
-            <in>tv-highcontrast-HD-1152x672.cg</in>
-            <in>tv-highcontrast-HD.cg</in>
           </df>
           <df name="Eagle">
-            <in>superEagle-HD-768.cg</in>
-            <in>superEagle-HD.cg</in>
-            <in>superEagle.cg</in>
           </df>
           <df name="Handheld">
-            <in>dot.cg</in>
           </df>
           <df name="HQx">
-            <in>hq2x-HD-768.cg</in>
-            <in>hq2x-HD.cg</in>
-            <in>hq2x.cg</in>
-            <in>hq4x.cg</in>
           </df>
           <df name="Lanczos">
-            <in>Lanczos12-HD-768.cg</in>
-            <in>Lanczos12-HD.cg</in>
-            <in>Lanczos12.cg</in>
-            <in>Lanczos16-HD-768.cg</in>
-            <in>Lanczos16-HD.cg</in>
-            <in>Lanczos16.cg</in>
-            <in>Lanczos4.cg</in>
-            <in>Lanczos6.cg</in>
           </df>
           <df name="Misc">
-            <in>MCGreen.cg</in>
-            <in>Nohalo.cg</in>
           </df>
           <df name="Motionblur">
-            <in>Motionblur-blue.cg</in>
           </df>
           <df name="Mudlord">
-            <in>bloom-HD-variation.cg</in>
-            <in>bloom.cg</in>
-            <in>blur-light.cg</in>
-            <in>blur-lighter.cg</in>
-            <in>blur.cg</in>
-            <in>emboss.cg</in>
-            <in>mud-mudlord.cg</in>
-            <in>noise-mudlord.cg</in>
-            <in>sharpen-light.cg</in>
-            <in>sharpen-light2.cg</in>
-            <in>sharpen-lighter.cg</in>
-            <in>sharpen-medium.cg</in>
-            <in>sharpen.cg</in>
-            <in>toon.cg</in>
-            <in>waterpaint-mudlord-HD-768.cg</in>
-            <in>waterpaint-mudlord-HD.cg</in>
-            <in>waterpaint-mudlord-variant.cg</in>
-            <in>waterpaint-mudlord.cg</in>
           </df>
           <df name="Neon">
-            <in>neon-variation-1.cg</in>
           </df>
           <df name="Quad">
-            <in>quad_interp-HD-768.cg</in>
-            <in>quad_interp-HD.cg</in>
-            <in>quad_interp.cg</in>
           </df>
           <df name="Scalex">
-            <in>scale2xplus-HD-768.cg</in>
-            <in>scale2xplus-HD.cg</in>
-            <in>scale2xplus.cg</in>
           </df>
           <df name="Waterpaint">
-            <in>water.cg</in>
-            <in>waterpaint-highcontrast-scanline.cg</in>
-            <in>waterpaint-highcontrast.cg</in>
-            <in>waterpaint-normalcontrast-scanline.cg</in>
-            <in>waterpaint-normalcontrast.cg</in>
-            <in>waterpaint-veryhighcontrast-scanline.cg</in>
-            <in>waterpaint-veryhighcontrast.cg</in>
           </df>
           <df name="xBR">
             <df name="hlsl">
-              <in>5xBR-v3.7a.cg</in>
             </df>
             <df name="Legacy">
-              <in>2xBR-v2.1.cg</in>
-              <in>2xBR-v2.cg</in>
-              <in>3xBR-v2.cg</in>
-              <in>5xBR-v2.1.cg</in>
-              <in>5xBR-v2.cg</in>
-              <in>5xBR-v3.2.cg</in>
-              <in>5xBR-v3.3.cg</in>
-              <in>5xBR-v3.5+CRT.cg</in>
-              <in>5xBR-v3.5.cg</in>
-              <in>5xBR-v3.5a.cg</in>
-              <in>5xBR-v3.6a.cg</in>
-              <in>5xBR-v3.6b.cg</in>
-              <in>5xBR-v3.6c.cg</in>
             </df>
-            <in>2xBR-v2.2.cg</in>
-            <in>2xBR-v3.5a.cg</in>
-            <in>2xBR.cg</in>
-            <in>3xBR-v2.1.cg</in>
-            <in>3xBR.cg</in>
-            <in>4xBR-v1.1.cg</in>
-            <in>4xBR-v3.5+CRT.cg</in>
-            <in>4xBR.cg</in>
-            <in>5xBR-v1.1.cg</in>
-            <in>5xBR-v3.7a.cg</in>
-            <in>5xBR-v3.7b.cg</in>
-            <in>5xBR-v3.7c+CRT.cg</in>
-            <in>5xBR-v3.7c-lq.cg</in>
-            <in>5xBR-v3.7c.cg</in>
-            <in>5xBR.cg</in>
           </df>
           <df name="xSaI">
-            <in>super2xSal-HD-768.cg</in>
-            <in>super2xSal-HD.cg</in>
-            <in>super2xSal.cg</in>
           </df>
           <df name="xSaL">
-            <in>2xSaL-HD-768.cg</in>
-            <in>2xSaL-HD.cg</in>
-            <in>2xSaL.cg</in>
           </df>
           <df name="xSoft">
-            <in>4xSoft-HD-1152x672.cg</in>
-            <in>4xSoft-HD-1344x752.cg</in>
-            <in>4xSoft-HD-1440x792.cg</in>
-            <in>4xSoft-HD-1536x832.cg</in>
-            <in>4xSoft-HD-768.cg</in>
-            <in>4xSoft-HD-960x592.cg</in>
-            <in>4xSoft-HD-variation-1-1344x752.cg</in>
-            <in>4xSoft-HD-variation-1-960x592.cg</in>
-            <in>4xSoft-HD-variation-1.cg</in>
-            <in>4xSoft-HD.cg</in>
-            <in>4xSoft-variation-1.cg</in>
-            <in>4xSoft.cg</in>
           </df>
-          <in>5xBRetro.cg</in>
-          <in>AdvancedAA.cg</in>
-          <in>Quilez.cg</in>
-          <in>bead.cg</in>
-          <in>blinky.cg</in>
-          <in>ddt.cg</in>
-          <in>pixellate.cg</in>
-          <in>scanline.cg</in>
-          <in>stock.cg</in>
         </df>
         <in>2xBR-v3.5a.ps.h</in>
         <in>2xBR-v3.5a.vs.h</in>
@@ -352,14 +90,10 @@
         <in>5xBR-v3.7b.vs.h</in>
         <in>5xBR-v3.7c.ps.h</in>
         <in>5xBR-v3.7c.vs.h</in>
-        <in>compile.bat</in>
-        <in>compile_shaders.bat</in>
-        <in>compile_twinaplhex_shaders.bat</in>
         <in>crt.ps.h</in>
         <in>crt.vs.h</in>
         <in>hq4x.ps.h</in>
         <in>hq4x.vs.h</in>
-        <in>libwiigui.hlsl</in>
         <in>ps.c.h</in>
         <in>ps.t.h</in>
         <in>ps.tc.h</in>
@@ -372,16 +106,9 @@
         <in>vs.h</in>
       </df>
       <df name="sounds">
-        <in>bg_music.ogg</in>
-        <in>button_click.pcm</in>
-        <in>button_over.pcm</in>
-        <in>enter.ogg</in>
-        <in>exit.ogg</in>
       </df>
       <df name="utils">
         <df name="smb">
-          <in>LICENSE</in>
-          <in>README</in>
           <in>auth.c</in>
           <in>auth.h</in>
           <in>des.c</in>
@@ -441,7 +168,7 @@
       <in>wchar.c</in>
       <in>xenon.c</in>
     </df>
-    <df name="nullDC" root="/home/ced/xenon/nulldc/nulldc-360/nullDC">
+    <df name="nullDC" root="../../nullDC">
       <df name="cl">
         <in>cl.cpp</in>
         <in>cl.h</in>
@@ -635,7 +362,7 @@
       <in>stdclass.h</in>
       <in>types.h</in>
     </df>
-    <df name="plugins" root="/home/ced/xenon/nulldc/nulldc-360/plugins">
+    <df name="plugins" root="../../plugins">
       <df name="drkPvr">
         <in>Renderer_if.cpp</in>
         <in>Renderer_if.h</in>
@@ -779,10 +506,10 @@
   </logicalFolder>
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
-    <Elem>/home/ced/xenon/nulldc/nulldc-360/files</Elem>
-    <Elem>/home/ced/xenon/nulldc/nulldc-360/nullDC</Elem>
-    <Elem>/home/ced/xenon/nulldc/nulldc-360/plugins</Elem>
-    <Elem>/home/ced/xenon/nulldc/nulldc-360/gui</Elem>
+    <Elem>../../files</Elem>
+    <Elem>../../nullDC</Elem>
+    <Elem>../../plugins</Elem>
+    <Elem>../../gui</Elem>
   </sourceRootList>
   <projectmakefile></projectmakefile>
   <confs>
@@ -810,6 +537,9 @@
               <pElem>../../../../../../usr/local/xenon/xenon/include/sys</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/drkPvr</pElem>
             </incDir>
+            <preprocessorList>
+              <Elem>MCHK</Elem>
+            </preprocessorList>
           </cTool>
           <ccTool>
             <incDir>
@@ -853,697 +583,13 @@
               <pElem>../../../../../../mnt/ppc/nulldc-360/nullDC/gui</pElem>
               <pElem>../../../../../../mnt/ppc/nulldc-360/plugins/ImgReader/deps</pElem>
             </incDir>
+            <preprocessorList>
+              <Elem>MCHK</Elem>
+              <Elem>USE_GUI</Elem>
+            </preprocessorList>
           </ccTool>
         </makeTool>
       </makefileType>
-      <item path="../../nullDC/basic_types.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/bininc.S" ex="true" tool="4" flavor2="0">
-      </item>
-      <item path="../../nullDC/cl/cl.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/cl/cl.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/config/config.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/aica/aica_if.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/asic/asic.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/asic/asic.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/dc.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/gdrom/gdrom_if.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/gdrom/gdrom_response.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/gdrom/gdromv3.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/maple/maple_if.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/mem/Elf.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/mem/_vmem.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/mem/memutil.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/mem/memutil.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/mem/mmu.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/mem/sb.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/mem/sh4_area0.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/mem/sh4_area0.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/mem/sh4_internal_reg.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/mem/sh4_mem.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/pvr/pvrLock.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/pvr/pvrLock.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/pvr/pvr_if.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/pvr/pvr_sb_regs.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/pvr/pvr_sb_regs.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/bsc.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/ccn.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/cpg.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/cpg.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/dmac.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/intc.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/analyser.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/analyser.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/basicblock.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/blockmanager.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/codespan.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/compiledblock.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/driver.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/driver.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/ops.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/rec_v1/sh4_cpu_shil.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rtc.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/rtc.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/sci.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/sci.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/scif.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4_cpu.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4_cpu_branch_rec.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4_fpu.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4_fpu.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4_if.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4_interpreter.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4_opcode_list.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4_registers.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/sh4r_rename.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/shil/compiler/shil_compiler_base.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/shil/shil.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/shil/shil_ce.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/tmu.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/tmu.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/dc/sh4/ubc.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/dc/sh4/ubc.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/debug_mem.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/emitter/3DMath.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/emitter/BaseTypes.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/emitter/disasm/asm_ppc.c"
-            ex="false"
-            tool="0"
-            flavor2="2">
-        <cTool>
-        </cTool>
-      </item>
-      <item path="../../nullDC/emitter/disasm/opintl.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/emitter/disasm/ppc-dis.c"
-            ex="false"
-            tool="0"
-            flavor2="2">
-        <cTool>
-        </cTool>
-      </item>
-      <item path="../../nullDC/emitter/disasm/ppc-opc.c"
-            ex="false"
-            tool="0"
-            flavor2="2">
-        <cTool>
-        </cTool>
-      </item>
-      <item path="../../nullDC/emitter/emitter.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/emitter/regalloc/ppc_fpregalloc.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/emitter/regalloc/ppc_fpregalloc.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/emitter/regalloc/ppc_intregalloc.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/emitter/regalloc/ppc_intregalloc.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/emitter/regalloc/regalloc_base.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/fake_pluginsystem.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/fake_pluginsystem.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/gui/base.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/gui/resource.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/log/logging.cpp" ex="true" tool="1" flavor2="0">
-      </item>
-      <item path="../../nullDC/log/logging.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/log/logging_interface.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/naomi/naomi.cpp" ex="true" tool="1" flavor2="0">
-      </item>
-      <item path="../../nullDC/naomi/naomi.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/naomi/naomi_regs.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/nullDC.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/plugins/plugin_manager.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/plugins/plugin_types.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../nullDC/profiler/profiler.cpp" ex="true" tool="1" flavor2="0">
-      </item>
-      <item path="../../nullDC/profiler/profiler.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/serial_ipc/serial_ipc_client.cpp"
-            ex="true"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/serial_ipc/serial_ipc_client.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../nullDC/sh4_reg_playground.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../nullDC/stdclass.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/EmptyAICA/EmptyAICA.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/EmptyAICA/EmptyAICA.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/EmptyAICA/aica_hax.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/EmptyAICA/aica_hle.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/ImgReader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/SCSIDEFS.H" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/ImgReader/cdi.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/cdi.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/ImgReader/chd.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/chd.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/ImgReader/common.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/deps/chdr.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/deps/md5.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/deps/sha1.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/gd_driver.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/ImgReader/gdi.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/gdi.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/ImgReader/ioctl.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/ioctl.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/ImgReader/mds.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/mds.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/ImgReader/mds_reader.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/ImgReader/resource.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/XMaple/ArcadeStick.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/DInputBackend.cpp"
-            ex="true"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../plugins/XMaple/DInputBackend.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../plugins/XMaple/Device.cpp" ex="true" tool="1" flavor2="0">
-      </item>
-      <item path="../../plugins/XMaple/Device.hpp" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/XMaple/DreameyeMic.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/FT0.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/FT4.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/FT8.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/Maxi.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/Mic.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/StandardController.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/Twinstick.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/XInputBackend.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/XMaple/XMaple.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/Renderer_if.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/SPG.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/TexCache.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/config.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/drkPvr/drkPvr.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/helper_classes.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/regs.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/screencapture.c"
-            ex="false"
-            tool="0"
-            flavor2="2">
-        <cTool>
-        </cTool>
-      </item>
-      <item path="../../plugins/drkPvr/screencapture.h"
-            ex="true"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../plugins/drkPvr/spg.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/drkPvr/ta.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/threadedPvr.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/drkPvr/threadedPvr.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/drkPvr/xenosRend.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/nullExtDev/bba.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/nullExtDev/bba.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/nullExtDev/lan.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/nullExtDev/lan.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/nullExtDev/modem.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/nullExtDev/modem.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/nullExtDev/nullExtDev.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/nullExtDev/rtl8139c.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/nullExtDev/rtl8139c.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/vbaARM/arm7.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/vbaARM/arm7.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/vbaARM/mem.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/vbaARM/mem.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/vbaARM/resource.h" ex="true" tool="3" flavor2="0">
-      </item>
-      <item path="../../plugins/vbaARM/vbaARM.cpp" ex="false" tool="1" flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
-      <item path="../../plugins/xenon_gui/xenon_gui.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool>
-        </ccTool>
-      </item>
     </conf>
   </confs>
 </configurationDescriptor>
