@@ -208,7 +208,8 @@ u32 old_rm=0xFF;
 u32 old_dn=0xFF;
 void SetFloatStatusReg()
 {
-	if ((old_rm!=sh4r.fpscr.RM) || (old_dn!=sh4r.fpscr.DN) || (old_rm==0xFF )|| (old_dn==0xFF))
+/*gli TODO: will have to properly handle that someday....
+    if ((old_rm!=sh4r.fpscr.RM) || (old_dn!=sh4r.fpscr.DN) || (old_rm==0xFF )|| (old_dn==0xFF))
 	{
 		old_rm=sh4r.fpscr.RM ;
 		old_dn=sh4r.fpscr.DN ;
@@ -219,11 +220,12 @@ void SetFloatStatusReg()
 
 		if (sh4r.fpscr.DN)		//denormals are considered 0
 			temp|=(1<<15);
-/*gli		_asm 
+		_asm 
 		{
 			ldmxcsr temp;	//load the float status :)
-		}*/
+		}
 	}
+*/ 
 }
 //called when fpscr is changed and we must check for reg banks ect..
 void UpdateFPSCR()

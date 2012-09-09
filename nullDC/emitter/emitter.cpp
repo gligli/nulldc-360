@@ -40,35 +40,19 @@ bool IsS8(u32 value)
 		return false;
 }
 
-
-//ppc_Label 
-/*
-//ppc_ptr/ppc_ptr_imm
-ppc_ptr ppc_ptr::create(void* ptr)
-{
-	ppc_ptr rv={ptr};
-	return rv;
-}*/
 ppc_ptr ppc_ptr::create(unat ptr)
 {
 	ppc_ptr rv(0);
 	rv.ptr_int=ptr;
 	return rv;
 }
-/*
-ppc_ptr_imm ppc_ptr_imm::create(void* ptr)
-{
-	ppc_ptr_imm rv={ptr};
-	return rv;
-}*/
+
 ppc_ptr_imm ppc_ptr_imm::create(unat ptr)
 {
 	ppc_ptr_imm rv(0);
 	rv.ptr_int=ptr;
 	return rv;
 }
-//ppc_block
-//init things
 
 void* ppc_Label::GetPtr()
 {
@@ -312,7 +296,7 @@ void ppc_block::ApplyPatches(u8* base)
 
 				PowerPC_instr b;
 				jmpaddr-=4;
-				verify((s32)jmpaddr>=-67108864 && (s32)jmpaddr<=67108863);
+				verify((s32)jmpaddr>=-(1<<25) && (s32)jmpaddr<=(1<<25));
 				GEN_B(b,jmpaddr>>2,0,lk);
 				
 				verify(*((PowerPC_instr*)opaddr+1)==PPC_NOP);

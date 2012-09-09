@@ -247,9 +247,12 @@ CompiledBlockInfo*			BlockLookupGuess[LOOKUP_HASH_SIZE];
 u32 bm_locked_block_count=0;
 u32 bm_manual_block_count=0;
 
+extern "C"
+{
 u8* DynarecCache;
 u32 DynarecCacheUsed;
 u32 DynarecCacheSize;
+}
 
 //implemented later
 void FreeBlock(CompiledBlockInfo* block);
@@ -925,7 +928,7 @@ void* dyna_finalize(void* ptr,u32 oldsize,u32 newsize)
 		return 0;
 	
 	void* rv=&DynarecCache[DynarecCacheUsed];
-#if 0
+#if 1
 	verify(!((u32)rv&127));
 	DynarecCacheUsed+=(newsize+127)&~127; // align blocks on cache lines
 #else

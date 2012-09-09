@@ -128,25 +128,6 @@ void rec_sh4_ResetCache()
 {
 	SuspendAllBlocks();
 }
-//asm version
-BasicBlockEP* __fastcall FindCode_full(u32 address,CompiledBlockInfo* fastblock);
-
-extern u32 fast_lookups;
-u32 __attribute__((externally_visible)) old_esp,old_lr;
-
-#define DR_STACK_SIZE 0x100000
-
-u8 __attribute__((externally_visible,aligned(65536))) dr_stack[DR_STACK_SIZE];
-
-u32 __attribute__((externally_visible)) Dynarec_Mainloop_no_update_fast;
-
-#define xstr(s) str(s)
-#define str(s) #s
-
-f32 __attribute__((externally_visible)) float_zero=0.0f;
-f32 __attribute__((externally_visible)) float_one=1.0f;
-
-u64 time_lookup=0;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -171,8 +152,8 @@ void __attribute__((naked)) DynaFullLookup()
         "cmplwi 5,0x0c00                        \n"
         "bltctr                                 \n"
         // make sure target is in recompiled code
-        "lis 4,dyna_mem_pool@ha                  \n"
-        "addi 4,4,dyna_mem_pool@l               \n"
+        "lis 4,DynarecCache@ha                  \n"
+        "lwz 4,DynarecCache@l(4)                \n"
         "cmplw 3,4                              \n"
         "bltctr                                 \n"
         "addis 4,4," xstr(DYNA_MEM_POOL_SIZE>>16) "\n"
@@ -263,19 +244,71 @@ void DynaLookupInit()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void __attribute__((naked)) DynaMainLoop()
+// GPR/FPR/PC/PR/T/T_COND (different from sh4r. stuff because we can't really know which regs are allocated..)
+u32 __attribute__((externally_visible,aligned(65536))) dr_regs[16+16+1+1+1+1]; 
+
+u32 __attribute__((externally_visible)) Dynarec_Mainloop_no_update_fast;
+
+#define xstr(s) str(s)
+#define str(s) #s
+
+f32 __attribute__((externally_visible)) float_zero=0.0f;
+f32 __attribute__((externally_visible)) float_one=1.0f;
+
+u64 time_lookup=0;
+
+void DynaMainLoop()
 {
 	asm volatile (
         "mflr 4                                 \n"
-        "lis 3,old_lr@ha						\n"
-		"stw 4,old_lr@l(3)						\n"
-		"lis 3,old_esp@ha						\n"
-		"stw 1,old_esp@l(3)						\n"
-        
-        // own stack for dr
-        "lis 1,dr_stack@ha                      \n"
-        "addis 1,1," xstr(DR_STACK_SIZE>>16) "  \n"
-        "subi 1,1,0x1000                        \n"
+
+        // load emulated SH4 regs
+        "lis 3,dr_regs@h                        \n"
+            
+        "lwz " xstr(RPC) ",128(3)               \n"
+        "lwz " xstr(RPR) ",132(3)               \n"
+            
+        "lwz 4,136(3)                           \n"
+        "cmplwi 4,0                             \n"  
+        "crnor " xstr(CR_T_FLAG) ",2,2          \n"
+
+        "lwz 4,140(3)                           \n"
+        "cmplwi 4,0                             \n"  
+        "crnor " xstr(CR_T_COND_FLAG) ",2,2     \n"
+
+        "lwz 16,00+0(3)                         \n"
+        "lwz 17,00+4(3)                         \n"
+        "lwz 18,00+8(3)                         \n"
+        "lwz 19,00+12(3)                        \n"
+        "lwz 20,00+16(3)                        \n"
+        "lwz 21,00+20(3)                        \n"
+        "lwz 22,00+24(3)                        \n"
+        "lwz 23,00+28(3)                        \n"
+        "lwz 24,00+32(3)                        \n"
+        "lwz 25,00+36(3)                        \n"
+        "lwz 26,00+40(3)                        \n"
+        "lwz 27,00+44(3)                        \n"
+        "lwz 28,00+48(3)                        \n"
+        "lwz 29,00+52(3)                        \n"
+        "lwz 30,00+56(3)                        \n"
+        "lwz 31,00+60(3)                        \n"
+
+        "lfs 16,64+0(3)                         \n"
+        "lfs 17,64+4(3)                         \n"
+        "lfs 18,64+8(3)                         \n"
+        "lfs 19,64+12(3)                        \n"
+        "lfs 20,64+16(3)                        \n"
+        "lfs 21,64+20(3)                        \n"
+        "lfs 22,64+24(3)                        \n"
+        "lfs 23,64+28(3)                        \n"
+        "lfs 24,64+32(3)                        \n"
+        "lfs 25,64+36(3)                        \n"
+        "lfs 26,64+40(3)                        \n"
+        "lfs 27,64+44(3)                        \n"
+        "lfs 28,64+48(3)                        \n"
+        "lfs 29,64+52(3)                        \n"
+        "lfs 30,64+56(3)                        \n"
+        "lfs 31,64+60(3)                        \n"
     
 		// constant regs
 		"lis 3,float_zero@ha					\n"
@@ -301,15 +334,12 @@ void __attribute__((naked)) DynaMainLoop()
 		"lis 3,Dynarec_Mainloop_end@ha			\n"
 		"stw 4,Dynarec_Mainloop_end@l(3)		\n"
 
-//		"lis " xstr(RSH4R) ",sh4r@ha			\n"
-        "lis " xstr(RSH4R) ",0x7406             \n"
-        
+        "lis " xstr(RSH4R) ",0x7406             \n"//sh4r is hardcoded to 0x74060000 (see shil_compiler_base.cpp)
 		"lwz " xstr(RPC) ",0(" xstr(RSH4R) ")	\n"//sh4r+0 is pc
 	
 		//Max cycle count :)
-		"li " xstr(RCYCLES) "," xstr(CPU_TIMESLICE*9/10)		"\n"
 		"lis 3,rec_cycles@ha					\n" 
-		"stw " xstr(RCYCLES) ",rec_cycles@l(3)					\n"
+		"lwz " xstr(RCYCLES) ",rec_cycles@l(3)	\n"
 
 		"b no_update							\n"
 
@@ -348,14 +378,66 @@ void __attribute__((naked)) DynaMainLoop()
         "lis 6,rec_cycles@ha					\n" 
 		"stw " xstr(RCYCLES) ",rec_cycles@l(6)	\n"
 
-        //exit from function
-		"lis 6,old_esp@ha						\n"
-		"lwz 1,old_esp@l(6)						\n"
-		"lis 6,old_lr@ha						\n"
-		"lwz 3,old_lr@l(6)						\n"
-        "mtlr 3                                 \n"
-        "blr                                    \n"
-	);
+        // store emulated SH4 regs
+        "lis 3,dr_regs@h                        \n"
+
+        "stw " xstr(RPC) ",128(3)               \n"
+        "stw " xstr(RPR) ",132(3)               \n"
+            
+        "li 4,0                                 \n"
+        "bc 4," xstr(CR_T_FLAG) ",1f            \n"  
+        "li 4,1                                 \n"
+        "1:                                     \n"
+        "stw 4,136(3)                           \n"
+        
+        "li 4,0                                 \n"
+        "bc 4," xstr(CR_T_COND_FLAG) ",1f       \n"  
+        "li 4,1                                 \n"
+        "1:                                     \n"
+        "stw 4,140(3)                           \n"
+        
+        "stw 16,00+0(3)                         \n"
+        "stw 17,00+4(3)                         \n"
+        "stw 18,00+8(3)                         \n"
+        "stw 19,00+12(3)                        \n"
+        "stw 20,00+16(3)                        \n"
+        "stw 21,00+20(3)                        \n"
+        "stw 22,00+24(3)                        \n"
+        "stw 23,00+28(3)                        \n"
+        "stw 24,00+32(3)                        \n"
+        "stw 25,00+36(3)                        \n"
+        "stw 26,00+40(3)                        \n"
+        "stw 27,00+44(3)                        \n"
+        "stw 28,00+48(3)                        \n"
+        "stw 29,00+52(3)                        \n"
+        "stw 30,00+56(3)                        \n"
+        "stw 31,00+60(3)                        \n"
+        
+        "stfs 16,64+0(3)                        \n"
+        "stfs 17,64+4(3)                        \n"
+        "stfs 18,64+8(3)                        \n"
+        "stfs 19,64+12(3)                       \n"
+        "stfs 20,64+16(3)                       \n"
+        "stfs 21,64+20(3)                       \n"
+        "stfs 22,64+24(3)                       \n"
+        "stfs 23,64+28(3)                       \n"
+        "stfs 24,64+32(3)                       \n"
+        "stfs 25,64+36(3)                       \n"
+        "stfs 26,64+40(3)                       \n"
+        "stfs 27,64+44(3)                       \n"
+        "stfs 28,64+48(3)                       \n"
+        "stfs 29,64+52(3)                       \n"
+        "stfs 30,64+56(3)                       \n"
+        "stfs 31,64+60(3)                       \n"
+	:::
+        // just in case .... 
+        "0","1","2","3","4","5","6","7","8","9","10","11","12",
+        "13","14","15","16","17","18","19","20","21","22","23",
+        "24","25","26","27","28","29","30","31","ctr","lr",
+        "%fr0","%fr1","%fr2","%fr3","%fr4","%fr5","%fr6","%fr7","%fr8","%fr9","%fr10","%fr11","%fr12",
+        "%fr13","%fr14","%fr15","%fr16","%fr17","%fr18","%fr19","%fr20","%fr21","%fr22","%fr23",
+        "%fr24","%fr25","%fr26","%fr27","%fr28","%fr29","%fr30","%fr31"
+    );
 }
 
 u64 time_dr_start=0;
@@ -364,16 +446,14 @@ u64 time_dr_start=0;
 void rec_Sh4_int_Run()
 {
 	rec_sh4_int_bCpuRun=true;
-	rec_cycles=0;
 	SetFloatStatusReg();
 	time_dr_start=mftb();
 	DynaMainLoop();
-	printf("################### out of DynaMainLoop\n");
 }
 
 void rec_Sh4_int_Stop()
 {
-	if (rec_sh4_int_bCpuRun)
+    if (rec_sh4_int_bCpuRun)
 	{
 		rec_sh4_int_bCpuRun=false;
 	}
@@ -420,6 +500,8 @@ void rec_Sh4_int_Reset(bool Manual)
 		
 		//Any more registers have default value ?
 		log("recSh4 Reset\n");
+    
+        rec_cycles=CPU_TIMESLICE*9/10;
 	}
 }
 

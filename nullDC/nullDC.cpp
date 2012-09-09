@@ -278,7 +278,7 @@ int __wrap_main(){
 
 void LoadSettings()
 {
-	settings.dynarec.Enable=0; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.Enabled",1)!=0;
+	settings.dynarec.Enable=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.Enabled",1)!=0;
 	settings.dynarec.CPpass=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.DoConstantPropagation",1)!=0;
 	settings.dynarec.Safe=0; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.SafeMode",1)!=0;
 	settings.dynarec.UnderclockFpu=1; //gli cfgLoadInt(_T"nullDC",_T"Dynarec.UnderclockFpu",0)!=0;

@@ -881,7 +881,7 @@ static int MenuGameSelection() {
 	GuiImageData btnOutlineOver(button_long_over_png);
 
 	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
+	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, PAD_BUTTON_LOGO);
 
 	GuiText settingsBtnTxt("Settings", 22, (GXColor) {
 		0, 0, 0, 255
@@ -923,7 +923,7 @@ static int MenuGameSelection() {
 	exitBtn.SetSoundClick(&btnSoundClick);
 	exitBtn.SetTrigger(trigA);
 	exitBtn.SetTrigger(trig2);
-	exitBtn.SetTrigger(&trigHome);
+	//exitBtn.SetTrigger(&trigHome); gli not a good idea
 	exitBtn.SetEffectGrow();
 
 	GuiWindow buttonWindow(screenwidth, screenheight);
@@ -1077,7 +1077,7 @@ static int MenuGame() {
 	GuiImageData batteryBar(battery_bar_png);
 
 	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
+	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, PAD_BUTTON_LOGO);
 
 	GuiText saveBtnTxt("Save", 22, (GXColor) {
 		0, 0, 0, 255
@@ -1426,7 +1426,7 @@ static int MenuGameSaves(int action) {
 	GuiImageData btnCloseOutlineOver(button_small_over_png);
 
 	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
+	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, PAD_BUTTON_LOGO);
 
 	GuiText backBtnTxt("Go Back", 22, (GXColor) {
 		0, 0, 0, 255
@@ -1640,7 +1640,7 @@ static int MenuGameSettings() {
 	GuiImageData btnCloseOutlineOver(button_small_over_png);
 
 	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, 0);
+	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, PAD_BUTTON_LOGO);
 
 	GuiText mappingBtnTxt("Button Mappings", 22, (GXColor) {
 		0, 0, 0, 255

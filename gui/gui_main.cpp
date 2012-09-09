@@ -68,7 +68,7 @@ void ExitApp()
 int main(int argc, char *argv[])
 {
 	InitVideo();
-    console_set_colors(0x1E1E1EFF,0xB37E43FF); // light blue on dark gray
+    console_set_colors(0x1E1E1EFF,0xFFB663FF); // light blue on dark gray
     console_init();
 	
 	xenon_make_it_faster(XENON_SPEED_FULL);
@@ -91,8 +91,16 @@ int main(int argc, char *argv[])
     
 	while (1) // main loop
 	{
-		MainMenu(MENU_GAMESELECTION);
-		EmuLaunch();
+        if(EmuRunning)
+        {
+            EmuResume();
+        }
+        else
+        {
+            EmuTerm();
+    		MainMenu(MENU_GAMESELECTION);
+    		EmuLaunch();
+        }
 		
 		if(EmuConfigRequested)
         {				
@@ -100,13 +108,6 @@ int main(int argc, char *argv[])
             MainMenu(MENU_GAME);
 		}
         
-        if(EmuRunning)
-        {
-            EmuResume();
-        }
-        {
-            EmuTerm();
-        }
 	}
 	
 	return 0;

@@ -7,6 +7,7 @@
 #include "XMaple.h"
 #include "FT8.h"
 
+#include <time/time.h>
 #include <input/input.h>
 #include <usb/usbmain.h>
 
@@ -74,7 +75,18 @@ bool Read(int XPadPlayer, u32 deviceType, EmulatedDevices::FT0::SStatus* status)
 	if (c->left)	{status->buttons ^= CONT_DPAD_LEFT;}
 	if (c->right)	{status->buttons ^= CONT_DPAD_RIGHT;}
 #ifdef USE_GUI
-	if (c->logo)    InGameMenu();
+	if (c->logo)
+    {
+        // lousy flush...
+        mdelay(100);
+        while(c->logo)
+        {
+            usb_do_poll();
+            get_controller_data(&ctrlrs[XPadPlayer],XPadPlayer);
+        }
+        
+        InGameMenu();
+    } 
 #endif
 	if (c->back && c->logo) exit(0);
 	

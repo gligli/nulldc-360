@@ -335,8 +335,6 @@ void * roml_patch_for_reg_access(u32 addr, bool jump_only);
 
 bool VramLockedWrite(u8* address);
 bool RamLockedWrite(u8* address,u32* sp);
-extern u8* DynarecCache;
-extern u32 DynarecCacheSize;
 void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 {
 	u8* address=(u8*)dar;
