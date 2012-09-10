@@ -17,10 +17,21 @@ extern "C" struct XenosDevice * GetVideoDevice();
 
 #define MAX_VERTEX_COUNT 1024*1024
 
-extern char inc_vs[];
-extern char inc_ps[];
+extern u32 vs_table_count;
+extern void * vs_data_table[];
+extern u32 vs_size_table[];
+extern u32 vs_indice_count;
+extern u32 vs_indices[];
+
+extern u32 ps_table_count;
+extern void * ps_data_table[];
+extern u32 ps_size_table[];
+extern u32 ps_indice_count;
+extern u32 ps_indices[];
+
+
 struct XenosDevice _xe, *xe = NULL;
-struct XenosShader *sh_ps, *sh_vs;
+struct XenosShader **sh_ps, *sh_vs;
 struct XenosVertexBuffer *vb;
 
 struct XenosSurface * rtt_texture[2]={0,0};
@@ -1221,14 +1232,18 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 	#define idx_ZBufferMode 6
 	#define idx_pp_FogCtrl 7
 
+    #define PS_FLAG(val,bit,en) {if(en) val|=1<<(bit);}
+    
 	float cur_pal_index[4]={0,0,0,1};
 	INLINE
 	void SetGPState_ps(PolyParam* gp)
 	{
-		if (gp->pcw.Texture)
+		u32 val=0;
+        
+        if (gp->pcw.Texture)
 		{
-			Xe_SetPixelShaderConstantB(xe,8,0);
-			Xe_SetPixelShaderConstantB(xe,9,0);
+			PS_FLAG(val,8,0);
+			PS_FLAG(val,9,0);
 
 			if (drkpvr_settings.Emulation.PaletteMode>1)
 			{
@@ -1240,33 +1255,35 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 				if (pf==5)
 				{
 					cur_pal_index[1]=gp->tcw.PAL.PalSelect/64.0f;
-					Xe_SetPixelShaderConstantB(xe,8,pal_mode&1);
-					Xe_SetPixelShaderConstantB(xe,9,pal_mode&2);
+					PS_FLAG(val,8,pal_mode&1);
+					PS_FLAG(val,9,pal_mode&2);
 					Xe_SetPixelShaderConstantF(xe,0,cur_pal_index,1);
 				}
 				else if (pf==6)
 				{
 					cur_pal_index[1]=(gp->tcw.PAL.PalSelect&~0xF)/64.0f;
-					Xe_SetPixelShaderConstantB(xe,8,pal_mode&1);
-					Xe_SetPixelShaderConstantB(xe,9,pal_mode&2);
+					PS_FLAG(val,8,pal_mode&1);
+					PS_FLAG(val,9,pal_mode&2);
 					Xe_SetPixelShaderConstantF(xe,0,cur_pal_index,1);
 				}
 			}
 			
-			Xe_SetPixelShaderConstantB(xe,1,gp->pcw.Offset);
+			PS_FLAG(val,1,gp->pcw.Offset);
 
-			Xe_SetPixelShaderConstantB(xe,2,gp->tsp.ShadInstr&1);
-			Xe_SetPixelShaderConstantB(xe,3,gp->tsp.ShadInstr&2);
+			PS_FLAG(val,2,gp->tsp.ShadInstr&1);
+			PS_FLAG(val,3,gp->tsp.ShadInstr&2);
 
-			Xe_SetPixelShaderConstantB(xe,4,gp->tsp.IgnoreTexA);
+			PS_FLAG(val,4,gp->tsp.IgnoreTexA);
 		}
 
-		Xe_SetPixelShaderConstantB(xe,0,gp->pcw.Texture);
+		PS_FLAG(val,0,gp->pcw.Texture);
 
-		Xe_SetPixelShaderConstantB(xe,5,gp->tsp.UseAlpha);
+		PS_FLAG(val,5,gp->tsp.UseAlpha);
 
-		Xe_SetPixelShaderConstantB(xe,6,gp->tsp.FogCtrl&1);
-		Xe_SetPixelShaderConstantB(xe,7,gp->tsp.FogCtrl&2);
+		PS_FLAG(val,6,gp->tsp.FogCtrl&1);
+		PS_FLAG(val,7,gp->tsp.FogCtrl&2);
+        
+        Xe_SetShader(xe,SHADER_TYPE_PIXEL,sh_ps[ps_indices[val]],0);
 	}
 
 	//realy only uses bit0, destroys all of em atm :]
@@ -1773,7 +1790,7 @@ bool operator<(const PolyParam &left, const PolyParam &right)
 
 			//Init stuff
 			Xe_SetShader(xe,SHADER_TYPE_VERTEX,sh_vs,0);
-			Xe_SetShader(xe,SHADER_TYPE_PIXEL,sh_ps,0);
+            Xe_SetShader(xe,SHADER_TYPE_PIXEL,sh_ps[ps_indices[0]],0);
 
 #define clamp(minv,maxv,x) min(maxv,max(minv,x))
 //			float bg=*(float*)&ISP_BACKGND_D; 
@@ -3555,10 +3572,18 @@ nl:
 
         if(first_init)
         {
-            sh_ps = Xe_LoadShaderFromMemory(xe, inc_ps);
-            Xe_InstantiateShader(xe, sh_ps, 0);
-
-            sh_vs = Xe_LoadShaderFromMemory(xe, inc_vs);
+            u32 i;
+            
+            sh_ps=(XenosShader**)malloc(ps_table_count*sizeof(void*));
+            
+            for(i=0;i<ps_table_count;++i)
+            {
+                sh_ps[i]=Xe_LoadShaderFromMemory(xe, ps_data_table[i]);
+                Xe_InstantiateShader(xe, sh_ps[i], 0);
+            }
+           
+            verify(vs_table_count==1 && vs_indice_count==1)
+            sh_vs = Xe_LoadShaderFromMemory(xe, vs_data_table[0]);
             Xe_InstantiateShader(xe, sh_vs, 0);
             Xe_ShaderApplyVFetchPatches(xe, sh_vs, 0, &VertexBufferFormat);
 

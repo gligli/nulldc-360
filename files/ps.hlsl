@@ -32,18 +32,6 @@ float4 FOG_COL_VERT:register(c2);
 float4 FOG_COL_RAM :register(c3);
 float4 FOG_DENSITY :register(c4);
 
-bool pp_Texture :register(b0);
-bool pp_Offset :register(b1);
-bool pp_ShadInstr :register(b2);
-bool pp_ShadInstr2 :register(b3);
-bool pp_IgnoreTexA :register(b4);
-bool pp_UseAlpha :register(b5);
-bool pp_FogCtrl :register(b6);
-bool pp_FogCtrl2 :register(b7);
-
-bool pp_Palette :register(b8);
-bool pp_PaletteBilinear :register(b9);
-
 float4 TextureLookup_Normal(float4 uv)
 {
 	return tex2Dproj( samplr, uv);
