@@ -19,7 +19,7 @@
 #define FLT_MAX 3.40282347e+38f
 #endif
 
-#define ZBufferMode 2
+#define ZBufferMode 4
 
 struct vertex_in 
 {
@@ -87,23 +87,47 @@ float CompressZ3(float w)
 	}
 }
 
+#define Z4_ZONE1I 4
+#define Z4_ZONE2I 8192
+#define Z4_ZONE3I FLT_MAX
+
+#define Z4_ZONE1O 0.95
+#define Z4_ZONE2O 0.045
+#define Z4_ZONE3O 0.005
+
+float CompressZ4(float w)
+{
+	if (w<Z4_ZONE1I)
+	{
+		return Z4_ZONE1O*(w/Z4_ZONE1I);
+	}
+	else if (w<Z4_ZONE2I)
+	{
+		return  Z4_ZONE1O + Z4_ZONE2O*(w/Z4_ZONE2I);
+	}
+	else
+	{
+		return (Z4_ZONE1O + Z4_ZONE2O) + Z4_ZONE3O*(w/Z4_ZONE3I);
+	}
+}
+
 vertex_out main(in vertex_in vin)
 {
 	vertex_out vo = (vertex_out)0;
 	vo.pos.xy=vin.pos.xy+res_scale.xy;
 	vo.pos.xy/=res_scale.zw;
-	
+
 	vo.pos.xy+=res_align_offset.xy;
-	
+
 	//vin.uv=(floor(vin.uv*texture_size.xy)+float2(0.5f,0.5f))*texture_size.zw;
 	//vin.uv=(vin.uv*(texture_size.xy-float2(1,1))+float2(0.5f,0.5f))*texture_size.zw;
 	vo.uv.xy=vin.uv*vin.pos.z;
-	
+
 	vo.col=saturate(vin.col)*vin.pos.z;
 	vo.spc=saturate(vin.spc)*vin.pos.z;
 
 	vo.uv.w=vin.pos.z;
-	
+
 	//I need to do smth about fixed function for this one
 	if (! (vin.pos.z<FLT_MAX && vin.pos.z>0))
 		vo.uv.z=-1;
@@ -121,12 +145,11 @@ vertex_out main(in vertex_in vin)
 		//vo.pos.z=1-1/(1+vin.pos.z);
 		vo.pos.z=CompressZ3(vin.pos.z);
 	#elif ZBufferMode==4
-		vo.pos.z=(vin.pos.z-W_min)/(W_max-W_min);
+		vo.pos.z=CompressZ4(vin.pos.z);
 	#endif
 
 	vo.pos.z=1.0-vo.pos.z;
-
 	vo.pos.w=1;
 
-	return vo; 
+	return vo;
 }

@@ -2209,7 +2209,7 @@ void __fastcall shil_compile_fsqrt(shil_opcode* op)
 	}
 }
 
-#define _FAST_fsrra
+//#define _FAST_fsrra
 
 static float float_half=0.5;
 
