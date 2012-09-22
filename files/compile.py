@@ -1,9 +1,9 @@
 SCRIPT_NAME="Mass shader compiler by GliGli"
-SCRIPT_VERSION="0.01"
+SCRIPT_VERSION="0.06"
 
 # things you might want to change for a new project
 
-SHADER_COMPILER="./rshadercompiler.exe"
+SHADER_COMPILER="./xenosc.exe"
 OUTPUT_ASM_FILE="../plugins/drkPvr/shaders.S"
 OUTPUT_DIR="./compiled"
 
@@ -12,11 +12,11 @@ SHADER_DEFS= \
     # list of shader files
     [
         "vs.hlsl",
-        "/vs" # compiler command line args
+        "vs_3_0" # target name
     ],
     [
         "ps.hlsl",
-        "/ps",
+        "ps_3_0",
         [
             # optional list of defines, with list of possible values per define
             # each combination of those will be a new shader ...
@@ -52,6 +52,7 @@ for shader in SHADER_DEFS:
     fn,ext=os.path.splitext(shader[0])
 
     shaderfiles=[]
+    compilertasks=[]
 
     varsvals=None
 
@@ -78,21 +79,22 @@ for shader in SHADER_DEFS:
         tmpfile.close()
         orifile.close()
 
-        outname=os.path.abspath(outname+'.bin')
+        absoutname=os.path.abspath(outname+'.bin')
 
         out=os.tmpfile()
-        subprocess.call(SHADER_COMPILER+" \""+tmpfile.name+"\" \""+outname+"\" "+shader[1],stdout=out)
+
+        subprocess.call(SHADER_COMPILER+" \""+tmpfile.name+"\" "+shader[1]+" -o \""+absoutname+"\" ",stdout=out)
 
         out.seek(0,0)
         outs=out.read()
-
-        print outname
 
         if not '- Compiled!' in  outs: # can't find something better ...
             print outs
             exit(1)
 
-        shaderfiles.append(outname)
+        print outname
+
+        shaderfiles.append(absoutname)
 
         if len(shader)>2:
             varsvals[0]=varsvals[0]+1
@@ -114,7 +116,13 @@ for shader in SHADER_DEFS:
         else:
             looping=False
 
+    for task in compilertasks:
+        task.wait()
+    compilertasks=[]
+
     # step2 : remove duplicates
+
+    print "* Removing duplicates on %d shaders" % (len(shaderfiles))
 
     indexlist=[]
     shaderdatalist=[]
@@ -136,6 +144,8 @@ for shader in SHADER_DEFS:
     print "- %d unique shader(s)" % (len(shaderdatalist))
 
     # step3 : generate ASM file
+
+    print "* Generating ASM file"
 
         # data
     for i in range(len(shaderdatalist)):
