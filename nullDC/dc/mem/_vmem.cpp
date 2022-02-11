@@ -17,6 +17,7 @@ _vmem v2.5 :
 #include "_vmem.h"
 #include "dc/aica/aica_if.h"
 #include "log/logging_interface.h"
+#include "types.h"
 #include <byteswap.h>
 #include <malloc.h>
 
@@ -374,7 +375,7 @@ void _vmem_map_handler(_vmem_handler Handler,u32 start,u32 end)
 	verify(start<=end);
 	for (u32 i=start;i<=end;i++)
 	{
-		_vmem_MemInfo[i]=((u8*)0 + 0x80010000 + Handler*0x40000)-(i*0x10000);
+		_vmem_MemInfo[i]=((u8*)0x80010000 + Handler*0x40000)-(i*0x10000);
 	}
 }
 //map a memory block to a mem region :)

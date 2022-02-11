@@ -10,14 +10,6 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="4">
         <file>
-            <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/nullDC/dc/sh4/rec_v1/sh4_cpu_shil.cpp</url>
-            <bookmark id="2">
-                <name/>
-                <line>451</line>
-                <key/>
-            </bookmark>
-        </file>
-        <file>
             <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/plugins/nullAICA/sgc_if.cpp</url>
             <bookmark id="4">
                 <name/>
@@ -33,10 +25,24 @@
                 <key/>
             </bookmark>
         </file>
+        <file>
+            <url>file:/C:/X360%20Hack/x360dev/ppc/nulldc-360/nullDC/dc/sh4/rec_v1/sh4_cpu_shil.cpp</url>
+            <bookmark id="2">
+                <name/>
+                <line>451</line>
+                <key/>
+            </bookmark>
+        </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/x360dev/nulldc-360/nullDC/dc/sh4/sh4_if.cpp</file>
+            <file>file:/C:/x360dev/nulldc-360/Makefile</file>
+            <file>file:/C:/x360dev/nulldc-360/nullDC/dc/sh4/rec_v1/driver.cpp</file>
+            <file>file:/C:/x360dev/nulldc-360/plugins/xenon_gui/xenon_gui.cpp</file>
+            <file>file:/C:/x360dev/nulldc-360/plugins/drkPvr/threadedPvr.cpp</file>
+            <file>file:/C:/x360dev/nulldc-360/nullDC/types.h</file>
+            <file>file:/C:/x360dev/nulldc-360/nullDC/dc/mem/_vmem.cpp</file>
+            <file>file:/C:/x360dev/nulldc-360/plugins/drkPvr/xenosRend.cpp</file>
         </group>
     </open-files>
     <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">

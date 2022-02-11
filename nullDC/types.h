@@ -44,11 +44,11 @@ using namespace std;
 
 #ifdef XENON
 //force
-#define INLINE
+#define INLINE inline __attribute((always_inline, used))
 //sugest
-#define SINLINE
+#define SINLINE inline __attribute((used))
 //no inline :)
-#define NOINLINE
+#define NOINLINE  __attribute((noinline))
 #else
 #if DEBUG
 //force

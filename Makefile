@@ -40,7 +40,7 @@ INCLUDES	:=	files nullDC . nullDC/dc/sh4 $(GUI_INC)
 
 MCHK = -Wl,-wrap,malloc  -Wl,-wrap,memalign -Wl,-wrap,realloc -Wl,-wrap,calloc -Wl,-wrap,free -DMCHK
 
-OPTIFLAGS = -fvisibility=default -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 #-flto -fuse-linker-plugin 
+OPTIFLAGS = -Ofast -mcpu=cell -mtune=cell -fno-tree-vectorize -fno-tree-slp-vectorize -ftree-vectorizer-verbose=1 #-flto -fuse-linker-plugin 
 
 ASFLAGS	= -Wa,$(INCLUDE) -Wa,-a32
 CFLAGS	= $(OPTIFLAGS) $(GUI_FLAGS) -g -pipe -Wall -Wno-format -Wno-write-strings -Wno-strict-aliasing $(MACHDEP) $(INCLUDE) -D__POWERPC__
