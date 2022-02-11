@@ -373,7 +373,7 @@ bool __fastcall MatchDiv32u(u32 op,u32 pc)
 	u32 match=MatchDiv32(pc+2,div_som_reg1,div_som_reg2,div_som_reg3);
 
 
-	//log("DIV32U matched %d%% @ 0x%X\n",match*100/65,pc);
+	//dlog("DIV32U matched %d%% @ 0x%X\n",match*100/65,pc);
 	if (match==65)
 	{
 		//DIV32U was perfectly matched :)
@@ -393,7 +393,7 @@ bool __fastcall MatchDiv32s(u32 op,u32 pc)
 	div_som_reg3=(Sh4RegType)n;
 
 	u32 match=MatchDiv32(pc+2,div_som_reg1,div_som_reg2,div_som_reg3);
-//	log("DIV32S matched %d%% @ 0x%X\n",match*100/65,pc);
+//	dlog("DIV32S matched %d%% @ 0x%X\n",match*100/65,pc);
 	
 	if (match==65)
 	{
@@ -411,7 +411,7 @@ rsh4op(i0000_0000_0001_1001)
 		//DIV32U was perfectly matched :)
 		bb->flags.SynthOpcode=BLOCK_SOM_SIZE_128;
 		ilst->div(div_som_reg1,div_som_reg2,div_som_reg3,FLAG_ZX|FLAG_32);
-//		log("div32 %d/%d/%d\n",div_som_reg1,div_som_reg2,div_som_reg3);
+//		dlog("div32 %d/%d/%d\n",div_som_reg1,div_som_reg2,div_som_reg3);
 	}
 	else //fallback to interpreter (16b div propably)
 		shil_interpret(op);
@@ -424,7 +424,7 @@ rsh4op(i0010_nnnn_mmmm_0111)
 		//DIV32S was perfectly matched :)
 		bb->flags.SynthOpcode=BLOCK_SOM_SIZE_128;
 		ilst->div(div_som_reg1,div_som_reg2,div_som_reg3,FLAG_SX|FLAG_32);
-//		log("div32s %d/%d/%d\n",div_som_reg1,div_som_reg2,div_som_reg3);
+//		dlog("div32s %d/%d/%d\n",div_som_reg1,div_som_reg2,div_som_reg3);
 		//shil_interpret(op);
 	}
 	else //fallback to interpreter (16b div propably)
@@ -1432,7 +1432,7 @@ void DoDslot(u32 pc,BasicBlock* bb, bool CouldNeedPCtmp)
     u16 opcode=ReadMem16(pc+2);
 
 	if (opcode==0 || opcode==0)
-		log("0 on delayslot , ingoring it ..\n");
+		dlog("0 on delayslot , ingoring it ..\n");
 	else{
 		bb->flags.IsDelaySlot=true;
 		bb->flags.CouldNeedPCtmp=CouldNeedPCtmp;

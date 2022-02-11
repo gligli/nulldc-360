@@ -35,11 +35,11 @@ void SetShilHanlder(shil_opcodes op,shil_ce_FP* ha)
 {
 	if (op>(shilop_count-1))
 	{
-		log("SHIL COMPILER ERROR\n");
+		dlog("SHIL COMPILER ERROR\n");
 	}
 	if (shil_ce_lut[op]!=shil_ce_nimp)
 	{
-		log("SHIL COMPILER ERROR [hash table overwrite]\n");
+		dlog("SHIL COMPILER ERROR [hash table overwrite]\n");
 	}
 
 	shil_ce_lut[op]=ha;
@@ -174,9 +174,9 @@ void Init_ce()
 void ce_die(char* reason)
 {
 	if (reason)
-		log("C.E. pass : die [%s]\n",reason);
+		dlog("C.E. pass : die [%s]\n",reason);
 	else
-		log("C.E. pass : die\n");
+		dlog("C.E. pass : die\n");
 
 	__debugbreak();
 }
@@ -344,7 +344,7 @@ u32 shil_optimise_pass_ce_main(BasicBlock* bb)
 
 			if (op->opcode==shilop_writem && !is_writem_safe(bb,op))
 			{
-//				log("Block %08X : disabling read-const @ %d/%d\n",bb->start,i,bb->ilst.opcodes.size());
+//				dlog("Block %08X : disabling read-const @ %d/%d\n",bb->start,i,bb->ilst.opcodes.size());
 				unsafe_pos=i;
 				break;
 			}
@@ -428,7 +428,7 @@ void shil_optimise_pass_ce_driver(BasicBlock* bb)
 
 	static_reads.clear();
 	//if (rv)
-	//	log("Optimised block 0x%X , %d opts : %d passes ,delta=%d, total removed %d \n",bb->start,rv,pass,old_Size-bb->ilst.opcodes.size(),total_ops_removed);
+	//	dlog("Optimised block 0x%X , %d opts : %d passes ,delta=%d, total removed %d \n",bb->start,rv,pass,old_Size-bb->ilst.opcodes.size(),total_ops_removed);
 
 }
 //default thing to do :p
@@ -772,7 +772,7 @@ shilh(writem)
 		{
 			verify(!settings.dynarec.Safe);	//can't happen in safe mode
 			shil_ce_is_locked=false;
-			log("CE: Block will be demoted to manual for the CE pass\n");
+			dlog("CE: Block will be demoted to manual for the CE pass\n");
 		}
 	}
 	//even if we did optimise smth , a readback may be needed
@@ -1061,7 +1061,7 @@ u32 shil_optimise_pass_btp_main(BasicBlock* bb)
 		u32 new_cv=0;
 		if (backscan_const(bb,reg_pc,&new_cv))
 		{
-			//log("Block promote 0x%X , from DYNAMIC to FIXED exit 0x%X : %d\n",bb->start,new_cv,bb->flags.ExitType);
+			//dlog("Block promote 0x%X , from DYNAMIC to FIXED exit 0x%X : %d\n",bb->start,new_cv,bb->flags.ExitType);
 			bb->TF_next_addr=new_cv;
 			if (bb->flags.ExitType==BLOCK_EXITTYPE_DYNAMIC)
 				bb->flags.ExitType=BLOCK_EXITTYPE_FIXED;

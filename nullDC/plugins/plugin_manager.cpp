@@ -130,7 +130,7 @@ s32 ValidatePlugin(plugin_interface* plugin)
 
 	if (plugin->InterfaceVersion!=PLUGIN_I_F_VERSION)
 	{
-		log("%X != %X\n",plugin->InterfaceVersion,PLUGIN_I_F_VERSION);
+		dlog("%X != %X\n",plugin->InterfaceVersion,PLUGIN_I_F_VERSION);
 		return pve_invalid_cif_ver;
 	}
 
@@ -1035,7 +1035,7 @@ void plugins_Unload()
 						s32 rv=DestroyMapleSubDevice(port,subport);
 						if (rv!=rv_ok)
 						{
-							log("DestroyMapleSubDevice(port,subport) failed: %d\n",rv);
+							dlog("DestroyMapleSubDevice(port,subport) failed: %d\n",rv);
 						}
 					}
 				}
@@ -1043,7 +1043,7 @@ void plugins_Unload()
 				s32 rv=DestroyMapleDevice(port);
 				if (rv!=rv_ok)
 				{
-					log("DestroyMapleDevice(port) failed: %d\n",rv);
+					dlog("DestroyMapleDevice(port) failed: %d\n",rv);
 				}
 				/*
 				for (int subport=0;subport<4;subport++)

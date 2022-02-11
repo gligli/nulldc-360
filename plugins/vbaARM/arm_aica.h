@@ -301,7 +301,7 @@ extern InterruptInfo* SCIRE;
 extern CommonData_struct* CommonData;
 extern DSPData_struct*	  DSPData;
 
-void FASTCALL armUpdateARM(unsigned long Cycles);
+void FASTCALL armUpdateARM(u32 Cycles);
 void FASTCALL ArmInterruptChange(u32 bits,u32 L);
 
 //u32 ReadAicaReg(u32 reg);

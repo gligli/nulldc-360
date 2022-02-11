@@ -26,7 +26,7 @@ static volatile bool running=false;
 
 #define TA_RING_MAX_COUNT 32768
 
-#define ta_ring_count(str) ((u32)abs((str[1]%TA_RING_MAX_COUNT)-(str[0]%TA_RING_MAX_COUNT)))
+#define ta_ring_count(str) ((u32)__builtin_labs((str[1]%TA_RING_MAX_COUNT)-(str[0]%TA_RING_MAX_COUNT)))
 #define ta_read_idx ta_idx[0]
 #define ta_write_idx ta_idx[1]
 

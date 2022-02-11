@@ -511,7 +511,7 @@ bool BasicBlock::Compile()
 		{
 			if (cBB->TF_next_addr==cBB->start)
 			{
-				log("Fast Link possible\n");
+				dlog("Fast Link possible\n");
 			}
 			else
 			{

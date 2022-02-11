@@ -36,12 +36,12 @@ bool Init_DC()
 	if(settings.dynarec.Enable)
 	{
 		sh4_cpu=Get_Sh4Recompiler();
-		log("Using Recompiler\n");
+		dlog("Using Recompiler\n");
 	}
 	else
 	{
 		sh4_cpu=Get_Sh4Interpreter();
-		log("Using Interpreter\n");
+		dlog("Using Interpreter\n");
 	}
 	
 	if (!plugins_Load())
@@ -49,7 +49,7 @@ bool Init_DC()
 
     if (!plugins_Init())
     { 
-        //log("Emulation thread : Plugin init failed\n"); 	
+        //dlog("Emulation thread : Plugin init failed\n"); 	
         plugins_Term();
         return false;
     }

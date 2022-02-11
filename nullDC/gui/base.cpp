@@ -170,12 +170,12 @@ void SwitchCpu()
 	if(settings.dynarec.Enable)
 	{
 		sh4_cpu=Get_Sh4Recompiler();
-		log("Switched to Recompiler\n");
+		dlog("Switched to Recompiler\n");
 	}
 	else
 	{
 		sh4_cpu=Get_Sh4Interpreter();
-		log("Switched to Interpreter\n");
+		dlog("Switched to Interpreter\n");
 	}
 
 	sh4_cpu->Init();

@@ -209,7 +209,7 @@ extern u32 no_interrupts,yes_interrupts;
 			 if ( yes_interrupts+no_interrupts)
 			 {
 				 double cd=profile_info.cd/(200*1000*1000.0);
-				 log("Interrupts : %.0f yes, %.0f no, %.2f ratio\n",yes_interrupts/cd,no_interrupts/cd,100*yes_interrupts/(float)(yes_interrupts+no_interrupts)/cd);
+				 dlog("Interrupts : %.0f yes, %.0f no, %.2f ratio\n",yes_interrupts/cd,no_interrupts/cd,100*yes_interrupts/(float)(yes_interrupts+no_interrupts)/cd);
 				 yes_interrupts=no_interrupts=0;
 			 }
 			 init_ProfilerModules();

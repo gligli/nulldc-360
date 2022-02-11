@@ -1,12 +1,524 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="84">
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="../../files" name="0">
+      <df name="compiled">
+      </df>
+    </df>
+    <df root="../../gui" name="1">
+      <df name="fonts">
+      </df>
+      <df name="gui">
+        <in>gui.h</in>
+        <in>gui_button.cpp</in>
+        <in>gui_element.cpp</in>
+        <in>gui_filebrowser.cpp</in>
+        <in>gui_image.cpp</in>
+        <in>gui_imagedata.cpp</in>
+        <in>gui_keyboard.cpp</in>
+        <in>gui_optionbrowser.cpp</in>
+        <in>gui_savebrowser.cpp</in>
+        <in>gui_sound.cpp</in>
+        <in>gui_text.cpp</in>
+        <in>gui_trigger.cpp</in>
+        <in>gui_window.cpp</in>
+      </df>
+      <df name="images">
+        <df name="svg">
+        </df>
+      </df>
+      <df name="lang">
+      </df>
+      <df name="shaders">
+        <df name="filters">
+        </df>
+        <df name="twinaphex-common-shaders">
+          <df name="auto-box">
+          </df>
+          <df name="Bicubic">
+          </df>
+          <df name="Borders">
+            <df name="Border-Aspect">
+            </df>
+            <df name="Border-Centered">
+            </df>
+            <df name="Border-Left-Portrait">
+            </df>
+            <df name="Menu">
+            </df>
+          </df>
+          <df name="CRT">
+          </df>
+          <df name="Eagle">
+          </df>
+          <df name="Handheld">
+          </df>
+          <df name="HQx">
+          </df>
+          <df name="Lanczos">
+          </df>
+          <df name="Misc">
+          </df>
+          <df name="Motionblur">
+          </df>
+          <df name="Mudlord">
+          </df>
+          <df name="Neon">
+          </df>
+          <df name="Quad">
+          </df>
+          <df name="Scalex">
+          </df>
+          <df name="Waterpaint">
+          </df>
+          <df name="xBR">
+            <df name="hlsl">
+            </df>
+            <df name="Legacy">
+            </df>
+          </df>
+          <df name="xSaI">
+          </df>
+          <df name="xSaL">
+          </df>
+          <df name="xSoft">
+          </df>
+        </df>
+        <in>2xBR-v3.5a.ps.h</in>
+        <in>2xBR-v3.5a.vs.h</in>
+        <in>5xBR-v3.7a.ps.h</in>
+        <in>5xBR-v3.7a.vs.h</in>
+        <in>5xBR-v3.7b.ps.h</in>
+        <in>5xBR-v3.7b.vs.h</in>
+        <in>5xBR-v3.7c.ps.h</in>
+        <in>5xBR-v3.7c.vs.h</in>
+        <in>crt.ps.h</in>
+        <in>crt.vs.h</in>
+        <in>hq4x.ps.h</in>
+        <in>hq4x.vs.h</in>
+        <in>ps.c.h</in>
+        <in>ps.t.h</in>
+        <in>ps.tc.h</in>
+        <in>s2xsal.ps.h</in>
+        <in>s2xsal.vs.h</in>
+        <in>scanline.ps.h</in>
+        <in>scanline.vs.h</in>
+        <in>simple.ps.h</in>
+        <in>simple.vs.h</in>
+        <in>vs.h</in>
+      </df>
+      <df name="sounds">
+      </df>
+      <df name="utils">
+        <df name="smb">
+          <in>auth.c</in>
+          <in>auth.h</in>
+          <in>des.c</in>
+          <in>des.h</in>
+          <in>md4.c</in>
+          <in>md4.h</in>
+          <in>poll.c</in>
+          <in>poll.h</in>
+          <in>smb.c</in>
+          <in>smb.h</in>
+          <in>smbfs.c</in>
+          <in>smbfs.h</in>
+          <in>smbman.h</in>
+        </df>
+        <in>gettext.cpp</in>
+        <in>gettext.h</in>
+      </df>
+      <in>FreeTypeGX.cpp</in>
+      <in>FreeTypeGX.h</in>
+      <in>Vec.h</in>
+      <in>VecMatrix.cpp</in>
+      <in>VecVector.cpp</in>
+      <in>_pnginfo.h</in>
+      <in>_wchar.h</in>
+      <in>audio.h</in>
+      <in>button_mapping.c</in>
+      <in>button_mapping.h</in>
+      <in>emu.cpp</in>
+      <in>emu.h</in>
+      <in>filebrowser.cpp</in>
+      <in>filebrowser.h</in>
+      <in>filelist.h</in>
+      <in>fileop.cpp</in>
+      <in>fileop.h</in>
+      <in>freeze.cpp</in>
+      <in>freeze.h</in>
+      <in>gui_main.cpp</in>
+      <in>input.cpp</in>
+      <in>input.h</in>
+      <in>memory.h</in>
+      <in>menu.cpp</in>
+      <in>menu.h</in>
+      <in>mount.c</in>
+      <in>mount.h</in>
+      <in>oggplayer.c</in>
+      <in>oggplayer.h</in>
+      <in>pngu.c</in>
+      <in>pngu.h</in>
+      <in>preferences.cpp</in>
+      <in>preferences.h</in>
+      <in>screencapture.c</in>
+      <in>snes9gx_video.cpp</in>
+      <in>snes9xgx.h</in>
+      <in>video.cpp</in>
+      <in>video.h</in>
+      <in>w_input.h</in>
+      <in>wchar.c</in>
+      <in>xenon.c</in>
+    </df>
+    <df root="../../nullDC" name="2">
+      <df name="cl">
+        <in>cl.cpp</in>
+        <in>cl.h</in>
+      </df>
+      <df name="config">
+        <in>config.cpp</in>
+        <in>config.h</in>
+      </df>
+      <df name="dc">
+        <df name="aica">
+          <in>aica_if.cpp</in>
+          <in>aica_if.h</in>
+        </df>
+        <df name="asic">
+          <in>asic.cpp</in>
+          <in>asic.h</in>
+        </df>
+        <df name="gdrom">
+          <in>gdrom_if.h</in>
+          <in>gdrom_response.cpp</in>
+          <in>gdromv3.cpp</in>
+          <in>gdromv3.h</in>
+        </df>
+        <df name="maple">
+          <in>maple_if.cpp</in>
+          <in>maple_if.h</in>
+        </df>
+        <df name="mem">
+          <in>Elf.cpp</in>
+          <in>Elf.h</in>
+          <in>_vmem.cpp</in>
+          <in>_vmem.h</in>
+          <in>memutil.cpp</in>
+          <in>memutil.h</in>
+          <in>mmu.cpp</in>
+          <in>mmu.h</in>
+          <in>sb.cpp</in>
+          <in>sb.h</in>
+          <in>sh4_area0.cpp</in>
+          <in>sh4_area0.h</in>
+          <in>sh4_internal_reg.cpp</in>
+          <in>sh4_internal_reg.h</in>
+          <in>sh4_mem.cpp</in>
+          <in>sh4_mem.h</in>
+        </df>
+        <df name="pvr">
+          <in>pvrLock.cpp</in>
+          <in>pvrLock.h</in>
+          <in>pvr_if.cpp</in>
+          <in>pvr_if.h</in>
+          <in>pvr_sb_regs.cpp</in>
+          <in>pvr_sb_regs.h</in>
+        </df>
+        <df name="sh4">
+          <df name="rec_v1">
+            <in>analyser.cpp</in>
+            <in>analyser.h</in>
+            <in>basicblock.cpp</in>
+            <in>basicblock.h</in>
+            <in>blockmanager.cpp</in>
+            <in>blockmanager.h</in>
+            <in>codespan.cpp</in>
+            <in>codespan.h</in>
+            <in>compiledblock.cpp</in>
+            <in>compiledblock.h</in>
+            <in>driver.cpp</in>
+            <in>driver.h</in>
+            <in>ops.h</in>
+            <in>recompiler.h</in>
+            <in>sh4_cpu_shil.cpp</in>
+            <in>sh4_cpu_shil.h</in>
+          </df>
+          <df name="shil">
+            <df name="compiler">
+              <in>shil_compiler_base.cpp</in>
+              <in>shil_compiler_base.h</in>
+            </df>
+            <in>shil.cpp</in>
+            <in>shil.h</in>
+            <in>shil_ce.cpp</in>
+            <in>shil_ce.h</in>
+          </df>
+          <in>bsc.cpp</in>
+          <in>bsc.h</in>
+          <in>ccn.cpp</in>
+          <in>ccn.h</in>
+          <in>cpg.cpp</in>
+          <in>cpg.h</in>
+          <in>dmac.cpp</in>
+          <in>dmac.h</in>
+          <in>intc.cpp</in>
+          <in>intc.h</in>
+          <in>intc_types.h</in>
+          <in>rtc.cpp</in>
+          <in>rtc.h</in>
+          <in>sci.cpp</in>
+          <in>sci.h</in>
+          <in>scif.cpp</in>
+          <in>scif.h</in>
+          <in>sh4_cpu.cpp</in>
+          <in>sh4_cpu.h</in>
+          <in>sh4_cpu_arith.h</in>
+          <in>sh4_cpu_branch.h</in>
+          <in>sh4_cpu_branch_rec.h</in>
+          <in>sh4_cpu_loadstore.h</in>
+          <in>sh4_cpu_logic.h</in>
+          <in>sh4_cpu_movs.h</in>
+          <in>sh4_fpu.cpp</in>
+          <in>sh4_fpu.h</in>
+          <in>sh4_if.cpp</in>
+          <in>sh4_if.h</in>
+          <in>sh4_interpreter.cpp</in>
+          <in>sh4_interpreter.h</in>
+          <in>sh4_opcode_list.cpp</in>
+          <in>sh4_opcode_list.h</in>
+          <in>sh4_registers.cpp</in>
+          <in>sh4_registers.h</in>
+          <in>sh4r_rename.h</in>
+          <in>tmu.cpp</in>
+          <in>tmu.h</in>
+          <in>ubc.cpp</in>
+          <in>ubc.h</in>
+        </df>
+        <in>dc.cpp</in>
+        <in>dc.h</in>
+      </df>
+      <df name="emitter">
+        <df name="disasm">
+          <in>asm_ppc.c</in>
+          <in>dis-asm.h</in>
+          <in>mybfd.h</in>
+          <in>opintl.h</in>
+          <in>ppc-dis.c</in>
+          <in>ppc-opc.c</in>
+          <in>ppc.h</in>
+        </df>
+        <df name="regalloc">
+          <in>ppc_fpregalloc.cpp</in>
+          <in>ppc_fpregalloc.h</in>
+          <in>ppc_intregalloc.cpp</in>
+          <in>ppc_intregalloc.h</in>
+          <in>regalloc.h</in>
+          <in>regalloc_base.h</in>
+        </df>
+        <in>3DMath.h</in>
+        <in>BaseTypes.h</in>
+        <in>PowerPC.h</in>
+        <in>emitter.cpp</in>
+        <in>emitter.h</in>
+      </df>
+      <df name="gui">
+        <in>base.cpp</in>
+        <in>base.h</in>
+        <in>resource.h</in>
+      </df>
+      <df name="log">
+        <in>logging.cpp</in>
+        <in>logging.h</in>
+        <in>logging_interface.h</in>
+      </df>
+      <df name="naomi">
+        <in>naomi.cpp</in>
+        <in>naomi.h</in>
+        <in>naomi_regs.h</in>
+      </df>
+      <df name="plugins">
+        <in>gui_plugin_header.h</in>
+        <in>plugin_header.h</in>
+        <in>plugin_manager.cpp</in>
+        <in>plugin_manager.h</in>
+        <in>plugin_types.cpp</in>
+        <in>plugin_types.h</in>
+      </df>
+      <df name="profiler">
+        <in>profiler.cpp</in>
+        <in>profiler.h</in>
+      </df>
+      <df name="serial_ipc">
+        <in>serial_ipc_client.cpp</in>
+        <in>serial_ipc_client.h</in>
+      </df>
+      <in>basic_types.h</in>
+      <in>debug_mem.cpp</in>
+      <in>fake_pluginsystem.cpp</in>
+      <in>fake_pluginsystem.h</in>
+      <in>mchk.c</in>
+      <in>nullDC.cpp</in>
+      <in>sh4_reg_playground.h</in>
+      <in>stdclass.cpp</in>
+      <in>stdclass.h</in>
+      <in>types.h</in>
+    </df>
+    <df root="../../plugins" name="3">
+      <df name="drkPvr">
+        <in>Renderer_if.cpp</in>
+        <in>Renderer_if.h</in>
+        <in>SPG.cpp</in>
+        <in>TexCache.cpp</in>
+        <in>TexCache.h</in>
+        <in>config.h</in>
+        <in>drkPvr.cpp</in>
+        <in>drkPvr.h</in>
+        <in>helper_classes.cpp</in>
+        <in>helper_classes.h</in>
+        <in>regs.cpp</in>
+        <in>regs.h</in>
+        <in>screencapture.c</in>
+        <in>screencapture.h</in>
+        <in>shaders.S</in>
+        <in>spg.h</in>
+        <in>ta.cpp</in>
+        <in>ta.h</in>
+        <in>ta_const_df.h</in>
+        <in>ta_structs.h</in>
+        <in>threadedPvr.cpp</in>
+        <in>threadedPvr.h</in>
+        <in>xenosRend.cpp</in>
+        <in>xenosRend.h</in>
+      </df>
+      <df name="EmptyAICA">
+        <in>EmptyAICA.cpp</in>
+        <in>EmptyAICA.h</in>
+        <in>aica_hax.cpp</in>
+        <in>aica_hax.h</in>
+        <in>aica_hle.cpp</in>
+        <in>aica_hle.h</in>
+      </df>
+      <df name="ImgReader">
+        <df name="deps">
+          <in>chd.h</in>
+          <in>chdr.cpp</in>
+          <in>coretypes.h</in>
+          <in>md5.cpp</in>
+          <in>md5.h</in>
+          <in>sha1.cpp</in>
+          <in>sha1.h</in>
+        </df>
+        <in>ImgReader.cpp</in>
+        <in>ImgReader.h</in>
+        <in>SCSIDEFS.H</in>
+        <in>cdi.cpp</in>
+        <in>cdi.h</in>
+        <in>chd.cpp</in>
+        <in>chd.h</in>
+        <in>common.cpp</in>
+        <in>common.h</in>
+        <in>gd_driver.h</in>
+        <in>gdi.cpp</in>
+        <in>gdi.h</in>
+        <in>ioctl.cpp</in>
+        <in>ioctl.h</in>
+        <in>mds.cpp</in>
+        <in>mds.h</in>
+        <in>mds_reader.cpp</in>
+        <in>mds_reader.h</in>
+        <in>resource.h</in>
+      </df>
+      <df name="nullAICA">
+        <in>aica.cpp</in>
+        <in>aica.h</in>
+        <in>aica_mem.cpp</in>
+        <in>aica_mem.h</in>
+        <in>dsp.cpp</in>
+        <in>dsp.h</in>
+        <in>nullAICA.cpp</in>
+        <in>nullAICA.h</in>
+        <in>sgc_if.cpp</in>
+        <in>sgc_if.h</in>
+        <in>xenon_audiostream.cpp</in>
+        <in>xenon_audiostream.h</in>
+      </df>
+      <df name="nullExtDev">
+        <in>bba.cpp</in>
+        <in>bba.h</in>
+        <in>lan.cpp</in>
+        <in>lan.h</in>
+        <in>modem.cpp</in>
+        <in>modem.h</in>
+        <in>nullExtDev.cpp</in>
+        <in>nullExtDev.h</in>
+        <in>rtl8139c.cpp</in>
+        <in>rtl8139c.h</in>
+      </df>
+      <df name="vbaARM">
+        <in>arm-new.h</in>
+        <in>arm7.cpp</in>
+        <in>arm7.h</in>
+        <in>arm_aica.cpp</in>
+        <in>arm_aica.h</in>
+        <in>mem.cpp</in>
+        <in>mem.h</in>
+        <in>resource.h</in>
+        <in>vbaARM.cpp</in>
+        <in>vbaARM.h</in>
+      </df>
+      <df name="xenon_gui">
+        <in>xenon_gui.cpp</in>
+      </df>
+      <df name="XMaple">
+        <in>ArcadeStick.cpp</in>
+        <in>ArcadeStick.h</in>
+        <in>DInputBackend.cpp</in>
+        <in>DInputBackend.h</in>
+        <in>Device.cpp</in>
+        <in>Device.hpp</in>
+        <in>DreameyeMic.cpp</in>
+        <in>DreameyeMic.h</in>
+        <in>FT0.cpp</in>
+        <in>FT0.h</in>
+        <in>FT4.cpp</in>
+        <in>FT4.h</in>
+        <in>FT8.cpp</in>
+        <in>FT8.h</in>
+        <in>MapleInterface.h</in>
+        <in>Maxi.cpp</in>
+        <in>Maxi.h</in>
+        <in>Mic.cpp</in>
+        <in>Mic.h</in>
+        <in>StandardController.cpp</in>
+        <in>StandardController.h</in>
+        <in>Twinstick.cpp</in>
+        <in>Twinstick.h</in>
+        <in>XInputBackend.cpp</in>
+        <in>XInputBackend.h</in>
+        <in>XMaple.cpp</in>
+        <in>XMaple.h</in>
+      </df>
+    </df>
+  </logicalFolder>
   <projectmakefile></projectmakefile>
   <confs>
-    <conf name="Default" type="0">
+    <conf name="Default" type="0" platformSpecific="true">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <developmentServer>root@192.168.1.36:22</developmentServer>
         <platform>2</platform>
       </toolsSet>
+      <compile>
+        <compiledirpicklist>
+          <compiledirpicklistitem>.</compiledirpicklistitem>
+          <compiledirpicklistitem>${AUTO_FOLDER}</compiledirpicklistitem>
+        </compiledirpicklist>
+        <compiledir>${AUTO_FOLDER}</compiledir>
+        <compilecommandpicklist>
+          <compilecommandpicklistitem>${MAKE} ${ITEM_NAME}.o</compilecommandpicklistitem>
+          <compilecommandpicklistitem>${AUTO_COMPILE}</compilecommandpicklistitem>
+        </compilecommandpicklist>
+        <compilecommand>${AUTO_COMPILE}</compilecommand>
+      </compile>
       <dbx_gdbdebugger version="1">
         <gdb_pathmaps>
         </gdb_pathmaps>

@@ -307,7 +307,7 @@ struct DCFlashChip : MemChip	//i think its micronix :p
 					state=FS_Erase_AA;
 					break;
 				default:
-					log("Flash write %06X %08X %d\n",addr,val,sz);
+					dlog("Flash write %06X %08X %d\n",addr,val,sz);
 					state=FS_CMD_AA;
 					die("lolwhut");
 				}
@@ -319,11 +319,11 @@ struct DCFlashChip : MemChip	//i think its micronix :p
 				switch(val)
 				{
 				case 0x30:
-					log("Erase Sector %08X! (%08X)\n",addr,addr&(~0x3FFF));
+					dlog("Erase Sector %08X! (%08X)\n",addr,addr&(~0x3FFF));
 					memset(&data[addr&(~0x3FFF)],0xFF,0x4000);
 					break;
 				default:
-					log("Flash write %06X %08X %d\n",addr,val,sz);
+					dlog("Flash write %06X %08X %d\n",addr,val,sz);
 					die("erase .. what ?");
 				}
 				state=FS_CMD_AA;
@@ -332,7 +332,7 @@ struct DCFlashChip : MemChip	//i think its micronix :p
 
 		case FS_Write:
 			{
-				//log("flash write\n");
+				//dlog("flash write\n");
 				data[addr^3]&=val;
 				state=FS_CMD_AA;
 			}
@@ -364,7 +364,7 @@ bool LoadRomFiles(char* root)
 	{
 		if (NVR_OPTIONAL)
 		{
-			log("flash/nvmem is missing, will create new file ..");
+			dlog("flash/nvmem is missing, will create new file ..");
 		}
 		else
 		{

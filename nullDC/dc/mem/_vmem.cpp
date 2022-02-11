@@ -315,31 +315,31 @@ void INLINE _vmem_WriteMem64(u32 addr,u64 data)
 //defualt read handlers
 u8 fastcall _vmem_ReadMem8_not_mapped(u32 addresss)
 {
-	log("[sh4]Read8 from 0x%X, not mapped [_vmem default handler]\n",addresss);
+	dlog("[sh4]Read8 from 0x%X, not mapped [_vmem default handler]\n",addresss);
 	return (u8)MEM_ERROR_RETURN_VALUE;
 }
 u16 fastcall _vmem_ReadMem16_not_mapped(u32 addresss)
 {
-	log("[sh4]Read16 from 0x%X, not mapped [_vmem default handler]\n",addresss);
+	dlog("[sh4]Read16 from 0x%X, not mapped [_vmem default handler]\n",addresss);
 	return (u16)MEM_ERROR_RETURN_VALUE;
 }
 u32 fastcall _vmem_ReadMem32_not_mapped(u32 addresss)
 {
-	log("[sh4]Read32 from 0x%X, not mapped [_vmem default handler]\n",addresss);
+	dlog("[sh4]Read32 from 0x%X, not mapped [_vmem default handler]\n",addresss);
 	return (u32)MEM_ERROR_RETURN_VALUE;
 }
 //defualt write handers
 void fastcall _vmem_WriteMem8_not_mapped(u32 addresss,u8 data)
 {
-	log("[sh4]Write8 to 0x%X=0x%X, not mapped [_vmem default handler]\n",addresss,data);
+	dlog("[sh4]Write8 to 0x%X=0x%X, not mapped [_vmem default handler]\n",addresss,data);
 }
 void fastcall _vmem_WriteMem16_not_mapped(u32 addresss,u16 data)
 {
-	log("[sh4]Write16 to 0x%X=0x%X, not mapped [_vmem default handler]\n",addresss,data);
+	dlog("[sh4]Write16 to 0x%X=0x%X, not mapped [_vmem default handler]\n",addresss,data);
 }
 void fastcall _vmem_WriteMem32_not_mapped(u32 addresss,u32 data)
 {
-	log("[sh4]Write32 to 0x%X=0x%X, not mapped [_vmem default handler]\n",addresss,data);
+	dlog("[sh4]Write32 to 0x%X=0x%X, not mapped [_vmem default handler]\n",addresss,data);
 }
 //code to register handlers
 //0 is considered error :)

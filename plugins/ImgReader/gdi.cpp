@@ -81,7 +81,7 @@ Disc* gdi_parse(char* file)
 	size_t len=strlen(file);
 	if (len>4)
 	{
-		if (stricmp( &file[len-4],".gdi")==0)
+		if (strcasecmp( &file[len-4],".gdi")==0)
 		{
 			return load_gdi(file);
 		}

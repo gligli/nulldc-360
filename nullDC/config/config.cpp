@@ -230,7 +230,7 @@ void savecfgf()
 {
 	FILE* cfgfile = fopen(cfgPath,"wt");
 	if (!cfgfile)
-		log("Error : Unable to open file for saving \n");
+		dlog("Error : Unable to open file for saving \n");
 	else
 	{
 		cfgdb.SaveFile(cfgfile);
@@ -316,7 +316,7 @@ bool cfgOpen()
 	if(!cfgfile) {
 		cfgfile = fopen(cfgPath,"wt");
 		if(!cfgfile) 
-			log("Unable to open the config file for reading or writing\nfile : %s\n",cfgPath);
+			dlog("Unable to open the config file for reading or writing\nfile : %s\n",cfgPath);
 		else
 		{
 			fprintf(cfgfile,";; nullDC cfg file ;;\n\n");
@@ -324,7 +324,7 @@ bool cfgOpen()
 			fclose(cfgfile);
 			cfgfile = fopen(cfgPath,"r");
 			if(!cfgfile) 
-				log("Unable to open the config file for reading\nfile : %s\n",cfgPath);
+				dlog("Unable to open the config file for reading\nfile : %s\n",cfgPath);
 		}
 	}
 

@@ -100,15 +100,15 @@ void UpdateTMUCounts(u32 reg)
 			break;
 
 		case 5:	//reserved
-			log("TMU ch%d , TCR%d mode is reserved (5)",reg,reg);
+			dlog("TMU ch%d , TCR%d mode is reserved (5)",reg,reg);
 			break;
 
 		case 6:	//RTC
-			log("TMU ch%d , TCR%d mode is RTC (6) , can't be used on dreamcast",reg,reg);
+			dlog("TMU ch%d , TCR%d mode is RTC (6) , can't be used on dreamcast",reg,reg);
 			break;
 
 		case 7:	//external
-			log("TMU ch%d , TCR%d mode is External (7) , can't be used on dreamcast",reg,reg);
+			dlog("TMU ch%d , TCR%d mode is External (7) , can't be used on dreamcast",reg,reg);
 			break;
 	}
 	tmu_prescaler_shift[reg]+=2;// because we count in Io cycles (cpu core cycles) and the tmu is provided w/

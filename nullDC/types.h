@@ -105,6 +105,9 @@ using namespace std;
 
 #ifdef XENON
 #include <xenon_uart/xenon_uart.h>
+#ifdef __fastcall
+	#undef  __fastcall
+#endif
 #define __fastcall
 #define fastcall
 #define FASTCALL
@@ -117,7 +120,7 @@ using namespace std;
 #define dbgbreak asm volatile ("sc");
 
 #ifndef NO_VERIFY
-#define verify(x) if((x)==false){ msgboxf("Verify Failed  : " #x "\n in %s -> %s : %d \n",MBX_ICONERROR,(__FUNCTION__),(__FILE__),__LINE__); dbgbreak;}
+#define verify(x) if((x)==0){ msgboxf("Verify Failed  : " #x "\n in %s -> %s : %d \n",MBX_ICONERROR,(__FUNCTION__),(__FILE__),__LINE__); dbgbreak;}
 #else
 #define verify(__x__) /* __x__ */ ; 
 #endif

@@ -7,7 +7,7 @@
 #include <string.h>
 #include <debug.h>
 #include <libfat/fat.h>
-#include <libext2/ext2.h>
+//#include <libext2/ext2.h>
 #include <libntfs/ntfs.h>
 #include <sys/iosupport.h>
 #include <diskio/disc_io.h>
@@ -188,17 +188,17 @@ static void AddPartition(sec_t sector, int device, int type, int *devnum) {
 			else
 				part[device][*devnum].name[0] = 0;
 			break;
-		case T_EXT2:
-			if (!ext2Mount(mount, disc, sector, 2, 128, EXT2_FLAG_DEFAULT))
-				return;
-
-			name = (char *) ext2GetVolumeName(mount);
-
-			if (name && name[0])
-				strcpy(part[device][*devnum].name, name);
-			else
-				part[device][*devnum].name[0] = 0;
-			break;
+//		case T_EXT2:
+//			if (!ext2Mount(mount, disc, sector, 2, 128, EXT2_FLAG_DEFAULT))
+//				return;
+//
+//			name = (char *) ext2GetVolumeName(mount);
+//
+//			if (name && name[0])
+//				strcpy(part[device][*devnum].name, name);
+//			else
+//				part[device][*devnum].name[0] = 0;
+//			break;
 		case T_ISO9660:
 			if (!ISO9660_Mount(mount, disc))
 				return;

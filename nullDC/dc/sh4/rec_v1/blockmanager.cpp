@@ -190,7 +190,7 @@ public :
 
 			if (_M_impl._M_start[i]!=BLOCK_NONE)
 			{
-				log("BlockList::CheckEmptyList fatal error , ItemCount!=RealItemCount\n");
+				dlog("BlockList::CheckEmptyList fatal error , ItemCount!=RealItemCount\n");
 				__debugbreak(); 
 				return;
 			}
@@ -340,7 +340,7 @@ void RelocateBlocks()
 	u32 oldsz=DynarecCacheUsed;
 	DynarecCacheUsed=dst_start-DynarecCache;
 
-	log("Relocated dynarec blocks: %d KB before, %d KB new, %d bytes diff, %.2f%%\n",oldsz/1024,DynarecCacheUsed/1024,oldsz-DynarecCacheUsed,(oldsz-DynarecCacheUsed)*100/(float)DynarecCacheUsed);
+	dlog("Relocated dynarec blocks: %d KB before, %d KB new, %d bytes diff, %.2f%%\n",oldsz/1024,DynarecCacheUsed/1024,oldsz-DynarecCacheUsed,(oldsz-DynarecCacheUsed)*100/(float)DynarecCacheUsed);
 }
 
 
@@ -779,7 +779,7 @@ void __fastcall SuspendAllBlocks()
 }
 void __fastcall _SuspendAllBlocks()
 {
-	log("Reseting Dynarec Cache...\n");
+	dlog("Reseting Dynarec Cache...\n");
 	ResetBlocks(false);
     DynaLookupReset();
 	reset_cache=false;
@@ -861,7 +861,7 @@ void TermBlockManager()
 void DumpBlockMappings()
 {
 	FILE* out=fopen("C:\\blk.txt","wb");
-	log("nullDC block manager stats : tracing %d blocks\n",all_block_list.ItemCount);
+	dlog("nullDC block manager stats : tracing %d blocks\n",all_block_list.ItemCount);
 
 	for (u32 i=0;i<all_block_list.ItemCount;i++)
 	{
@@ -901,7 +901,7 @@ void init_memalloc(u32 size)
 	DynarecCache = dyna_mem_pool;
 	verify(DynarecCache!=0);
 
-	log("Dynarec cache : size is %.2fMB @ %p\n",size/1024.f/1024.f,DynarecCache);
+	dlog("Dynarec cache : size is %.2fMB @ %p\n",size/1024.f/1024.f,DynarecCache);
 
 }
 void reset_memalloc()
@@ -951,13 +951,13 @@ int compare_tbp_ticks (const void * a, const void * b)
 }
 void dyna_profiler_printf()
 {
-	log("%d blocks in list\n",tbp_tick_blocks.size());
+	dlog("%d blocks in list\n",tbp_tick_blocks.size());
 	qsort(&(tbp_tick_blocks[0]), tbp_tick_blocks.ItemCount, sizeof(CompiledBlockInfo*), compare_tbp_ticks);
 
 	u32 tticks=0;
 	for (u32 i=0;i<tbp_tick_blocks.size();i++)
 	{
-		log("%d%%[%d] :0x%X : 0x%X %d-%d\n"
+		dlog("%d%%[%d] :0x%X : 0x%X %d-%d\n"
 			,tbp_tick_blocks[i]->tbp_ticks*100/dyna_ticz
 			,tbp_tick_blocks[i]->tbp_ticks
 			,tbp_tick_blocks[i]->start
@@ -969,7 +969,7 @@ void dyna_profiler_printf()
 		//if (i>10)
 		//	break;
 	}
-	log("%d%% total\n",tticks*100/dyna_ticz);
+	dlog("%d%% total\n",tticks*100/dyna_ticz);
 	tbp_tick_blocks.clear();
 	dyna_ticz=0;
 }
@@ -994,7 +994,7 @@ void dyna_profiler_tick(void* addr)
 		}
 	}
 	__debugbreak(); 
-	log("0x%X OMG! UNABLE TO MATCH BLOCK TEH NOES\n",addr);
+	dlog("0x%X OMG! UNABLE TO MATCH BLOCK TEH NOES\n",addr);
 }
 
 

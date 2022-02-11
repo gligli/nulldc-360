@@ -37,10 +37,10 @@ int msgboxf(char* text,unsigned int type,...);
 float GetSeconds();
 
 
-#define log0(xx) printf(xx " (from "__FUNCTION__ ")\n");
-#define log1(xx,yy) printf(xx " (from "__FUNCTION__ ")\n",yy);
-#define log2(xx,yy,zz) printf(xx " (from "__FUNCTION__ ")\n",yy,zz);
-#define log3(xx,yy,gg) printf(xx " (from "__FUNCTION__ ")\n",yy,zz,gg);
+#define dlog0(xx) printf(xx " (from "__FUNCTION__ ")\n");
+#define dlog1(xx,yy) printf(xx " (from "__FUNCTION__ ")\n",yy);
+#define dlog2(xx,yy,zz) printf(xx " (from "__FUNCTION__ ")\n",yy,zz);
+#define dlog3(xx,yy,gg) printf(xx " (from "__FUNCTION__ ")\n",yy,zz,gg);
 
 #include "helper_classes.h"
 

@@ -39,17 +39,17 @@ INLINE void Denorm32(float &value)
 		if (IS_DENORMAL(v) && (*v&0x7fFFFFFF)!=0)
 		{
 			*v&=0x80000000;
-			//log("Denromal ..\n");
+			//dlog("Denromal ..\n");
 		}
 		if ((*v<=0x007FFFFF) && *v>0)
 		{
 			*v=0;
-			log("Fixed +denorm\n");
+			dlog("Fixed +denorm\n");
 		}
 		else if ((*v<=0x807FFFFF) && *v>0x80000000)
 		{
 			*v=0x80000000;
-			log("Fixed -denorm\n");
+			dlog("Fixed -denorm\n");
 		}
 	}
 }
@@ -504,7 +504,7 @@ sh4op(i1111_0011_1111_1101)
 {
 	//iNimp("fschg");
 	fpscr.SZ = 1 - fpscr.SZ;
-	//log("SZ %d %08X\n",fpscr.SZ,id);
+	//dlog("SZ %d %08X\n",fpscr.SZ,id);
 }
 
 //fsqrt <FREG_N>                
@@ -669,9 +669,9 @@ sh4op(i1111_nn01_1111_1101)
 
 void iNimp(char*str)
 {
-	log("Unimplemented sh4 fpu instruction: ");
-	log(str);
-	log("\n");
+	dlog("Unimplemented sh4 fpu instruction: ");
+	dlog(str);
+	dlog("\n");
 	
 	//Sh4_int_Stop();
 }

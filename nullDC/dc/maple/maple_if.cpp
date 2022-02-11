@@ -41,11 +41,11 @@ void maple_vblank()
 		{
 			if (maple_ddt_pending_reset)
 			{
-				//log("DDT vblank ; reset pending\n");
+				//dlog("DDT vblank ; reset pending\n");
 			}
 			else
 			{
-				//log("DDT vblank\n");
+				//dlog("DDT vblank\n");
 				DoMapleDma();
 				//the periodial callback handlers raising the interrupt and stuff
 				if ((SB_MSYS>>12)&1)
@@ -79,7 +79,7 @@ void maple_periodical(u32 cycl)
 
 		if (maple_pending_dma <= 0)
 		{
-			//log("%u %d\n",cycl,(s32)maple_pending_dma);
+			//dlog("%u %d\n",cycl,(s32)maple_pending_dma);
 			asic_RaiseInterrupt(holly_MAPLE_DMA);
 			maple_pending_dma = 0;
 			SB_MDST=0;
@@ -145,7 +145,7 @@ void DoMapleDma()
 	verify(SB_MDST==0);
 	u32 total_bytes=0;
 #if debug_maple
-	log("Maple :DoMapleDma\n");
+	dlog("Maple :DoMapleDma\n");
 #endif
 	u32 addr = SB_MDSTAR & 0x1FFFFFE0;
 	bool last = false;
@@ -164,7 +164,7 @@ void DoMapleDma()
 		{
 			if (!IsOnSh4Ram(header_2))
 			{
-				log("MAPLE ERROR : DESTINATION NOT ON SH4 RAM 0x%X\n",header_2);
+				dlog("MAPLE ERROR : DESTINATION NOT ON SH4 RAM 0x%X\n",header_2);
 				header_2&=0xFFFFFF;
 				header_2|=(3<<26);
 				//goto dma_end;//a baaddd error
@@ -216,7 +216,7 @@ void DoMapleDma()
 				total_bytes+=inlen+outlen;
 
 				#if debug_maple
-					log("Maple :port%d_%d : 0x%02X -> done 0x%02X \n",device,subport,command,resp);
+					dlog("Maple :port%d_%d : 0x%02X -> done 0x%02X \n",device,subport,command,resp);
 				#endif
 
 				verify(resp==(u8)resp);
@@ -229,7 +229,7 @@ void DoMapleDma()
 			else
 			{
 				#if debug_maple
-					log("Maple :port%d_%d : 0x%02X -> missing\n",device,subport,command);
+					dlog("Maple :port%d_%d : 0x%02X -> missing\n",device,subport,command);
 				#endif
 
 				outlen=4;

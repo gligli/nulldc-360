@@ -7,7 +7,7 @@
 
 
 //Mainloop
-void FASTCALL armUpdateARM(unsigned long Cycles)
+void FASTCALL armUpdateARM(u32 Cycles)
 {
 	arm_Run(Cycles/arm_sh4_bias);
 }

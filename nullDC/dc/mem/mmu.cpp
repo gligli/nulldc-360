@@ -17,7 +17,7 @@
 #include "_vmem.h"
 
 #define printf_mmu(...)
-#define printf_win32 log
+#define printf_win32 dlog
 
 //SQ fast remap , mailny hackish , assumes 1 mb pages
 //max 64 mb can be remapped on SQ
@@ -73,7 +73,7 @@ bool UTLB_SyncMap(u32 entry)
 		#ifdef NO_MMU
 		u32 vpn_sq=((UTLB[entry].Address.VPN & (0x3FFFFFF>>10) )>>10) &0x3F;//upper bits are allways known [0xE0/E1/E2/E3]
 		sq_remap[vpn_sq]=UTLB[entry].Data.PPN<<10;
-		log("SQ remap %d : 0x%X to 0x%X\n",entry,UTLB[entry].Address.VPN<<10,UTLB[entry].Data.PPN<<10);
+		dlog("SQ remap %d : 0x%X to 0x%X\n",entry,UTLB[entry].Address.VPN<<10,UTLB[entry].Data.PPN<<10);
 		#endif
 		return true;
 	}
@@ -82,12 +82,12 @@ bool UTLB_SyncMap(u32 entry)
 		#ifdef NO_MMU
 		if ((UTLB[entry].Address.VPN&(0x1FFFFFFF>>10))==(UTLB[entry].Data.PPN&(0x1FFFFFFF>>10)))
 		{
-			log("Static remap %d : 0x%X to 0x%X\n",entry,UTLB[entry].Address.VPN<<10,UTLB[entry].Data.PPN<<10);
+			dlog("Static remap %d : 0x%X to 0x%X\n",entry,UTLB[entry].Address.VPN<<10,UTLB[entry].Data.PPN<<10);
 			return true;
 		}
-		log("Dynamic remap %d : 0x%X to 0x%X\n",entry,UTLB[entry].Address.VPN<<10,UTLB[entry].Data.PPN<<10);
+		dlog("Dynamic remap %d : 0x%X to 0x%X\n",entry,UTLB[entry].Address.VPN<<10,UTLB[entry].Data.PPN<<10);
 		#endif
-		return false;//log("MEM remap %d : 0x%X to 0x%X\n",entry,UTLB[entry].Address.VPN<<10,UTLB[entry].Data.PPN<<10);
+		return false;//dlog("MEM remap %d : 0x%X to 0x%X\n",entry,UTLB[entry].Address.VPN<<10,UTLB[entry].Data.PPN<<10);
 	}
 }
 //sync mem mapping to mmu , suspend compiled blocks if needed.entry is a ITLB entry # , -1 is for full sync
@@ -110,7 +110,7 @@ void fastcall mmu_raise_exeption(u32 mmu_error,u32 address,u32 am)
 	{
 	//No error
 	case MMU_ERROR_NONE:
-		log("Error : mmu_raise_exeption(MMU_ERROR_NONE)\n");
+		dlog("Error : mmu_raise_exeption(MMU_ERROR_NONE)\n");
 		getc(stdin);
 		break;
 
@@ -129,7 +129,7 @@ void fastcall mmu_raise_exeption(u32 mmu_error,u32 address,u32 am)
 
 	//TLB Multyhit
 	case MMU_ERROR_TLB_MHIT :
-		log("MMU_ERROR_TLB_MHIT @ 0x%X\n",address);
+		dlog("MMU_ERROR_TLB_MHIT @ 0x%X\n",address);
 		break;
 
 	//Mem is read/write protected (depends on translation type)

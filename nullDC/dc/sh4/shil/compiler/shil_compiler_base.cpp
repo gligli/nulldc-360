@@ -702,7 +702,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 				}
 				else
 				{
-					//log("impossible mov IMMtoXMM [%X]\n",flags);
+					//dlog("impossible mov IMMtoXMM [%X]\n",flags);
 					//__asm int 3;
 					//write back to ram
 					ppce->emitLoadImmediate32(R4,op->imm1);
@@ -752,7 +752,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 			break;
 
 		default:
-			log("unknown mov %X\n",flags);
+			dlog("unknown mov %X\n",flags);
 			asm volatile ("sc");
 			break;
 		}
@@ -761,7 +761,7 @@ void __fastcall shil_compile_mov(shil_opcode* op)
 	{
 		assert(size==FLAG_64);//32 or 64 b
 		assert(0==(op->flags & (FLAG_IMM1|FLAG_IMM2)));//no imm can be used
-		//log("mov64 not supported\n");
+		//dlog("mov64 not supported\n");
 		u8 dest=GetSingleFromDouble((u8)op->reg1);
 		u8 source=GetSingleFromDouble((u8)op->reg2);
 
@@ -1706,12 +1706,12 @@ void __fastcall shil_compile_sub(shil_opcode* op)
 //left over from older code
 void __fastcall shil_compile_jcond(shil_opcode* op)
 {
-	log("jcond ... heh not implemented\n");
+	dlog("jcond ... heh not implemented\n");
 	assert(false);
 }
 void __fastcall shil_compile_jmp(shil_opcode* op)
 {
-	log("jmp ... heh not implemented\n");
+	dlog("jmp ... heh not implemented\n");
 }
 //helpers for mul
 void load_with_se16(ppc_gpr_reg to,u8 from)
@@ -2578,7 +2578,7 @@ void __fastcall shil_compile_fipr(shil_opcode* op)
 //Default handler , should never be called
 void __fastcall shil_compile_nimp(shil_opcode* op)
 {
-	log("*********SHIL \"%s\" not recompiled*********\n\n",GetShilName((shil_opcodes)op->opcode));
+	dlog("*********SHIL \"%s\" not recompiled*********\n\n",GetShilName((shil_opcodes)op->opcode));
 	asm volatile("sc");
 }
 
@@ -2666,11 +2666,11 @@ void SetH(shil_opcodes op,shil_compileFP* ha)
 {
 	if (op>(shilop_count-1))
 	{
-		log("SHIL COMPILER ERROR\n");
+		dlog("SHIL COMPILER ERROR\n");
 	}
 	if (sclt[op]!=shil_compile_nimp)
 	{
-		log("SHIL COMPILER ERROR [hash table overwrite]\n");
+		dlog("SHIL COMPILER ERROR [hash table overwrite]\n");
 	}
 
 	sclt[op]=ha;
@@ -2733,7 +2733,7 @@ void sclt_Init()
 			shil_nimp--;
 	}
 
-	//log("lazy shil compiler stats : %d%% opcodes done\n",shil_nimp*100/shilop_count);
+	//dlog("lazy shil compiler stats : %d%% opcodes done\n",shil_nimp*100/shilop_count);
 	*/
 }
 
@@ -2744,9 +2744,9 @@ void shil_compile(shil_opcode* op)
 {
 	if (op->opcode>(shilop_count-1))
 	{
-		log("SHIL COMPILER ERROR\n");
+		dlog("SHIL COMPILER ERROR\n");
 	}
-//	log("SHIL %s\n",GetShilName((shil_opcodes)op->opcode));
+//	dlog("SHIL %s\n",GetShilName((shil_opcodes)op->opcode));
 
 #ifdef PROF_SHIL 
 	ppce->emitLoad32(R3,&op_usage[op->opcode]);

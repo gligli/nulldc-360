@@ -347,7 +347,7 @@ u32 sb_ReadMem(u32 addr,u32 sz)
 #endif
 		#ifdef SB_MAP_UNKNOWN_REGS
 		if(reg->unk)
-			log("Read from unk-mapped SB reg : addr=%x\n",addr);
+			dlog("Read from unk-mapped SB reg : addr=%x\n",addr);
 		#endif
 
 		if (rflags & REG_READ_DATA )
@@ -410,7 +410,7 @@ void sb_WriteMem(u32 addr,u32 data,u32 sz)
 #endif
 		#ifdef SB_MAP_UNKNOWN_REGS
 		if(reg->unk)
-			log("Write to unk-mapped SB reg : addr=%x,data=%x\n",addr,data);
+			dlog("Write to unk-mapped SB reg : addr=%x,data=%x\n",addr,data);
 		#endif
 
 		if (rflags & REG_WRITE_DATA)
@@ -476,9 +476,9 @@ void SB_SFRES_write32(u32 data)
 {
 	if ((u16)data==0x7611)
 	{
-		log("SB/HOLLY : System reset requested\n");
+		dlog("SB/HOLLY : System reset requested\n");
 		if (!SoftReset_DC())
-			log("SOFT RESET REQUEST FAILED\n");
+			dlog("SOFT RESET REQUEST FAILED\n");
 	}
 }
 
@@ -492,7 +492,7 @@ void sb_implement_unk(u32 loc,u32 base,const u32 size = 4)
 
 	if(base >= 0x540)
 	{
-		log("sb_implement_unk : base(%u) out of range\n",base);
+		dlog("sb_implement_unk : base(%u) out of range\n",base);
 		return;
 	}
 

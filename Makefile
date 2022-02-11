@@ -172,5 +172,5 @@ endif
 
 # ced config
 run: $(BUILD) $(OUTPUT).elf32
-	cp $(OUTPUT).elf32 /tftpboot/xenon
-	$(PREFIX)strip /tftpboot/xenon
+	cp $(OUTPUT).elf32 /mnt/hgfs/x360dev/tftp/xenon.elf
+	$(PREFIX)strip /mnt/hgfs/x360dev/tftp/xenon.elf

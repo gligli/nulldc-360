@@ -73,8 +73,8 @@ void ExitApp()
 int main(int argc, char *argv[])
 {
 	InitVideo();
-    console_set_colors(0x1E1E1EFF,0xFFB663FF); // light blue on dark gray
-    console_init();
+	console_set_colors(0x1E1E1EFF,0xFFB663FF); // light blue on dark gray
+	console_init();
 	
 	xenon_make_it_faster(XENON_SPEED_FULL);
 	usb_init();
@@ -92,27 +92,26 @@ int main(int argc, char *argv[])
 	
 	browserList = (BROWSERENTRY *)malloc(sizeof(BROWSERENTRY)*MAX_BROWSER_SIZE);
 		
-    console_close();
+	console_close();
     
 	while (1) // main loop
 	{
-        if(EmuRunning)
-        {
-            EmuResume();
-        }
-        else
-        {
-            EmuTerm();
-    		MainMenu(MENU_GAMESELECTION);
-    		EmuLaunch();
-        }
-		
-		if(EmuConfigRequested)
-        {				
-			EmuConfigRequested = 0;
-            MainMenu(MENU_GAME);
+		if(EmuRunning)
+		{
+		    EmuResume();
 		}
-        
+		else
+		{
+		    EmuTerm();
+			MainMenu(MENU_GAMESELECTION);
+			EmuLaunch();
+		}
+
+		if(EmuConfigRequested)
+		{				
+			EmuConfigRequested = 0;
+			MainMenu(MENU_GAME);
+		}
 	}
 	
 	return 0;

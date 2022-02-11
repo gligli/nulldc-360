@@ -38,14 +38,14 @@ void CCN_MMUCR_write(u32 value)
 #ifdef NO_MMU
 	if ((temp.AT!=CCN_MMUCR.AT) && (temp.AT==1))
 	{
-		log("<*******>MMU Enabled , OLNY SQ remaps work<*******>\n");
+		dlog("<*******>MMU Enabled , OLNY SQ remaps work<*******>\n");
 		//getchar();
 	}
 #endif
 	
 	if (temp.TI)
 	{
-		log("TI , invalidating *TLB\n");
+		dlog("TI , invalidating *TLB\n");
 		temp.TI=0;
 
 		for (u32 i=0;i<4;i++)
@@ -72,7 +72,7 @@ void CCN_CCR_write(u32 value)
 		temp.ICI=0;
 		ici_count++;
 
-		log("i-cache invalidation requested! (%d total)\n",ici_count);
+		dlog("i-cache invalidation requested! (%d total)\n",ici_count);
 		SuspendAllBlocks();
 	}
 	CCN_CCR=temp;

@@ -5,7 +5,7 @@
 	#define logSetMode(_newMode_)
 	#define logSetModeEx(_newMode_,_arg0_)
 	//gli #define log(_fmt_,...) printf(_fmt_,__VA_ARGS__)
-	#define log(all...) printf(all)
+	#define dlog(all...) printf(all)
 	#define logEx(_field_,_fmt_,...)
 #else
 	#include "logging.h"

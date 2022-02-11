@@ -229,7 +229,7 @@ void cDllHandler::Unload()
 		u32 rv =FreeLibrary(lib);
 		if (!rv)
 		{
-			log("FreeLibrary -- failed %d\n",GetLastError());
+			dlog("FreeLibrary -- failed %d\n",GetLastError());
 		}
 		lib=0;
 	}
@@ -355,13 +355,13 @@ void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
 
 		if (!cbi)
 		{
-			log("**DYNAREC_BUG: bm_ReverseLookup failed to resolve %08X, will blindly patch due to %08X**\n",srr0,address);
+			dlog("**DYNAREC_BUG: bm_ReverseLookup failed to resolve %08X, will blindly patch due to %08X**\n",srr0,address);
 			return NULL;
 		}
 
 #ifdef DEBUG
 		else
-			log("Except in block %X | %X\n",cbi->Code,cbi);
+			dlog("Except in block %X | %X\n",cbi->Code,cbi);
 #endif
 
 		//printf("Rewrite %d %p %p %d\n",pir,srr0,dar,write);
@@ -376,7 +376,7 @@ void * ExeptionHandler(int pir,void * srr0,void * dar,int write)
     }
 	else
 	{
-		log("[GPF]Unhandled access to : 0x%X\n",address);
+		dlog("[GPF]Unhandled access to : 0x%X\n",address);
     	return ((PowerPC_instr*)srr0)+1;
 	}
 }

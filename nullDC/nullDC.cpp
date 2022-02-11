@@ -56,37 +56,37 @@ void EnumPlugins()
 	vector<PluginLoadInfo>* maple= GetPluginList(Plugin_Maple);
 	vector<PluginLoadInfo>* extdev= GetPluginList(Plugin_ExtDevice);
 
-	log("PowerVR plugins :\n");
+	dlog("PowerVR plugins :\n");
 	for (u32 i=0;i<pvr->size();i++)
 	{
 		printf("*\tFound %s\n" ,(*pvr)[i].Name);
 	}
 
-	log("\nGDRom plugins :\n");
+	dlog("\nGDRom plugins :\n");
 	for (u32 i=0;i<gdrom->size();i++)
 	{
 		printf("*\tFound %s\n" ,(*gdrom)[i].Name);
 	}
 
 	
-	log("\nAica plugins :\n");
+	dlog("\nAica plugins :\n");
 	for (u32 i=0;i<aica->size();i++)
 	{
 		printf("*\tFound %s\n" ,(*aica)[i].Name);
 	}
 
-	log("\nArm plugins :\n");
+	dlog("\nArm plugins :\n");
 	for (u32 i=0;i<arm->size();i++)
 	{
 		printf("*\tFound %s\n" ,(*arm)[i].Name);
 	}
 
-	log("\nMaple plugins :\n");
+	dlog("\nMaple plugins :\n");
 	for (u32 i=0;i<maple->size();i++)
 	{
 		printf("*\tFound %s\n" ,(*maple)[i].Name);
 	}
-	log("\nExtDevice plugins :\n");
+	dlog("\nExtDevice plugins :\n");
 	for (u32 i=0;i<extdev->size();i++)
 	{
 		printf("*\tFound %s\n" ,(*extdev)[i].Name);
@@ -113,7 +113,7 @@ int nulldc_init()
 		_vmem_reserve();
 		
 		if (ParseCommandLine(argc, argv)) {
-			log("\n\n(Exiting due to command line, without starting nullDC)\n");
+			dlog("\n\n(Exiting due to command line, without starting nullDC)\n");
 			return -1;
 		}
 
@@ -167,7 +167,7 @@ int main___(int argc,char* argv[])
 {
 	if(ParseCommandLine(argc,argv))
 	{
-		log("\n\n(Exiting due to command line, without starting nullDC)\n");
+		dlog("\n\n(Exiting due to command line, without starting nullDC)\n");
 		return 69;
 	}
 

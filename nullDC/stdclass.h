@@ -67,7 +67,7 @@ public:
 		if  (data)
 		{
 			#ifdef MEM_ALLOC_TRACE
-			log("WARNING : DESTRUCTOR WITH NON FREED ARRAY [arrayid:%d]\n",id);
+			dlog("WARNING : DESTRUCTOR WITH NON FREED ARRAY [arrayid:%d]\n",id);
 			#endif
 			Free();
 		}
@@ -86,7 +86,7 @@ public:
 			if (data)
 			{
 				#ifdef MEM_ALLOC_TRACE
-				log("Freeing data -> resize to zero[Array:%d]\n",id);
+				dlog("Freeing data -> resize to zero[Array:%d]\n",id);
 				#endif
 				Free();
 			}
@@ -130,13 +130,13 @@ public:
 			if (data)
 				free(data);
 			else
-				log("Data allready freed [Array:%d]\n",id);
+				dlog("Data allready freed [Array:%d]\n",id);
 			data=0;
 		}
 		else
 		{
 			if (data)
-				log("Free : Size=0 , data ptr !=null [Array:%d]\n",id);
+				dlog("Free : Size=0 , data ptr !=null [Array:%d]\n",id);
 
 		}
 	}
@@ -147,7 +147,7 @@ public:
 #ifdef MEM_BOUND_CHECK
         if (i>=Size)
 		{
-			log("Error: Array %d , index out of range (%d>%d)\n",id,i,Size-1);
+			dlog("Error: Array %d , index out of range (%d>%d)\n",id,i,Size-1);
 			MEM_DO_BREAK;
 		}
 #endif
@@ -159,7 +159,7 @@ public:
 #ifdef MEM_BOUND_CHECK
         if (!(i>=0 && i<(s32)Size))
 		{
-			log("Error: Array %d , index out of range (%d > %d)\n",id,i,Size-1);
+			dlog("Error: Array %d , index out of range (%d > %d)\n",id,i,Size-1);
 			MEM_DO_BREAK;
 		}
 #endif
@@ -256,7 +256,7 @@ public:
 #ifdef MEM_BOUND_CHECK
         if (i>=size)
 		{
-			log("Error: VArray2 , index out of range (%d>%d)\n",i,size-1);
+			dlog("Error: VArray2 , index out of range (%d>%d)\n",i,size-1);
 			MEM_DO_BREAK;
 		}
 #endif

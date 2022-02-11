@@ -91,7 +91,7 @@ void ScanCode(u32 pc,CodeRegion* to)
 
 		if (Scanner_FindSOM(opcode,pc,&SOM))
 		{
-			//log("Scanner : SOM %d\n",SOM);
+			//dlog("Scanner : SOM %d\n",SOM);
 			pc+=SOM+2;
 			op_count+=SOM>>1;
 			known_pl_cycles+=SOM>>1;
@@ -139,7 +139,7 @@ void AnalyseCode(BasicBlock* to)
 			switch (to->flags.SynthOpcode )
 			{
 			case BLOCK_SOM_SIZE_128:
-				//log("Syth opcode found at pc 0x%X , bytelen = 128+2 , skiping 130 bytes\n",pc);
+				//dlog("Syth opcode found at pc 0x%X , bytelen = 128+2 , skiping 130 bytes\n",pc);
 				pc+=128;
 				block_ops+=128>>1;
 				break;

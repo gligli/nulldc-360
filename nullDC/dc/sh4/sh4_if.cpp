@@ -27,7 +27,7 @@ u8 GetSingleFromDouble(u8 dbl)
 		return (u8)(xf_0+(res<<1));
 	}
 
-	log("GetSingleFromDouble : WRONG ID %X\n",dbl);
+	dlog("GetSingleFromDouble : WRONG ID %X\n",dbl);
 
 	return reg_xmtrx;//error :P
 }

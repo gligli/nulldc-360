@@ -326,7 +326,7 @@ static bool ParseDirEntries()
 				if (ext == NULL)
 					continue;
 
-				if (stricmp(ext, "gdi") != 0 && stricmp(ext, "mds") != 0)
+				if (strcasecmp(ext, "gdi") != 0 && strcasecmp(ext, "mds") != 0)
 					continue;
 			}
 		}

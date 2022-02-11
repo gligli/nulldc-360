@@ -24,18 +24,18 @@
 	{
 		if (size==0)
 		{
-			log("debug_malloc warning : malloc with size=0");
+			dlog("debug_malloc warning : malloc with size=0");
 			MEM_ERROR_BREAK;
 		}
 		void *rv= malloc(size);
 		if (rv==0)
 		{
-			log("debug_malloc warning : malloc (%d) failed",size);
+			dlog("debug_malloc warning : malloc (%d) failed",size);
 			MEM_ERROR_BREAK;
 		}
 		//if (size==1024*128)
 		//	memset(rv,0,size);
-		//log("malloc %X\n",*(u8*)rv);
+		//dlog("malloc %X\n",*(u8*)rv);
 		
 		return rv;
 	}
@@ -44,17 +44,17 @@
 	{
 		if (size==0)
 		{
-			log("debug_realloc warning : malloc with size=0 called \n");
+			dlog("debug_realloc warning : malloc with size=0 called \n");
 			MEM_ERROR_BREAK;
 		}
 
 		if (mem==0)
-			log("debug_realloc warning : malloc with ptr=0 called \n");
+			dlog("debug_realloc warning : malloc with ptr=0 called \n");
 		
 		void *rv= realloc(mem,size);
 		if (rv==0)
 		{
-			log("debug_realloc warning : realloc (0x%p,%d) failed",mem,size);
+			dlog("debug_realloc warning : realloc (0x%p,%d) failed",mem,size);
 			MEM_ERROR_BREAK;
 		}
 		return rv;
@@ -64,7 +64,7 @@
 	{
 		if (ptr==0)
 		{
-			log("debug_free warning : malloc with ptr==0 called \n");
+			dlog("debug_free warning : malloc with ptr==0 called \n");
 			MEM_ERROR_BREAK;
 		}
 

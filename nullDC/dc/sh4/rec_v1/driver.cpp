@@ -75,7 +75,7 @@ CompiledBlockInfo*  __fastcall CompileCode(u32 pc)
 	if (!cblock)
 	{
 		_SuspendAllBlocks();
-		log("Compile failed -- retrying\n");
+		dlog("Compile failed -- retrying\n");
 		return CompileCode(pc);//retry
 	}
 	
@@ -134,7 +134,9 @@ void rec_sh4_ResetCache()
 #define DYNA_LOOKUP_SIZE (RAM_SIZE/2) // one sh4 op is 2 bytes
 #define DYNA_LOOKUP_BYTE_SIZE (DYNA_LOOKUP_SIZE*4)
 
-u32 * __attribute__((aligned(VM_USER_PAGE_SIZE))) sh4_pc_to_ppc=NULL; 
+#define LOC_VM_USER_PAGE_SIZE 65536
+
+u32 * __attribute__((aligned(LOC_VM_USER_PAGE_SIZE))) sh4_pc_to_ppc=NULL; 
 u32 __attribute__((aligned(VM_USER_PAGE_SIZE))) sh4_pc_to_ppc_full_lookup[VM_USER_PAGE_SIZE/sizeof(void*)];
 
 extern "C" {
@@ -463,7 +465,7 @@ void rec_Sh4_int_Step()
 {
 	if (rec_sh4_int_bCpuRun)
 	{
-		log("recSh4 Is running , can't step\n");
+		dlog("recSh4 Is running , can't step\n");
 	}
 	else
 	{
@@ -477,7 +479,7 @@ void rec_Sh4_int_Skip()
 {
 	if (rec_sh4_int_bCpuRun)
 	{
-		log("recSh4 Is running , can't Skip\n");
+		dlog("recSh4 Is running , can't Skip\n");
 	}
 	else
 	{
@@ -489,7 +491,7 @@ void rec_Sh4_int_Reset(bool Manual)
 {
 	if (rec_sh4_int_bCpuRun)
 	{
-		log("Sh4 Is running , can't Reset\n");
+		dlog("Sh4 Is running , can't Reset\n");
 	}
 	else
 	{
@@ -499,7 +501,7 @@ void rec_Sh4_int_Reset(bool Manual)
 		ResetBlockManager();
 		
 		//Any more registers have default value ?
-		log("recSh4 Reset\n");
+		dlog("recSh4 Reset\n");
     
         rec_cycles=CPU_TIMESLICE*9/10;
 	}
@@ -519,7 +521,7 @@ void rec_Sh4_int_Init()
     
     DynaLookupInit();
     
-	log("recSh4 Init\n");
+	dlog("recSh4 Init\n");
 }
 
 void rec_Sh4_int_Term() 
@@ -527,7 +529,7 @@ void rec_Sh4_int_Term()
 	TermBlockManager();
 	TermAnalyser();
 	Sh4_int_Term();
-	log("recSh4 Term\n");
+	dlog("recSh4 Term\n");
 }
 
 bool rec_Sh4_int_IsCpuRunning() 

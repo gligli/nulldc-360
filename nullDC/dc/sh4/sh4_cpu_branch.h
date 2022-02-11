@@ -134,7 +134,7 @@ sh4op(i1011_iiii_iiii_iiii)
 // trapa #<imm>                  
 sh4op(i1100_0011_iiii_iiii)
 {
-	//log("trapa 0x%X\n",(GetImm8(op) << 2));
+	//dlog("trapa 0x%X\n",(GetImm8(op) << 2));
 	CCN_TRA = (GetImm8(op) << 2);
 	Do_Exeption(0,0x160,0x100);
 }

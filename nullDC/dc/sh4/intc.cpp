@@ -272,7 +272,7 @@ void RaiseExeption(u32 code,u32 vector)
 {
 	if (sh4r.sr.BL!=0)
 	{
-		log("RaiseExeption: sr.BL==1, pc=%08X\n",sh4r.pc);
+		dlog("RaiseExeption: sr.BL==1, pc=%08X\n",sh4r.pc);
 		verify(sh4r.sr.BL == 0);
 	}
 		

@@ -50,7 +50,7 @@ static INLINE  __attribute__((unused)) f64 GetDR(u32 n)
 {
 #ifdef TRACE
 	if (n>7)
-		log("DR_r INDEX OVERRUN %d >7",n);
+		dlog("DR_r INDEX OVERRUN %d >7",n);
 #endif
 	double t;
 	((u32*)(&t))[1]=fr_hex[(n<<1) | 0];
@@ -63,7 +63,7 @@ static INLINE __attribute__((unused)) f64 GetXD(u32 n)
 {
 #ifdef TRACE
 	if (n>7)
-		log("XD_r INDEX OVERRUN %d >7",n);
+		dlog("XD_r INDEX OVERRUN %d >7",n);
 #endif
 	double t;
 	((u32*)(&t))[1]=xf_hex[(n<<1) | 0];
@@ -76,7 +76,7 @@ static INLINE __attribute__((unused)) void SetDR(u32 n,f64 val)
 {
 #ifdef TRACE
 	if (n>7)
-		log("DR_w INDEX OVERRUN %d >7",n);
+		dlog("DR_w INDEX OVERRUN %d >7",n);
 #endif
 	fr_hex[(n<<1) | 1]=((u32*)(&val))[0];
 	fr_hex[(n<<1) | 0]=((u32*)(&val))[1];
@@ -86,7 +86,7 @@ static INLINE __attribute__((unused)) void SetXD(u32 n,f64 val)
 {
 #ifdef TRACE
 	if (n>7)
-		log("XD_w INDEX OVERRUN %d >7",n);
+		dlog("XD_w INDEX OVERRUN %d >7",n);
 #endif
 
 	xf_hex[(n<<1) | 1]=((u32*)(&val))[0];

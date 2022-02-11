@@ -54,7 +54,7 @@ u32 ReadMem_aica_rtc(u32 addr,u32 sz)
 		return 0;
 	}
 
-	log("ReadMem_aica_rtc : invalid address\n");
+	dlog("ReadMem_aica_rtc : invalid address\n");
 	return 0;
 }
 
@@ -129,12 +129,12 @@ void FASTCALL WriteMem_aica_reg(u32 addr,u32 data,u32 sz)
 		if (addr==0x2C01)
 		{
 			VREG=data;
-			log("VREG = %02X\n",VREG);
+			dlog("VREG = %02X\n",VREG);
 		}
 		else if (addr==0x2C00)
 		{
 			ARMRST=data;
-			log("ARMRST = %02X\n",ARMRST);
+			dlog("ARMRST = %02X\n",ARMRST);
 			ArmSetRST();
 		}
 		else
@@ -148,7 +148,7 @@ void FASTCALL WriteMem_aica_reg(u32 addr,u32 data,u32 sz)
 		{
 			VREG=(data>>8)&0xFF;
 			ARMRST=data&0xFF;
-			log("VREG = %02X ARMRST %02X\n",VREG,ARMRST);
+			dlog("VREG = %02X ARMRST %02X\n",VREG,ARMRST);
 			ArmSetRST();
 		}
 		else
@@ -189,7 +189,7 @@ void aica_periodical(u32 cycl)
 
 		if (aica_pending_dma <= 0)
 		{
-			//log("%u %d\n",cycl,(s32)aica_pending_dma);
+			//dlog("%u %d\n",cycl,(s32)aica_pending_dma);
 			asic_RaiseInterrupt(holly_SPU_DMA);
 			aica_pending_dma = 0;
 			SB_ADST=0;
@@ -224,7 +224,7 @@ void Write_SB_ADST(u32 data)
 				u32 t=src;
 				src=dst;
 				dst=t;
-				log("**AICA DMA : SB_ADDIR==1: Not sure this works, please report if broken/missing sound or crash\n**");
+				dlog("**AICA DMA : SB_ADDIR==1: Not sure this works, please report if broken/missing sound or crash\n**");
 			}
 
 
@@ -274,10 +274,10 @@ void Write_SB_E1ST(u32 data)
 				u32 t=src;
 				src=dst;
 				dst=t;
-				log("G2-EXT1 DMA : SB_E1DIR==1 DMA Read to 0x%X from 0x%X %d bytes\n",dst,src,len);
+				dlog("G2-EXT1 DMA : SB_E1DIR==1 DMA Read to 0x%X from 0x%X %d bytes\n",dst,src,len);
 			}
 			else
-				log("G2-EXT1 DMA : SB_E1DIR==0:DMA Write to 0x%X from 0x%X %d bytes\n",dst,src,len);
+				dlog("G2-EXT1 DMA : SB_E1DIR==0:DMA Write to 0x%X from 0x%X %d bytes\n",dst,src,len);
 
 			for (u32 i=0;i<len;i+=4)
 			{

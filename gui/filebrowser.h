@@ -16,6 +16,7 @@
 
 #include <unistd.h>
 #include <xetypes.h>
+#include <sys/syslimits.h>
 
 #define MAXJOLIET 255
 #ifdef HW_DOL
@@ -26,7 +27,7 @@
 
 typedef struct
 {
-	char dir[MAXPATHLEN + 1]; // directory path of browserList
+	char dir[PATH_MAX + 1]; // directory path of browserList
 	int numEntries; // # of entries in browserList
 	int selIndex; // currently selected index of browserList
 	int pageIndex; // starting index of browserList page display
